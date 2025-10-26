@@ -1,6 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ProjectCard } from '@/components/ProjectCard';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { projects } from '@/data/projects';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
@@ -77,8 +78,8 @@ export default function Home() {
       <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-serif font-bold mb-6">{t('home.about.title')}</h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <h2 className="text-4xl font-serif font-bold mb-6 animate-slide-up">{t('home.about.title')}</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed animate-fade-in">
               {t('home.about.text')}
             </p>
           </div>
@@ -88,7 +89,7 @@ export default function Home() {
       {/* Featured Projects */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-serif font-bold mb-12 text-center">
+          <h2 className="text-4xl font-serif font-bold mb-12 text-center animate-slide-up">
             {t('home.projects.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -117,17 +118,23 @@ export default function Home() {
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-            <div className="animate-fade-in">
+            <div className="animate-bounce-in">
               <Building2 className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">{t('home.stats.years')}</p>
+              <p className="text-4xl font-serif font-bold mb-2">
+                +<AnimatedCounter end={10} /> ANS D'ACTIVITÉ
+              </p>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="animate-bounce-in" style={{ animationDelay: '0.2s' }}>
               <TrendingUp className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">{t('home.stats.projects')}</p>
+              <p className="text-4xl font-serif font-bold mb-2">
+                <AnimatedCounter end={12} /> PROJETS RÉALISÉS
+              </p>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="animate-bounce-in" style={{ animationDelay: '0.4s' }}>
               <Users className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">{t('home.stats.area')}</p>
+              <p className="text-4xl font-serif font-bold mb-2">
+                +<AnimatedCounter end={20000} /> M² CONSTRUITS
+              </p>
             </div>
           </div>
         </div>
@@ -136,7 +143,7 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-serif font-bold mb-12 text-center">
+          <h2 className="text-4xl font-serif font-bold mb-12 text-center animate-slide-up">
             {t('home.testimonials.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -160,8 +167,8 @@ export default function Home() {
       {/* Investor CTA */}
       <section className="py-20 bg-accent text-accent-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-serif font-bold mb-6">{t('home.investor.title')}</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">{t('home.investor.text')}</p>
+          <h2 className="text-4xl font-serif font-bold mb-6 animate-scale-in">{t('home.investor.title')}</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto animate-fade-in">{t('home.investor.text')}</p>
           <Link to="/investors">
             <Button size="lg" variant="outline" className="bg-background text-foreground hover:bg-background/90">
               {t('home.investor.cta')}
