@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import logo from '@/assets/logo.png';
 export const Navbar = () => {
   const {
     t
@@ -38,11 +39,13 @@ export const Navbar = () => {
   return <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-background/95 backdrop-blur-sm shadow-md' : 'bg-transparent'}`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" className="text-2xl font-serif font-bold text-primary hover:text-accent transition-colors">Genuíno Investments</Link>
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Genuíno Investments" className="h-12 w-auto" />
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => <Link key={link.to} to={link.to} className={`text-sm font-medium transition-colors hover:text-primary ${isActive(link.to) ? 'text-primary' : 'text-foreground'}`}>
+            {navLinks.map(link => <Link key={link.to} to={link.to} className={`text-sm font-serif font-semibold uppercase tracking-wide transition-colors hover:text-accent ${isActive(link.to) ? 'text-primary' : 'text-primary'}`}>
                 {link.label}
               </Link>)}
             <LanguageSwitcher />
@@ -60,7 +63,7 @@ export const Navbar = () => {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-4">
-              {navLinks.map(link => <Link key={link.to} to={link.to} onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-medium transition-colors hover:text-primary ${isActive(link.to) ? 'text-primary' : 'text-foreground'}`}>
+              {navLinks.map(link => <Link key={link.to} to={link.to} onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-serif font-semibold uppercase tracking-wide transition-colors hover:text-accent ${isActive(link.to) ? 'text-primary' : 'text-primary'}`}>
                   {link.label}
                 </Link>)}
             </div>
