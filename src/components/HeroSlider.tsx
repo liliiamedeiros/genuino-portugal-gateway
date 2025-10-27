@@ -92,11 +92,7 @@ export const HeroSlider = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 z-10 text-center relative">
-        <p className={`text-xl md:text-2xl mb-4 text-muted-foreground italic transition-all duration-1000 ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{
-        transitionDelay: '200ms'
-      }}>
-          {slides[currentSlide].caption[language]}
-        </p>
+        
         <h1 className="font-serif font-bold mb-6 animate-fade-in uppercase tracking-wide md:text-5xl text-5xl text-gray-50">
           {t('home.hero.title')}
         </h1>
