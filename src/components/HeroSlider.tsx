@@ -97,7 +97,7 @@ export const HeroSlider = () => {
       }}>
           {slides[currentSlide].caption[language]}
         </p>
-        <h1 className="font-serif font-bold mb-6 animate-fade-in uppercase tracking-wide text-yellow-900 md:text-5xl text-5xl">
+        <h1 className="font-serif font-bold mb-6 animate-fade-in uppercase tracking-wide md:text-5xl text-5xl text-gray-50">
           {t('home.hero.title')}
         </h1>
         <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up text-neutral-950">
