@@ -141,7 +141,7 @@ export default function Home() {
       </section>
 
       {/* Investor CTA */}
-      <section className="py-20 bg-accent text-accent-foreground">
+      <section className="py-20 text-white" style={{ backgroundColor: '#877350' }}>
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-serif font-bold mb-6 animate-scale-in">{t('home.investor.title')}</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto animate-fade-in">{t('home.investor.text')}</p>
