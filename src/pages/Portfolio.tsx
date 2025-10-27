@@ -22,15 +22,20 @@ export default function Portfolio() {
       {/* Projects Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <ProjectCard
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project, index) => (
+              <div
                 key={project.id}
-                id={project.id}
-                title={project.title[language]}
-                location={`${project.location}, ${project.region}`}
-                image={project.mainImage}
-              />
+                className="group animate-scale-in hover:-translate-y-2 transition-all duration-500"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProjectCard
+                  id={project.id}
+                  title={project.title[language]}
+                  location={`${project.location}, ${project.region}`}
+                  image={project.mainImage}
+                />
+              </div>
             ))}
           </div>
         </div>

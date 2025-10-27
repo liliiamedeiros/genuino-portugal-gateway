@@ -7,7 +7,7 @@ export const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-secondary py-12 mt-20">
+    <footer className="bg-background py-12 mt-20 border-t-2 border-primary">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
@@ -27,15 +27,15 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Suivez-nous</h4>
+            <h4 className="font-serif font-semibold mb-4 uppercase text-primary">Suivez-nous</h4>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-all hover:scale-110">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-all hover:scale-110">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-all hover:scale-110">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>

@@ -2,10 +2,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ProjectCard } from '@/components/ProjectCard';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
+import { HeroSlider } from '@/components/HeroSlider';
 import { projects } from '@/data/projects';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
-import vistaMar1 from '@/assets/vista-mar-1.png';
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -47,32 +47,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src={vistaMar1}
-            alt="Développement immobilier au Portugal"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/40" />
-        </div>
-
-        <div className="container mx-auto px-4 z-10 text-center">
-          <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 animate-fade-in">
-            {t('home.hero.title')}
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up text-foreground/90">
-            {t('home.hero.subtitle')}
-          </p>
-          <Link to="/portfolio">
-            <Button size="lg" className="animate-slide-up bg-primary hover:bg-accent text-lg px-8 py-6">
-              {t('home.hero.cta')}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      {/* Hero Slider */}
+      <HeroSlider />
 
       {/* About Section */}
       <section className="py-20 bg-secondary">
