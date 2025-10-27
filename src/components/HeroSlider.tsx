@@ -87,7 +87,7 @@ export const HeroSlider = () => {
       {/* Slides */}
       {slides.map((slide, index) => <div key={index} className={`absolute inset-0 transition-all duration-1000 ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}>
           <img src={slide.image} alt={slide.caption[language]} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent bg-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
         </div>)}
 
       {/* Content */}
