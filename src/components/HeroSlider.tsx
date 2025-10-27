@@ -100,7 +100,7 @@ export const HeroSlider = () => {
         <h1 className="font-serif font-bold mb-6 animate-fade-in uppercase tracking-wide md:text-5xl text-5xl text-gray-50">
           {t('home.hero.title')}
         </h1>
-        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up text-neutral-950">
+        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up text-gray-50">
           {t('home.hero.subtitle')}
         </p>
         <Link to="/portfolio">
