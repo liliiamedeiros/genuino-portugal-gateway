@@ -45,7 +45,16 @@ export default function Home() {
       <HeroSlider />
 
       {/* About Section */}
-      
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-serif font-bold mb-6 animate-slide-up">{t('home.about.title')}</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed animate-fade-in">
+              {t('home.about.text')}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Featured Projects */}
       <section className="py-20">

@@ -104,7 +104,7 @@ export const HeroSlider = () => {
           {t('home.hero.subtitle')}
         </p>
         <Link to="/portfolio">
-          <Button size="lg" variant="outline" className="animate-slide-up border-2 border-primary px-8 py-6 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50 bg-[#877350] text-lg font-semibold">
+          <Button size="lg" variant="outline" className="animate-slide-up bg-transparent border-2 border-primary hover:bg-primary text-lg px-8 py-6 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50">
             {t('home.hero.cta')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
