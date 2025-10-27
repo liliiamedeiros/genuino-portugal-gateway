@@ -6,7 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import vistaMar1 from '@/assets/vista-mar-1.png';
 import vistaMar2 from '@/assets/vista-mar-2.png';
 import gardensBuilding1 from '@/assets/gardens-building-1.jpeg';
-import santaMarinha from '@/assets/santamarinha.jpg';
+import santaMarinha from '@/assets/santa-marinha.jpg';
 import sesmariasGarden from '@/assets/sesmarias-garden.jpg';
 
 interface Slide {
