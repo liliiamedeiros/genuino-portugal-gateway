@@ -1,11 +1,12 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ProjectCard } from '@/components/ProjectCard';
-import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { HeroSlider } from '@/components/HeroSlider';
+import { StatsSection } from '@/components/StatsSection';
 import { projects } from '@/data/projects';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 export default function Home() {
   const {
     t,
@@ -43,6 +44,9 @@ export default function Home() {
   return <div className="min-h-screen">
       {/* Hero Slider */}
       <HeroSlider />
+
+      {/* Stats Section */}
+      <StatsSection />
 
       {/* About Section */}
       <section className="py-20 bg-secondary">

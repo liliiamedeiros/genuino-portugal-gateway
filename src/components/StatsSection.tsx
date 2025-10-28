@@ -31,8 +31,8 @@ export const StatsSection = () => {
     {
       icon: Waves,
       value: 1800,
-      suffix: ' km',
-      titleKey: 'stats.coastline',
+      suffix: '',
+      titleKey: 'stats.beaches',
       delay: '0.3s'
     },
   ];

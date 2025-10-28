@@ -3,11 +3,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import vistaMar1 from '@/assets/vista-mar-1.png';
-import vistaMar2 from '@/assets/vista-mar-2.png';
-import gardensBuilding1 from '@/assets/gardens-building-1.jpeg';
-import santaMarinha from '@/assets/santa-marinha.jpg';
-import sesmariasGarden from '@/assets/sesmarias-garden.jpg';
+import acheterMaisonAvecPiscine from '@/assets/acheter-maison-avec-piscine-portugal.png';
+import acheterMaisonPlage from '@/assets/acheter-maison-plage-portugal.png';
+import acheterMaisonPortugal from '@/assets/acheter-maison-portugal.png';
+import acheterMaisonPorto from '@/assets/acheter-maison-porto-portugal.png';
+import villaPiscinePortugal from '@/assets/villa-piscine-portugal.png';
+import plagePortugal from '@/assets/plage-portugal.png';
+import immobilierPortugal from '@/assets/immobilier-portugal.png';
+
 interface Slide {
   image: string;
   caption: {
@@ -17,45 +20,62 @@ interface Slide {
     pt: string;
   };
 }
+
 const slides: Slide[] = [{
-  image: vistaMar1,
+  image: acheterMaisonAvecPiscine,
   caption: {
-    fr: "Vue panoramique sur l'océan",
-    en: "Panoramic ocean view",
-    de: "Panoramablick auf den Ozean",
-    pt: "Vista panorâmica sobre o oceano"
+    fr: "Acheter maison avec piscine au Portugal - Villa de luxe moderne",
+    en: "Buy house with pool in Portugal - Modern luxury villa",
+    de: "Haus mit Pool in Portugal kaufen - Moderne Luxusvilla",
+    pt: "Comprar casa com piscina em Portugal - Moradia de luxo moderna"
   }
 }, {
-  image: vistaMar2,
+  image: acheterMaisonPlage,
   caption: {
-    fr: "Architecture moderne et intemporelle",
-    en: "Modern and timeless architecture",
-    de: "Moderne und zeitlose Architektur",
-    pt: "Arquitetura moderna e intemporal"
+    fr: "Acheter maison plage Portugal - Propriété en bord de mer",
+    en: "Buy beachfront house Portugal - Oceanfront property",
+    de: "Strandhaus Portugal kaufen - Immobilie am Meer",
+    pt: "Comprar casa praia Portugal - Propriedade à beira-mar"
   }
 }, {
-  image: gardensBuilding1,
+  image: acheterMaisonPortugal,
   caption: {
-    fr: "Investir dans l'immobilier au Portugal",
-    en: "Invest in Portuguese real estate",
-    de: "In portugiesische Immobilien investieren",
-    pt: "Investir no imobiliário em Portugal"
+    fr: "Acheter maison au Portugal - Résidence contemporaine avec jardin",
+    en: "Buy house in Portugal - Contemporary residence with garden",
+    de: "Haus in Portugal kaufen - Zeitgenössische Residenz mit Garten",
+    pt: "Comprar casa em Portugal - Residência contemporânea com jardim"
   }
 }, {
-  image: santaMarinha,
+  image: acheterMaisonPorto,
   caption: {
-    fr: "Excellence et raffinement",
-    en: "Excellence and refinement",
-    de: "Exzellenz und Verfeinerung",
-    pt: "Excelência e requinte"
+    fr: "Acheter maison Porto Portugal - Immobilier de prestige",
+    en: "Buy house Porto Portugal - Prestige real estate",
+    de: "Haus Porto Portugal kaufen - Prestigeimmobilien",
+    pt: "Comprar casa Porto Portugal - Imobiliário de prestígio"
   }
 }, {
-  image: sesmariasGarden,
+  image: villaPiscinePortugal,
   caption: {
-    fr: "Espaces de vie luxueux",
-    en: "Luxurious living spaces",
-    de: "Luxuriöse Wohnräume",
-    pt: "Espaços de vida luxuosos"
+    fr: "Villa avec piscine Portugal - Architecture moderne d'exception",
+    en: "Villa with pool Portugal - Exceptional modern architecture",
+    de: "Villa mit Pool Portugal - Außergewöhnliche moderne Architektur",
+    pt: "Moradia com piscina Portugal - Arquitetura moderna excecional"
+  }
+}, {
+  image: plagePortugal,
+  caption: {
+    fr: "Plages du Portugal - Investissement immobilier en bord de mer",
+    en: "Portugal beaches - Beachfront real estate investment",
+    de: "Strände Portugal - Immobilieninvestition am Meer",
+    pt: "Praias de Portugal - Investimento imobiliário à beira-mar"
+  }
+}, {
+  image: immobilierPortugal,
+  caption: {
+    fr: "Immobilier Portugal - Villas de luxe et appartements haut de gamme",
+    en: "Portugal real estate - Luxury villas and high-end apartments",
+    de: "Immobilien Portugal - Luxusvillen und hochwertige Wohnungen",
+    pt: "Imobiliário Portugal - Moradias de luxo e apartamentos premium"
   }
 }];
 export const HeroSlider = () => {

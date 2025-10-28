@@ -87,7 +87,7 @@ const translations: Record<Language, Record<string, string>> = {
     'stats.temperature': 'Température moyenne',
     'stats.sunnyDays': 'Jours ensoleillés par an',
     'stats.clients': 'Clients satisfaits',
-    'stats.coastline': 'Longueur du littoral',
+    'stats.beaches': 'km de Plages Naturelles',
     
     // Hero Subtitles
     'hero.services': 'Découvrez nos solutions sur mesure, adaptées à chaque besoin unique de nos clients.',
@@ -95,6 +95,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guidés par l\'innovation et l\'excellence, nous façonnons un avenir plus durable et lumineux.',
     'hero.investors': 'Transparence, performance et croissance durable — notre engagement envers vous.',
     'hero.contact': 'Entrons en contact. Nous sommes là pour donner vie à vos idées.',
+    'hero.about': 'Votre projet au Portugal, réalisé avec la précision suisse',
   },
   en: {
     // Navigation
@@ -174,7 +175,7 @@ const translations: Record<Language, Record<string, string>> = {
     'stats.temperature': 'Average temperature',
     'stats.sunnyDays': 'Sunny days per year',
     'stats.clients': 'Happy clients',
-    'stats.coastline': 'Coastline length',
+    'stats.beaches': 'km of Natural Beaches',
     
     // Hero Subtitles
     'hero.services': 'Discover our tailor-made solutions, adapted to each unique need of our clients.',
@@ -182,6 +183,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guided by innovation and excellence, we shape a more sustainable and brighter future.',
     'hero.investors': 'Transparency, performance and sustainable growth — our commitment to you.',
     'hero.contact': 'Let\'s get in touch. We\'re here to bring your ideas to life.',
+    'hero.about': 'Your project in Portugal, delivered with Swiss precision',
   },
   de: {
     // Navigation
@@ -261,7 +263,7 @@ const translations: Record<Language, Record<string, string>> = {
     'stats.temperature': 'Durchschnittstemperatur',
     'stats.sunnyDays': 'Sonnentage pro Jahr',
     'stats.clients': 'Zufriedene Kunden',
-    'stats.coastline': 'Küstenlänge',
+    'stats.beaches': 'km Naturstrände',
     
     // Hero Subtitles
     'hero.services': 'Entdecken Sie unsere maßgeschneiderten Lösungen, angepasst an jeden einzigartigen Bedarf unserer Kunden.',
@@ -269,6 +271,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Geleitet von Innovation und Exzellenz gestalten wir eine nachhaltigere und hellere Zukunft.',
     'hero.investors': 'Transparenz, Leistung und nachhaltiges Wachstum — unser Engagement für Sie.',
     'hero.contact': 'Lassen Sie uns in Kontakt treten. Wir sind hier, um Ihre Ideen zum Leben zu erwecken.',
+    'hero.about': 'Ihr Projekt in Portugal, umgesetzt mit Schweizer Präzision',
   },
   pt: {
     // Navigation
@@ -348,7 +351,7 @@ const translations: Record<Language, Record<string, string>> = {
     'stats.temperature': 'Temperatura média',
     'stats.sunnyDays': 'Dias de sol por ano',
     'stats.clients': 'Clientes felizes',
-    'stats.coastline': 'Comprimento do litoral',
+    'stats.beaches': 'km de Praias Naturais',
     
     // Hero Subtitles
     'hero.services': 'Descubra as nossas soluções à medida, adaptadas a cada necessidade única dos nossos clientes.',
@@ -356,6 +359,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guiados pela inovação e excelência, moldamos um futuro mais sustentável e luminoso.',
     'hero.investors': 'Transparência, desempenho e crescimento sustentável — o nosso compromisso consigo.',
     'hero.contact': 'Entre em contacto. Estamos aqui para dar vida às suas ideias.',
+    'hero.about': 'O seu projeto em Portugal, realizado com precisão suíça',
   },
 };
 

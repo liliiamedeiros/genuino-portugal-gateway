@@ -1,6 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { StatsSection } from '@/components/StatsSection';
 import { FileText, Building2, Hammer, Megaphone, Scale, DollarSign } from 'lucide-react';
 
 export default function Services() {
@@ -58,9 +57,6 @@ export default function Services() {
           </p>
         </div>
       </section>
-
-      {/* Stats Section */}
-      <StatsSection />
 
       {/* Services Grid */}
       <section className="py-20">

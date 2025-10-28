@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatsSection } from '@/components/StatsSection';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -175,6 +176,9 @@ export default function Contact() {
           </div>
         </div>
       </section>
+
+      {/* Stats Section */}
+      <StatsSection />
     </div>
   );
 }
