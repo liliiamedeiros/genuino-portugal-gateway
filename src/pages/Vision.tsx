@@ -7,16 +7,14 @@ export default function Vision() {
   return (
     <div className="min-h-screen pt-20">
       {/* Hero */}
-      <section className="relative h-[60vh] overflow-hidden">
-        <img
-          src={santaMarinha}
-          alt="Notre vision"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-          <h1 className="text-5xl md:text-6xl font-serif font-bold text-center animate-fade-in px-4">
+      <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 animate-fade-in text-white">
             {t('vision.title')}
           </h1>
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto animate-slide-up text-white/90 leading-relaxed">
+            {t('hero.vision')}
+          </p>
         </div>
       </section>
 

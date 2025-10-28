@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatsSection } from '@/components/StatsSection';
 import { FileText, Building2, Hammer, Megaphone, Scale, DollarSign } from 'lucide-react';
 
 export default function Services() {
@@ -47,16 +48,19 @@ export default function Services() {
   return (
     <div className="min-h-screen pt-20">
       {/* Hero */}
-      <section className="py-20 bg-secondary">
-        <div className="container mx-auto px-4">
-          <h1 className="text-5xl font-serif font-bold text-center mb-6 animate-fade-in">
+      <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 animate-fade-in text-white">
             {t('nav.services')}
           </h1>
-          <p className="text-xl text-center text-muted-foreground max-w-3xl mx-auto animate-slide-up">
-            {t('services.subtitle')}
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto animate-slide-up text-white/90 leading-relaxed">
+            {t('hero.services')}
           </p>
         </div>
       </section>
+
+      {/* Stats Section */}
+      <StatsSection />
 
       {/* Services Grid */}
       <section className="py-20">
