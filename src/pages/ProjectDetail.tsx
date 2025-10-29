@@ -28,7 +28,7 @@ export default function ProjectDetail() {
       <section className="relative h-[60vh] overflow-hidden">
         <img
           src={project.mainImage}
-          alt={`Projet ${project.title[language]} – Développement immobilier au Portugal`}
+          alt={`${project.title[language]} – Luxurious real estate development in ${project.location}, ${project.region}, Portugal – Investment opportunity in Portuguese property`}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
@@ -65,7 +65,7 @@ export default function ProjectDetail() {
                   <img
                     key={index}
                     src={image}
-                    alt={`${project.title[language]} - Image ${index + 1}`}
+                    alt={`${project.title[language]} – Luxury villa in ${project.location}, Algarve, Portugal – High-end Portuguese real estate investment property with modern architecture and premium amenities – Photo ${index + 1}`}
                     className="w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow"
                   />
                 ))}

@@ -1,9 +1,11 @@
-import vistaMar1 from '@/assets/vista-mar-1.png';
-import vistaMar2 from '@/assets/vista-mar-2.png';
-import gardensBuilding1 from '@/assets/gardens-building-1.jpeg';
-import gardensBuilding2 from '@/assets/gardens-building-2.jpeg';
-import santaMarinha from '@/assets/santa-marinha.jpg';
-import sesmariasGarden from '@/assets/sesmarias-garden.jpg';
+import villasAlvor1 from '@/assets/villas-alvor-1.jpeg';
+import villasAlvor2 from '@/assets/villas-alvor-2.jpeg';
+import villasAlvor3 from '@/assets/villas-alvor-3.jpeg';
+import villasAlvor4 from '@/assets/villas-alvor-4.jpeg';
+import sesmariasVillas1 from '@/assets/sesmarias-villas-1.jpeg';
+import sesmariasVillas2 from '@/assets/sesmarias-villas-2.jpeg';
+import sesmariasVillas3 from '@/assets/sesmarias-villas-3.jpeg';
+import sesmariasVillas4 from '@/assets/sesmarias-villas-4.jpeg';
 
 export interface Project {
   id: string;
@@ -27,117 +29,41 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: 'vista-mar',
+    id: 'villas-alvor',
     title: {
-      fr: 'Genuíno Vista Mar',
-      en: 'Genuíno Vista Mar',
-      de: 'Genuíno Vista Mar',
-      pt: 'Genuíno Vista Mar',
+      fr: 'Genuíno Villas Alvor',
+      en: 'Genuíno Villas Alvor',
+      de: 'Genuíno Villas Alvor',
+      pt: 'Genuíno Villas Alvor',
     },
-    location: 'Vila Nova de Gaia',
-    region: 'Porto',
+    location: 'Alto das Sesmarias',
+    region: 'Portimão, Algarve',
     description: {
-      fr: 'Un développement résidentiel moderne avec vue sur la mer, offrant des appartements de luxe dans un emplacement privilégié.',
-      en: 'A modern residential development with sea views, offering luxury apartments in a prime location.',
-      de: 'Eine moderne Wohnanlage mit Meerblick, die luxuriöse Apartments in erstklassiger Lage bietet.',
-      pt: 'Um empreendimento residencial moderno com vista mar, oferecendo apartamentos de luxo numa localização privilegiada.',
+      fr: 'Situé à Alto das Sesmarias - Portimão, Genuíno Villas Alvor est un développement de prestige dont l\'achèvement est prévu pour début 2025. Ce condominium exclusif comprend 4 luxueuses villas T3, chacune offrant 4 salles de bains, toutes en suite, plus un WC de service, offrant intimité et confort exceptionnel. Les villas se distinguent par leur architecture contemporaine et leurs équipements de haute qualité, notamment un garage fermé, une piscine privée, un jacuzzi et un espace barbecue, idéal pour les moments de loisirs et de convivialité.',
+      en: 'Located in Alto das Sesmarias - Portimão, Genuíno Villas Alvor is a prestigious development with completion scheduled for early 2025. This exclusive condominium comprises 4 luxurious T3 villas, each offering 4 bathrooms, all en-suite, plus a service WC, providing exceptional privacy and comfort. The villas stand out for their contemporary architecture and high-quality amenities, including a closed garage, private pool, jacuzzi and barbecue area, ideal for leisure and socializing moments.',
+      de: 'Das Genuíno Villas Alvor in Alto das Sesmarias - Portimão ist eine prestigeträchtige Anlage, deren Fertigstellung für Anfang 2025 geplant ist. Diese exklusive Wohnanlage besteht aus 4 luxuriösen T3-Villen, jede mit 4 Badezimmern, alle en-suite, plus einem Service-WC, die außergewöhnliche Privatsphäre und Komfort bieten. Die Villen zeichnen sich durch ihre zeitgenössische Architektur und hochwertige Ausstattung aus, darunter eine geschlossene Garage, ein privater Pool, ein Whirlpool und ein Grillbereich, ideal für Freizeit und gesellige Momente.',
+      pt: 'Localizado em Alto das Sesmarias - Portimão, o Genuíno Villas Alvor é um empreendimento de prestígio com finalização prevista para início de 2025. Este exclusivo condomínio é composto por 4 luxuosas moradias T3, cada uma oferecendo 4 casas de banho, todas suítes, mais um wc de serviço, proporcionando privacidade e conforto excepcional. As moradias destacam-se pela sua arquitetura contemporânea e comodidades de alta qualidade, incluindo garagem fechada, piscina privativa, jacuzzi e área de barbecue, ideal para momentos de lazer e convívio.',
     },
-    mainImage: vistaMar1,
-    gallery: [vistaMar1, vistaMar2],
+    mainImage: villasAlvor1,
+    gallery: [villasAlvor1, villasAlvor2, villasAlvor3, villasAlvor4],
   },
   {
-    id: 'gardens-building',
+    id: 'sesmarias-villas-alvor',
     title: {
-      fr: 'Genuíno Gardens Building',
-      en: 'Genuíno Gardens Building',
-      de: 'Genuíno Gardens Building',
-      pt: 'Genuíno Gardens Building',
-    },
-    location: 'Cascais',
-    region: 'Lisbonne',
-    description: {
-      fr: 'Un immeuble élégant entouré de jardins luxuriants, combinant architecture contemporaine et espaces verts.',
-      en: 'An elegant building surrounded by lush gardens, combining contemporary architecture and green spaces.',
-      de: 'Ein elegantes Gebäude, umgeben von üppigen Gärten, das zeitgenössische Architektur und Grünflächen vereint.',
-      pt: 'Um edifício elegante rodeado por jardins exuberantes, combinando arquitetura contemporânea e espaços verdes.',
-    },
-    mainImage: gardensBuilding1,
-    gallery: [gardensBuilding1, gardensBuilding2],
-  },
-  {
-    id: 'santa-marinha',
-    title: {
-      fr: 'Genuíno Santa Marinha',
-      en: 'Genuíno Santa Marinha',
-      de: 'Genuíno Santa Marinha',
-      pt: 'Genuíno Santa Marinha',
-    },
-    location: 'Vila Nova de Gaia',
-    region: 'Porto',
-    description: {
-      fr: 'Résidences premium dans un quartier historique, alliant charme traditionnel et confort moderne.',
-      en: 'Premium residences in a historic neighborhood, combining traditional charm with modern comfort.',
-      de: 'Premium-Residenzen in einem historischen Viertel, die traditionellen Charme mit modernem Komfort verbinden.',
-      pt: 'Residências premium num bairro histórico, aliando charme tradicional e conforto moderno.',
-    },
-    mainImage: santaMarinha,
-    gallery: [santaMarinha],
-  },
-  {
-    id: 'sesmarias-garden',
-    title: {
-      fr: 'Genuíno Sesmarias Garden',
-      en: 'Genuíno Sesmarias Garden',
-      de: 'Genuíno Sesmarias Garden',
-      pt: 'Genuíno Sesmarias Garden',
+      fr: 'Genuíno Sesmarias Villas Alvor',
+      en: 'Genuíno Sesmarias Villas Alvor',
+      de: 'Genuíno Sesmarias Villas Alvor',
+      pt: 'Genuíno Sesmarias Villas Alvor',
     },
     location: 'Portimão',
-    region: 'Faro',
+    region: 'Algarve',
     description: {
-      fr: 'Villas contemporaines avec jardins privés dans l\'Algarve, offrant un style de vie exclusif.',
-      en: 'Contemporary villas with private gardens in the Algarve, offering an exclusive lifestyle.',
-      de: 'Zeitgenössische Villen mit privaten Gärten an der Algarve, die einen exklusiven Lebensstil bieten.',
-      pt: 'Moradias contemporâneas com jardins privados no Algarve, oferecendo um estilo de vida exclusivo.',
+      fr: 'Développement résidentiel exclusif à Portimão, dans la région prisée de l\'Algarve. Ce projet offre des villas modernes avec des finitions de haute qualité et des espaces généreux, parfait pour ceux qui recherchent un style de vie luxueux dans l\'une des destinations les plus recherchées du Portugal. Proche des plages magnifiques et de toutes les commodités.',
+      en: 'Exclusive residential development in Portimão, in the sought-after Algarve region. This project offers modern villas with high-quality finishes and generous spaces, perfect for those seeking a luxurious lifestyle in one of Portugal\'s most desirable destinations. Close to stunning beaches and all amenities.',
+      de: 'Exklusive Wohnanlage in Portimão, in der begehrten Algarve-Region. Dieses Projekt bietet moderne Villen mit hochwertigen Oberflächen und großzügigen Räumen, perfekt für diejenigen, die einen luxuriösen Lebensstil in einem der begehrtesten Reiseziele Portugals suchen. In der Nähe von atemberaubenden Stränden und allen Annehmlichkeiten.',
+      pt: 'Empreendimento residencial exclusivo em Portimão, na procurada região do Algarve. Este projeto oferece moradias modernas com acabamentos de alta qualidade e espaços generosos, perfeito para quem procura um estilo de vida luxuoso num dos destinos mais desejados de Portugal. Perto de praias deslumbrantes e de todas as comodidades.',
     },
-    mainImage: sesmariasGarden,
-    gallery: [sesmariasGarden],
-  },
-  {
-    id: 'praia-rocha',
-    title: {
-      fr: 'Genuíno Praia da Rocha',
-      en: 'Genuíno Praia da Rocha',
-      de: 'Genuíno Praia da Rocha',
-      pt: 'Genuíno Praia da Rocha',
-    },
-    location: 'Portimão',
-    region: 'Faro',
-    description: {
-      fr: 'Développement côtier de luxe avec accès direct à la plage.',
-      en: 'Luxury coastal development with direct beach access.',
-      de: 'Luxuriöse Küstenentwicklung mit direktem Strandzugang.',
-      pt: 'Empreendimento costeiro de luxo com acesso direto à praia.',
-    },
-    mainImage: vistaMar1,
-    gallery: [vistaMar1],
-  },
-  {
-    id: 'praia-amorosa',
-    title: {
-      fr: 'Genuíno Praia da Amorosa',
-      en: 'Genuíno Praia da Amorosa',
-      de: 'Genuíno Praia da Amorosa',
-      pt: 'Genuíno Praia da Amorosa',
-    },
-    location: 'Viana do Castelo',
-    region: 'Viana do Castelo',
-    description: {
-      fr: 'Résidences côtières dans le nord du Portugal avec vues spectaculaires.',
-      en: 'Coastal residences in northern Portugal with spectacular views.',
-      de: 'Küstenresidenzen in Nordportugal mit spektakulären Aussichten.',
-      pt: 'Residências costeiras no norte de Portugal com vistas espetaculares.',
-    },
-    mainImage: gardensBuilding1,
-    gallery: [gardensBuilding1],
+    mainImage: sesmariasVillas1,
+    gallery: [sesmariasVillas1, sesmariasVillas2, sesmariasVillas3, sesmariasVillas4],
   },
 ];
