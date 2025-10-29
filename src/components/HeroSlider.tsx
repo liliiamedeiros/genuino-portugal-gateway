@@ -3,13 +3,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import acheterMaisonAvecPiscine from '@/assets/acheter-maison-avec-piscine-portugal.png';
-import acheterMaisonPlage from '@/assets/acheter-maison-plage-portugal.png';
-import acheterMaisonPortugal from '@/assets/acheter-maison-portugal.png';
-import acheterMaisonPorto from '@/assets/acheter-maison-porto-portugal.png';
-import villaPiscinePortugal from '@/assets/villa-piscine-portugal.png';
-import plagePortugal from '@/assets/plage-portugal.png';
-import immobilierPortugal from '@/assets/immobilier-portugal.png';
+import slider1 from '@/assets/slider-1.png';
+import slider2 from '@/assets/slider-2.png';
+import slider3 from '@/assets/slider-3.png';
+import slider4 from '@/assets/slider-4.png';
 
 interface Slide {
   image: string;
@@ -22,60 +19,36 @@ interface Slide {
 }
 
 const slides: Slide[] = [{
-  image: acheterMaisonAvecPiscine,
+  image: slider1,
   caption: {
-    fr: "Acheter maison avec piscine au Portugal - Villa de luxe moderne",
-    en: "Buy house with pool in Portugal - Modern luxury villa",
-    de: "Haus mit Pool in Portugal kaufen - Moderne Luxusvilla",
-    pt: "Comprar casa com piscina em Portugal - Moradia de luxo moderna"
+    fr: "Acheter maison avec piscine au Portugal - Villa de luxe avec piscine privée et vue panoramique",
+    en: "Buy house with pool in Portugal - Luxury villa with private pool and panoramic views",
+    de: "Haus mit Pool in Portugal kaufen - Luxusvilla mit privatem Pool und Panoramablick",
+    pt: "Comprar casa com piscina em Portugal - Moradia de luxo com piscina privada e vista panorâmica"
   }
 }, {
-  image: acheterMaisonPlage,
+  image: slider2,
   caption: {
-    fr: "Acheter maison plage Portugal - Propriété en bord de mer",
-    en: "Buy beachfront house Portugal - Oceanfront property",
-    de: "Strandhaus Portugal kaufen - Immobilie am Meer",
-    pt: "Comprar casa praia Portugal - Propriedade à beira-mar"
+    fr: "Acheter maison plage Portugal - Propriété de luxe en bord de mer Algarve",
+    en: "Buy beachfront house Portugal - Luxury beachfront property in Algarve",
+    de: "Strandhaus Portugal kaufen - Luxusimmobilie am Strand in der Algarve",
+    pt: "Comprar casa praia Portugal - Propriedade de luxo à beira-mar no Algarve"
   }
 }, {
-  image: acheterMaisonPortugal,
+  image: slider3,
   caption: {
-    fr: "Acheter maison au Portugal - Résidence contemporaine avec jardin",
-    en: "Buy house in Portugal - Contemporary residence with garden",
-    de: "Haus in Portugal kaufen - Zeitgenössische Residenz mit Garten",
-    pt: "Comprar casa em Portugal - Residência contemporânea com jardim"
+    fr: "Acheter maison au Portugal - Villa moderne avec jardin et architecture contemporaine",
+    en: "Buy house in Portugal - Modern villa with garden and contemporary architecture",
+    de: "Haus in Portugal kaufen - Moderne Villa mit Garten und zeitgenössischer Architektur",
+    pt: "Comprar casa em Portugal - Moradia moderna com jardim e arquitetura contemporânea"
   }
 }, {
-  image: acheterMaisonPorto,
+  image: slider4,
   caption: {
-    fr: "Acheter maison Porto Portugal - Immobilier de prestige",
-    en: "Buy house Porto Portugal - Prestige real estate",
-    de: "Haus Porto Portugal kaufen - Prestigeimmobilien",
-    pt: "Comprar casa Porto Portugal - Imobiliário de prestígio"
-  }
-}, {
-  image: villaPiscinePortugal,
-  caption: {
-    fr: "Villa avec piscine Portugal - Architecture moderne d'exception",
-    en: "Villa with pool Portugal - Exceptional modern architecture",
-    de: "Villa mit Pool Portugal - Außergewöhnliche moderne Architektur",
-    pt: "Moradia com piscina Portugal - Arquitetura moderna excecional"
-  }
-}, {
-  image: plagePortugal,
-  caption: {
-    fr: "Plages du Portugal - Investissement immobilier en bord de mer",
-    en: "Portugal beaches - Beachfront real estate investment",
-    de: "Strände Portugal - Immobilieninvestition am Meer",
-    pt: "Praias de Portugal - Investimento imobiliário à beira-mar"
-  }
-}, {
-  image: immobilierPortugal,
-  caption: {
-    fr: "Immobilier Portugal - Villas de luxe et appartements haut de gamme",
-    en: "Portugal real estate - Luxury villas and high-end apartments",
-    de: "Immobilien Portugal - Luxusvillen und hochwertige Wohnungen",
-    pt: "Imobiliário Portugal - Moradias de luxo e apartamentos premium"
+    fr: "Acheter maison Porto Portugal - Immobilier de prestige avec vue mer à Vila Nova de Gaia",
+    en: "Buy house Porto Portugal - Prestige real estate with sea view in Vila Nova de Gaia",
+    de: "Haus Porto Portugal kaufen - Prestigeimmobilien mit Meerblick in Vila Nova de Gaia",
+    pt: "Comprar casa Porto Portugal - Imobiliário de prestígio com vista mar em Vila Nova de Gaia"
   }
 }];
 export const HeroSlider = () => {
@@ -88,7 +61,7 @@ export const HeroSlider = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       nextSlide();
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [currentSlide]);
   const nextSlide = () => {
@@ -113,10 +86,10 @@ export const HeroSlider = () => {
       {/* Content */}
       <div className="container mx-auto px-4 z-10 text-center relative">
         
-        <h1 className="font-serif font-bold mb-6 animate-fade-in uppercase tracking-wide md:text-5xl text-5xl text-gray-50">
+        <h1 className="font-serif font-bold mb-4 md:mb-6 animate-fade-in uppercase tracking-wide text-3xl md:text-4xl lg:text-5xl text-gray-50 px-2">
           {t('home.hero.title')}
         </h1>
-        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up text-gray-50">
+        <p className="text-base md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto animate-slide-up text-gray-50 uppercase font-semibold tracking-wide px-4">
           {t('home.hero.subtitle')}
         </p>
         <Link to="/portfolio">

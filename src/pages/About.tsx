@@ -11,9 +11,9 @@ export default function About() {
       {/* Hero */}
       <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 animate-fade-in text-white">
-            {t('about.title')}
-          </h1>
+        <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 animate-fade-in text-white uppercase">
+          {t('nav.about')}
+        </h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto animate-slide-up text-white/90 leading-relaxed">
             {t('hero.about')}
           </p>

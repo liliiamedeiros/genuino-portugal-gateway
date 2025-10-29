@@ -36,7 +36,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Home
     'home.hero.title': 'Immobilier au Portugal',
-    'home.hero.subtitle': 'La qualité suisse pour réaliser votre projet immobilier au Portugal',
+    'home.hero.subtitle': 'La qualité suisse pour réaliser votre rêve immobilier au Portugal',
     'home.hero.cta': 'Découvrir nos projets',
     'home.about.title': 'À propos',
     'home.about.text': 'Nous sommes une entreprise spécialisée dans la promotion et le développement de projets immobiliers, alliant innovation, fonctionnalité et design intemporel.',
@@ -95,7 +95,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guidés par l\'innovation et l\'excellence, nous façonnons un avenir plus durable et lumineux.',
     'hero.investors': 'Transparence, performance et croissance durable — notre engagement envers vous.',
     'hero.contact': 'Entrons en contact. Nous sommes là pour donner vie à vos idées.',
-    'hero.about': 'Votre projet au Portugal, réalisé avec la précision suisse',
+    'hero.about': 'Les plus beaux projets portugais, signés avec la précision suisse',
   },
   en: {
     // Navigation
@@ -124,7 +124,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Home
     'home.hero.title': 'Real Estate in Portugal',
-    'home.hero.subtitle': 'Swiss quality to realize your real estate project in Portugal',
+    'home.hero.subtitle': 'Swiss quality to bring your real estate dream to life in Portugal',
     'home.hero.cta': 'Discover our projects',
     'home.about.title': 'About',
     'home.about.text': 'We are a company specializing in the promotion and development of real estate projects, combining innovation, functionality and timeless design.',
@@ -183,7 +183,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guided by innovation and excellence, we shape a more sustainable and brighter future.',
     'hero.investors': 'Transparency, performance and sustainable growth — our commitment to you.',
     'hero.contact': 'Let\'s get in touch. We\'re here to bring your ideas to life.',
-    'hero.about': 'Your project in Portugal, delivered with Swiss precision',
+    'hero.about': 'The finest Portuguese projects, crafted with Swiss precision',
   },
   de: {
     // Navigation
@@ -212,7 +212,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Home
     'home.hero.title': 'Immobilien in Portugal',
-    'home.hero.subtitle': 'Schweizer Qualität zur Verwirklichung Ihres Immobilienprojekts in Portugal',
+    'home.hero.subtitle': 'Schweizer Qualität für Ihren Immobilientraum in Portugal',
     'home.hero.cta': 'Unsere Projekte entdecken',
     'home.about.title': 'Über uns',
     'home.about.text': 'Wir sind ein auf die Förderung und Entwicklung von Immobilienprojekten spezialisiertes Unternehmen, das Innovation, Funktionalität und zeitloses Design vereint.',
@@ -271,7 +271,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Geleitet von Innovation und Exzellenz gestalten wir eine nachhaltigere und hellere Zukunft.',
     'hero.investors': 'Transparenz, Leistung und nachhaltiges Wachstum — unser Engagement für Sie.',
     'hero.contact': 'Lassen Sie uns in Kontakt treten. Wir sind hier, um Ihre Ideen zum Leben zu erwecken.',
-    'hero.about': 'Ihr Projekt in Portugal, umgesetzt mit Schweizer Präzision',
+    'hero.about': 'Die schönsten portugiesischen Projekte, mit Schweizer Präzision gefertigt',
   },
   pt: {
     // Navigation
@@ -300,7 +300,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Home
     'home.hero.title': 'Imobiliário em Portugal',
-    'home.hero.subtitle': 'Qualidade suíça para realizar o seu projeto imobiliário em Portugal',
+    'home.hero.subtitle': 'Qualidade suíça para realizar o seu sonho imobiliário em Portugal',
     'home.hero.cta': 'Descobrir os nossos projetos',
     'home.about.title': 'Sobre',
     'home.about.text': 'Somos uma empresa especializada na promoção e desenvolvimento de projetos imobiliários, aliando inovação, funcionalidade e design intemporal.',
@@ -359,7 +359,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.vision': 'Guiados pela inovação e excelência, moldamos um futuro mais sustentável e luminoso.',
     'hero.investors': 'Transparência, desempenho e crescimento sustentável — o nosso compromisso consigo.',
     'hero.contact': 'Entre em contacto. Estamos aqui para dar vida às suas ideias.',
-    'hero.about': 'O seu projeto em Portugal, realizado com precisão suíça',
+    'hero.about': 'Os mais belos projetos portugueses, assinados com precisão suíça',
   },
 };
 
