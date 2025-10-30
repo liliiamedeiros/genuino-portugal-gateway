@@ -29,6 +29,18 @@ import santaMarinha1 from '@/assets/santa-marinha-1.jpeg';
 import santaMarinha2 from '@/assets/santa-marinha-2.jpeg';
 import santaMarinha3 from '@/assets/santa-marinha-3.jpeg';
 import santaMarinha4 from '@/assets/santa-marinha-4.jpeg';
+import murca1 from '@/assets/murca-1.jpeg';
+import murca2 from '@/assets/murca-2.jpeg';
+import murca3 from '@/assets/murca-3.jpeg';
+import murca4 from '@/assets/murca-4.jpeg';
+import sFelix1 from '@/assets/s-felix-1.jpeg';
+import sFelix2 from '@/assets/s-felix-2.jpeg';
+import sFelix3 from '@/assets/s-felix-3.jpeg';
+import sFelix4 from '@/assets/s-felix-4.jpeg';
+import rebordosa1 from '@/assets/rebordosa-1.jpeg';
+import rebordosa2 from '@/assets/rebordosa-2.jpeg';
+import rebordosa3 from '@/assets/rebordosa-3.jpeg';
+import rebordosa4 from '@/assets/rebordosa-4.jpeg';
 
 export interface Project {
   id: string;
@@ -54,10 +66,10 @@ export const projects: Project[] = [
   {
     id: 'villas-alvor',
     title: {
-      fr: 'Genuíno Villas Alvor',
-      en: 'Genuíno Villas Alvor',
-      de: 'Genuíno Villas Alvor',
-      pt: 'Genuíno Villas Alvor',
+      fr: 'Villas Alvor',
+      en: 'Villas Alvor',
+      de: 'Villas Alvor',
+      pt: 'Villas Alvor',
     },
     location: 'Alto das Sesmarias',
     region: 'Portimão, Algarve',
@@ -73,10 +85,10 @@ export const projects: Project[] = [
   {
     id: 'sesmarias-villas-alvor',
     title: {
-      fr: 'Genuíno Sesmarias Villas Alvor',
-      en: 'Genuíno Sesmarias Villas Alvor',
-      de: 'Genuíno Sesmarias Villas Alvor',
-      pt: 'Genuíno Sesmarias Villas Alvor',
+      fr: 'Sesmarias Villas Alvor',
+      en: 'Sesmarias Villas Alvor',
+      de: 'Sesmarias Villas Alvor',
+      pt: 'Sesmarias Villas Alvor',
     },
     location: 'Portimão',
     region: 'Algarve',
@@ -92,10 +104,10 @@ export const projects: Project[] = [
   {
     id: 'vista-mar',
     title: {
-      fr: 'Genuíno Vista Mar',
-      en: 'Genuíno Vista Mar',
-      de: 'Genuíno Vista Mar',
-      pt: 'Genuíno Vista Mar',
+      fr: 'Vista Mar',
+      en: 'Vista Mar',
+      de: 'Vista Mar',
+      pt: 'Vista Mar',
     },
     location: 'Rua do Morangal',
     region: 'Porto, Vila Nova de Gaia',
@@ -111,10 +123,10 @@ export const projects: Project[] = [
   {
     id: 'tavira',
     title: {
-      fr: 'Genuíno Tavira',
-      en: 'Genuíno Tavira',
-      de: 'Genuíno Tavira',
-      pt: 'Genuíno Tavira',
+      fr: 'Tavira',
+      en: 'Tavira',
+      de: 'Tavira',
+      pt: 'Tavira',
     },
     location: 'Tavira',
     region: 'Faro, Algarve',
@@ -130,10 +142,10 @@ export const projects: Project[] = [
   {
     id: 'beach-walk',
     title: {
-      fr: 'Genuíno Beach Walk',
-      en: 'Genuíno Beach Walk',
-      de: 'Genuíno Beach Walk',
-      pt: 'Genuíno Beach Walk',
+      fr: 'Beach Walk',
+      en: 'Beach Walk',
+      de: 'Beach Walk',
+      pt: 'Beach Walk',
     },
     location: 'Praia da Rocha',
     region: 'Faro, Portimão',
@@ -149,10 +161,10 @@ export const projects: Project[] = [
   {
     id: 'praia-amorosa',
     title: {
-      fr: 'Genuíno Praia da Amorosa',
-      en: 'Genuíno Praia da Amorosa',
-      de: 'Genuíno Praia da Amorosa',
-      pt: 'Genuíno Praia da Amorosa',
+      fr: 'Praia da Amorosa',
+      en: 'Praia da Amorosa',
+      de: 'Praia da Amorosa',
+      pt: 'Praia da Amorosa',
     },
     location: 'Amorosa',
     region: 'Viana do Castelo',
@@ -168,10 +180,10 @@ export const projects: Project[] = [
   {
     id: 'cerca-colegio',
     title: {
-      fr: 'Genuíno Cerca do Colégio',
-      en: 'Genuíno Cerca do Colégio',
-      de: 'Genuíno Cerca do Colégio',
-      pt: 'Genuíno Cerca do Colégio',
+      fr: 'Cerca do Colégio',
+      en: 'Cerca do Colégio',
+      de: 'Cerca do Colégio',
+      pt: 'Cerca do Colégio',
     },
     location: 'Centro de Portimão',
     region: 'Faro, Portimão',
@@ -187,10 +199,10 @@ export const projects: Project[] = [
   {
     id: 'santa-marinha',
     title: {
-      fr: 'Genuíno Santa Marinha',
-      en: 'Genuíno Santa Marinha',
-      de: 'Genuíno Santa Marinha',
-      pt: 'Genuíno Santa Marinha',
+      fr: 'Santa Marinha',
+      en: 'Santa Marinha',
+      de: 'Santa Marinha',
+      pt: 'Santa Marinha',
     },
     location: 'Rua das Matas',
     region: 'Porto, Vila Nova de Gaia',
@@ -202,5 +214,62 @@ export const projects: Project[] = [
     },
     mainImage: santaMarinha1,
     gallery: [santaMarinha1, santaMarinha2, santaMarinha3, santaMarinha4],
+  },
+  {
+    id: 'murca',
+    title: {
+      fr: 'Murça',
+      en: 'Murça',
+      de: 'Murça',
+      pt: 'Murça',
+    },
+    location: 'Murça',
+    region: 'Vila Real',
+    description: {
+      fr: 'Développement résidentiel exclusif à Vila Real, Murça. Nous rassemblons actuellement plus d\'informations sur ce développement. Veuillez revenir bientôt pour en savoir plus sur cette opportunité d\'investissement dans l\'une des régions les plus pittoresques du nord du Portugal.',
+      en: 'Exclusive residential development in Vila Real, Murça. We are currently gathering more information about this development. Please come back soon to learn more about this investment opportunity in one of the most picturesque regions of northern Portugal.',
+      de: 'Exklusive Wohnanlage in Vila Real, Murça. Wir sammeln derzeit weitere Informationen zu dieser Entwicklung. Bitte kommen Sie bald wieder, um mehr über diese Investitionsmöglichkeit in einer der malerischsten Regionen Nordportugals zu erfahren.',
+      pt: 'Empreendimento residencial exclusivo em Vila Real, Murça. Estamos a reunir mais informação sobre este empreendimento. Por favor volte em breve para saber mais sobre este investimento numa das regiões mais pitorescas do norte de Portugal.',
+    },
+    mainImage: murca1,
+    gallery: [murca1, murca2, murca3, murca4],
+  },
+  {
+    id: 's-felix-villas',
+    title: {
+      fr: 'S. Félix Villas',
+      en: 'S. Félix Villas',
+      de: 'S. Félix Villas',
+      pt: 'S. Félix Villas',
+    },
+    location: 'S. Félix da Marinha',
+    region: 'Porto, Vila Nova de Gaia',
+    description: {
+      fr: 'Le S. Félix Villas est un condominium fermé exclusif, se distinguant par son architecture élégante et moderne, situé dans la localité sereine de S. Félix da Marinha. Ce développement, composé de seulement 5 appartements de types T3 et T4, promet un style de vie de luxe et de confort. Avec un achèvement prévu début 2025, chaque résidence offre des espaces généreux et une harmonie parfaite avec l\'environnement tranquille de la région.',
+      en: 'S. Félix Villas is an exclusive gated condominium, distinguished by its elegant and modern architecture, located in the serene locality of S. Félix da Marinha. This development, consisting of only 5 apartments of types T3 and T4, promises a lifestyle of luxury and comfort. With completion scheduled for early 2025, each residence offers generous spaces and perfect harmony with the region\'s tranquil environment.',
+      de: 'S. Félix Villas ist eine exklusive geschlossene Wohnanlage, die sich durch ihre elegante und moderne Architektur auszeichnet und in der ruhigen Gegend von S. Félix da Marinha liegt. Diese Anlage, bestehend aus nur 5 Apartments der Typen T3 und T4, verspricht einen Lebensstil von Luxus und Komfort. Mit Fertigstellung für Anfang 2025 bietet jede Residenz großzügige Räume und perfekte Harmonie mit der ruhigen Umgebung der Region.',
+      pt: 'O S. Félix Villas é um condomínio fechado exclusivo, destacando-se pela sua arquitetura elegante e moderna, situado na serena localidade de S. Félix da Marinha. Este empreendimento, composto por apenas 5 apartamentos de tipologias T3 e T4, promete um estilo de vida de luxo e conforto. Com previsão de conclusão no início de 2025, cada moradia oferece espaços amplos e uma harmonia perfeita com o ambiente tranquilo da região.',
+    },
+    mainImage: sFelix1,
+    gallery: [sFelix1, sFelix2, sFelix3, sFelix4],
+  },
+  {
+    id: 'cidade-rebordosa',
+    title: {
+      fr: 'Cidade de Rebordosa',
+      en: 'Cidade de Rebordosa',
+      de: 'Cidade de Rebordosa',
+      pt: 'Cidade de Rebordosa',
+    },
+    location: 'Avenida Bombeiros Voluntários',
+    region: 'Porto, Paredes',
+    description: {
+      fr: 'Le Cidade de Rebordosa, situé sur l\'Avenida Bombeiros Voluntários à Rebordosa, offre une expérience de vie urbaine moderne et sophistiquée avec un achèvement prévu en 2025. Ce développement élégant comprend 31 appartements, dont 24 unités T2 et 7 T3, chacun avec des suites spacieuses et jusqu\'à 4 salles de bains, plus deux places de parking et des espaces de rangement pour maximiser le confort et la praticité.',
+      en: 'Cidade de Rebordosa, located on Avenida Bombeiros Voluntários in Rebordosa, offers a modern and sophisticated urban living experience with completion scheduled for 2025. This elegant development comprises 31 apartments, including 24 T2 units and 7 T3, each with spacious suites and up to 4 bathrooms, plus two parking spaces and storage areas to maximize comfort and practicality.',
+      de: 'Cidade de Rebordosa, an der Avenida Bombeiros Voluntários in Rebordosa gelegen, bietet ein modernes und anspruchsvolles urbanes Wohnerlebnis mit Fertigstellung für 2025. Diese elegante Anlage umfasst 31 Apartments, darunter 24 T2-Einheiten und 7 T3, jeweils mit geräumigen Suiten und bis zu 4 Badezimmern, plus zwei Parkplätzen und Lagerräumen für maximalen Komfort und Praktikabilität.',
+      pt: 'O Cidade de Rebordosa, localizado na Avenida Bombeiros Voluntários em Rebordosa, oferece uma experiência de vida urbana moderna e sofisticada com previsão de conclusão em 2025. Este empreendimento elegante compreende 31 apartamentos, incluindo 24 unidades T2 e 7 T3, cada um com suítes espaçosas e até 4 casas de banho, além de dois lugares de garagem e arrumos para maximizar conforto e praticidade.',
+    },
+    mainImage: rebordosa1,
+    gallery: [rebordosa1, rebordosa2, rebordosa3, rebordosa4],
   },
 ];

@@ -4,8 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import logo from '@/assets/logo.png';
-import logoWhite from '@/assets/logo-white.png';
+import logo from '@/assets/logo-switzerland.png';
 
 export const Navbar = () => {
   const { t } = useLanguage();
@@ -44,8 +43,8 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
-              src={isScrolled ? logoWhite : logo} 
-              alt="Genuíno Investments" 
+              src={logo} 
+              alt="Genuíno Investments Switzerland" 
               className="h-12 w-auto transition-all duration-500" 
             />
           </Link>
