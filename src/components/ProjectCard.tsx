@@ -18,7 +18,7 @@ export const ProjectCard = ({
         <img src={image} alt={`${title} – Luxury real estate project in ${location} – Premium Portuguese property investment opportunity`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-          <Button variant="outline" className="w-full border-white hover:bg-[#877350] hover:text-white uppercase tracking-wider text-[#887350]">
+          <Button variant="outline" className="w-full border-0 hover:bg-[#877350] hover:text-white uppercase tracking-wider text-[#887350] bg-white/10">
             Voir le projet
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
