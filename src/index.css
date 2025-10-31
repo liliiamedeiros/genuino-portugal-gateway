@@ -109,6 +109,21 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Embla Carousel Styles */
+  .embla {
+    overflow: hidden;
+  }
+  
+  .embla__container {
+    display: flex;
+  }
+  
+  .embla__slide {
+    position: relative;
+    min-width: 0;
+    flex: 0 0 100%;
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.8s ease-in;
   }

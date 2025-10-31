@@ -13,7 +13,7 @@ export const Footer = () => {
           <div>
             <img src={logo} alt="Genuíno Investments Switzerland" className="h-16 w-auto mb-4" />
             <p className="text-sm text-muted-foreground">
-              {t('home.about.text')}
+              Entreprise suisse, nous sommes spécialisés dans la promotion et le développement de projets immobiliers au Portugal, où nous allions innovation, fonctionnalité et design intemporel.
             </p>
           </div>
 

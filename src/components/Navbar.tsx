@@ -45,7 +45,7 @@ export const Navbar = () => {
             <img 
               src={logo} 
               alt="Genuíno Investments Switzerland" 
-              className="h-12 w-auto transition-all duration-500" 
+              className="h-16 w-auto transition-all duration-500 hover:scale-105" 
             />
           </Link>
 

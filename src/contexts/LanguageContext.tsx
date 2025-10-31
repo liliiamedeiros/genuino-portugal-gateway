@@ -94,7 +94,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.portfolio': 'Une vitrine de nos projets les plus inspirants et de nos réalisations créatives.',
     'hero.vision': 'Guidés par l\'innovation et l\'excellence, nous façonnons un avenir plus durable et lumineux.',
     'hero.investors': 'Transparence, performance et croissance durable — notre engagement envers vous.',
-    'hero.contact': 'Entrons en contact. Nous sommes là pour donner vie à vos idées.',
+    'hero.contact': 'Contactez-nous — ensemble, donnons vie à vos rêves immobiliers.',
     'hero.about': 'Les plus beaux projets portugais, signés avec la précision suisse',
   },
   en: {
@@ -182,7 +182,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.portfolio': 'A showcase of our most inspiring projects and creative achievements.',
     'hero.vision': 'Guided by innovation and excellence, we shape a more sustainable and brighter future.',
     'hero.investors': 'Transparency, performance and sustainable growth — our commitment to you.',
-    'hero.contact': 'Let\'s get in touch. We\'re here to bring your ideas to life.',
+    'hero.contact': 'Contact us — together, let\'s bring your real estate dreams to life.',
     'hero.about': 'The finest Portuguese projects, crafted with Swiss precision',
   },
   de: {
@@ -270,7 +270,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.portfolio': 'Eine Auswahl unserer inspirierendsten Projekte und kreativen Leistungen.',
     'hero.vision': 'Geleitet von Innovation und Exzellenz gestalten wir eine nachhaltigere und hellere Zukunft.',
     'hero.investors': 'Transparenz, Leistung und nachhaltiges Wachstum — unser Engagement für Sie.',
-    'hero.contact': 'Lassen Sie uns in Kontakt treten. Wir sind hier, um Ihre Ideen zum Leben zu erwecken.',
+    'hero.contact': 'Kontaktieren Sie uns — gemeinsam erwecken wir Ihre Immobilienträume zum Leben.',
     'hero.about': 'Die schönsten portugiesischen Projekte, mit Schweizer Präzision gefertigt',
   },
   pt: {
@@ -358,7 +358,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.portfolio': 'Uma montra dos nossos projetos mais inspiradores e realizações criativas.',
     'hero.vision': 'Guiados pela inovação e excelência, moldamos um futuro mais sustentável e luminoso.',
     'hero.investors': 'Transparência, desempenho e crescimento sustentável — o nosso compromisso consigo.',
-    'hero.contact': 'Entre em contacto. Estamos aqui para dar vida às suas ideias.',
+    'hero.contact': 'Contacte-nos — juntos, damos vida aos seus sonhos imobiliários.',
     'hero.about': 'Os mais belos projetos portugueses, assinados com precisão suíça',
   },
 };
