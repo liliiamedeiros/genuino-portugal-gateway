@@ -1,7 +1,16 @@
-import villasAlvor1 from '@/assets/villas-alvor-1.jpeg';
-import villasAlvor2 from '@/assets/villas-alvor-2.jpeg';
-import villasAlvor3 from '@/assets/villas-alvor-3.jpeg';
-import villasAlvor4 from '@/assets/villas-alvor-4.jpeg';
+import sesmariasAlvor1 from '@/assets/sesmarias-alvor-1.jpeg';
+import sesmariasAlvor2 from '@/assets/sesmarias-alvor-2.jpeg';
+import sesmariasAlvor3 from '@/assets/sesmarias-alvor-3.jpeg';
+import sesmariasAlvor4 from '@/assets/sesmarias-alvor-4.jpeg';
+import sesmariasAlvor5 from '@/assets/sesmarias-alvor-5.jpeg';
+import sesmariasAlvor6 from '@/assets/sesmarias-alvor-6.jpeg';
+import sesmariasAlvor7 from '@/assets/sesmarias-alvor-7.jpeg';
+import sesmariasAlvor8 from '@/assets/sesmarias-alvor-8.jpeg';
+import sesmariasAlvor9 from '@/assets/sesmarias-alvor-9.jpeg';
+import sesmariasAlvor10 from '@/assets/sesmarias-alvor-10.jpeg';
+import sesmariasAlvor11 from '@/assets/sesmarias-alvor-11.jpeg';
+import sesmariasAlvor12 from '@/assets/sesmarias-alvor-12.jpeg';
+import sesmariasAlvor13 from '@/assets/sesmarias-alvor-13.jpeg';
 import sesmariasVillas1 from '@/assets/sesmarias-villas-1.jpeg';
 import sesmariasVillas2 from '@/assets/sesmarias-villas-2.jpeg';
 import sesmariasVillas3 from '@/assets/sesmarias-villas-3.jpeg';
@@ -66,21 +75,35 @@ export const projects: Project[] = [
   {
     id: 'villas-alvor',
     title: {
-      fr: 'Villas Alvor',
-      en: 'Villas Alvor',
-      de: 'Villas Alvor',
-      pt: 'Villas Alvor',
+      fr: 'Sesmarias Villas Alvor',
+      en: 'Sesmarias Villas Alvor',
+      de: 'Sesmarias Villas Alvor',
+      pt: 'Sesmarias Villas Alvor',
     },
-    location: 'Alto das Sesmarias',
-    region: 'Portimão, Algarve',
+    location: 'Portimão',
+    region: 'Faro, Algarve',
     description: {
-      fr: 'Situé à Alto das Sesmarias - Portimão, Genuíno Villas Alvor est un développement de prestige dont l\'achèvement est prévu pour début 2025. Ce condominium exclusif comprend 4 luxueuses villas T3, chacune offrant 4 salles de bains, toutes en suite, plus un WC de service, offrant intimité et confort exceptionnel. Les villas se distinguent par leur architecture contemporaine et leurs équipements de haute qualité, notamment un garage fermé, une piscine privée, un jacuzzi et un espace barbecue, idéal pour les moments de loisirs et de convivialité.',
-      en: 'Located in Alto das Sesmarias - Portimão, Genuíno Villas Alvor is a prestigious development with completion scheduled for early 2025. This exclusive condominium comprises 4 luxurious T3 villas, each offering 4 bathrooms, all en-suite, plus a service WC, providing exceptional privacy and comfort. The villas stand out for their contemporary architecture and high-quality amenities, including a closed garage, private pool, jacuzzi and barbecue area, ideal for leisure and socializing moments.',
-      de: 'Das Genuíno Villas Alvor in Alto das Sesmarias - Portimão ist eine prestigeträchtige Anlage, deren Fertigstellung für Anfang 2025 geplant ist. Diese exklusive Wohnanlage besteht aus 4 luxuriösen T3-Villen, jede mit 4 Badezimmern, alle en-suite, plus einem Service-WC, die außergewöhnliche Privatsphäre und Komfort bieten. Die Villen zeichnen sich durch ihre zeitgenössische Architektur und hochwertige Ausstattung aus, darunter eine geschlossene Garage, ein privater Pool, ein Whirlpool und ein Grillbereich, ideal für Freizeit und gesellige Momente.',
-      pt: 'Localizado em Alto das Sesmarias - Portimão, o Genuíno Villas Alvor é um empreendimento de prestígio com finalização prevista para início de 2025. Este exclusivo condomínio é composto por 4 luxuosas moradias T3, cada uma oferecendo 4 casas de banho, todas suítes, mais um wc de serviço, proporcionando privacidade e conforto excepcional. As moradias destacam-se pela sua arquitetura contemporânea e comodidades de alta qualidade, incluindo garagem fechada, piscina privativa, jacuzzi e área de barbecue, ideal para momentos de lazer e convívio.',
+      fr: 'Projet résidentiel exclusif situé à Portimão, dans la prestigieuse région de l\'Algarve. Ce développement offre des villas modernes avec des finitions haut de gamme dans l\'un des emplacements les plus recherchés du sud du Portugal. À proximité des plages magnifiques d\'Alvor et de toutes les commodités, ce projet représente une opportunité d\'investissement exceptionnelle pour ceux qui recherchent un style de vie luxueux dans la région de l\'Algarve.',
+      en: 'Exclusive residential project located in Portimão, in the prestigious Algarve region. This development offers modern villas with high-end finishes in one of the most sought-after locations in southern Portugal. Close to the magnificent beaches of Alvor and all amenities, this project represents an exceptional investment opportunity for those seeking a luxurious lifestyle in the Algarve region.',
+      de: 'Exklusives Wohnprojekt in Portimão, in der prestigeträchtigen Algarve-Region. Diese Anlage bietet moderne Villen mit hochwertigen Oberflächen an einem der begehrtesten Standorte in Südportugal. In der Nähe der herrlichen Strände von Alvor und aller Annehmlichkeiten stellt dieses Projekt eine außergewöhnliche Investitionsmöglichkeit für diejenigen dar, die einen luxuriösen Lebensstil in der Algarve-Region suchen.',
+      pt: 'Projeto residencial exclusivo localizado em Portimão, na prestigiada região do Algarve. Este empreendimento oferece moradias modernas com acabamentos de alta qualidade numa das localizações mais procuradas do sul de Portugal. Próximo das magníficas praias de Alvor e de todas as comodidades, este projeto representa uma oportunidade de investimento excecional para quem procura um estilo de vida luxuoso na região do Algarve.',
     },
-    mainImage: villasAlvor1,
-    gallery: [villasAlvor1, villasAlvor2, villasAlvor3, villasAlvor4],
+    mainImage: sesmariasAlvor1,
+    gallery: [
+      sesmariasAlvor1,
+      sesmariasAlvor2,
+      sesmariasAlvor3,
+      sesmariasAlvor4,
+      sesmariasAlvor5,
+      sesmariasAlvor6,
+      sesmariasAlvor7,
+      sesmariasAlvor8,
+      sesmariasAlvor9,
+      sesmariasAlvor10,
+      sesmariasAlvor11,
+      sesmariasAlvor12,
+      sesmariasAlvor13,
+    ],
   },
   {
     id: 'sesmarias-villas-alvor',
