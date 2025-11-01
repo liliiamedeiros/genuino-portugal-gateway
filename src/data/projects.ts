@@ -26,10 +26,18 @@ import sesmariasVillas1 from '@/assets/sesmarias-villas-1.jpeg';
 import sesmariasVillas2 from '@/assets/sesmarias-villas-2.jpeg';
 import sesmariasVillas3 from '@/assets/sesmarias-villas-3.jpeg';
 import sesmariasVillas4 from '@/assets/sesmarias-villas-4.jpeg';
+import vistaMarMain from '@/assets/vista-mar-main.png';
 import vistaMar1 from '@/assets/vista-mar-1.png';
 import vistaMar2 from '@/assets/vista-mar-2.jpeg';
 import vistaMar3 from '@/assets/vista-mar-3.jpeg';
 import vistaMar4 from '@/assets/vista-mar-4.jpeg';
+import vistaMar5 from '@/assets/vista-mar-5.jpeg';
+import vistaMar6 from '@/assets/vista-mar-6.png';
+import vistaMar8 from '@/assets/vista-mar-8.jpeg';
+import vistaMar9 from '@/assets/vista-mar-9.jpeg';
+import vistaMar10 from '@/assets/vista-mar-10.jpeg';
+import vistaMar11 from '@/assets/vista-mar-11.jpeg';
+import vistaMar14 from '@/assets/vista-mar-14.png';
 import tavira1 from '@/assets/tavira-1.jpeg';
 import tavira2 from '@/assets/tavira-2.jpeg';
 import tavira3 from '@/assets/tavira-3.jpeg';
@@ -158,13 +166,26 @@ export const projects: Project[] = [
     location: 'Rua do Morangal',
     region: 'Porto, Vila Nova de Gaia',
     description: {
-      fr: 'Découvrez des appartements exclusifs T2 et T3, chacun avec un design visuel unique, dans un développement de luxe. Situé sur la Rua do Morangal, avec 4 entrées et 3 étages par entrée, il offre une expérience de vie inoubliable. À quelques mètres de la plage avec des vues privilégiées sur la mer, le Genuíno Vista Mar comprend 36 appartements T2 et T3 avec des surfaces privées comprises entre 152 et 201 mètres carrés. Achèvement prévu pour début 2025.',
-      en: 'Discover exclusive T2 and T3 apartments, each with a unique visual design, in a luxury development. Located on Rua do Morangal, with 4 entrances and 3 floors per entrance, it offers an unforgettable living experience. Just meters from the beach with privileged sea views, Genuíno Vista Mar comprises 36 T2 and T3 apartments with private areas ranging from 152 to 201 square meters. Completion scheduled for early 2025.',
-      de: 'Entdecken Sie exklusive T2- und T3-Apartments, jedes mit einzigartigem visuellem Design, in einer Luxusanlage. An der Rua do Morangal gelegen, mit 4 Eingängen und 3 Etagen pro Eingang, bietet es ein unvergessliches Wohnerlebnis. Nur wenige Meter vom Strand entfernt mit privilegiertem Meerblick, umfasst Genuíno Vista Mar 36 T2- und T3-Apartments mit Privatflächen zwischen 152 und 201 Quadratmetern. Fertigstellung für Anfang 2025 geplant.',
-      pt: 'Descubra apartamentos exclusivos T2 e T3, cada um com um design visual único, em um empreendimento de luxo. Localizado na Rua do Morangal, com 4 entradas e 3 pisos por entrada, oferece uma experiência de vida inesquecível. A poucos metros da praia e com vistas privilegiadas para o mar, o Genuíno Vista Mar contempla 36 apartamentos T2 e T3 com áreas privadas compreendidas entre os 152 e 201 metros quadrados. Conclusão prevista para início de 2025.',
+      fr: 'Découvrez des appartements exclusifs T2 et T3, chacun avec un design visuel unique, dans un développement de luxe. Situé sur la Rua do Morangal à Vila Nova de Gaia, avec 4 entrées et 3 étages par entrée, il offre une expérience de vie inoubliable. À quelques mètres de la plage avec des vues privilégiées sur la mer, Vista Mar a été conçu pour offrir une sécurité et une intimité maximales à ses résidents, avec seulement deux appartements par étage, pour un total de 36 logements T2 et T3 avec des surfaces privées comprises entre 152 et 201 mètres carrés. Intégré dans l\'une des municipalités les plus recherchées du Grand Porto, ce projet résidentiel bénéficie d\'un emplacement d\'une qualité exceptionnelle et d\'excellents accès à Porto, Vila Nova de Gaia, Espinho et Santa Maria da Feira. Vista Mar bénéficie également de la proximité de tous les biens et services dans une zone résidentielle calme, idéale pour les familles contemporaines qui recherchent la qualité de vie au quotidien. Achèvement prévu pour début 2025.',
+      en: 'Discover exclusive T2 and T3 apartments, each with a unique visual design, in a luxury development. Located on Rua do Morangal in Vila Nova de Gaia, with 4 entrances and 3 floors per entrance, it offers an unforgettable living experience. Just meters from the beach with privileged sea views, Vista Mar was designed to provide maximum security and privacy to its residents, with only two apartments per floor, totaling 36 T2 and T3 homes with private areas ranging from 152 to 201 square meters. Integrated in one of the most sought-after municipalities of Greater Porto, this residential project benefits from an exceptionally high-quality location and excellent access to Porto, Vila Nova de Gaia, Espinho and Santa Maria da Feira. Vista Mar also benefits from proximity to all goods and services in a quiet residential area, ideal for contemporary families seeking quality of life every day. Completion scheduled for early 2025.',
+      de: 'Entdecken Sie exklusive T2- und T3-Apartments, jedes mit einzigartigem visuellem Design, in einer Luxusanlage. An der Rua do Morangal in Vila Nova de Gaia gelegen, mit 4 Eingängen und 3 Etagen pro Eingang, bietet es ein unvergessliches Wohnerlebnis. Nur wenige Meter vom Strand entfernt mit privilegiertem Meerblick, wurde Vista Mar entwickelt, um seinen Bewohnern maximale Sicherheit und Privatsphäre zu bieten, mit nur zwei Apartments pro Etage, insgesamt 36 T2- und T3-Wohnungen mit Privatflächen zwischen 152 und 201 Quadratmetern. Integriert in eine der gefragtesten Gemeinden des Großraums Porto, profitiert dieses Wohnprojekt von einer außergewöhnlich hochwertigen Lage und ausgezeichneten Zugang zu Porto, Vila Nova de Gaia, Espinho und Santa Maria da Feira. Vista Mar profitiert auch von der Nähe zu allen Waren und Dienstleistungen in einer ruhigen Wohngegend, ideal für zeitgenössische Familien, die täglich Lebensqualität suchen. Fertigstellung für Anfang 2025 geplant.',
+      pt: 'Descubra apartamentos exclusivos T2 e T3, cada um com um design visual único, em um empreendimento de luxo. Localizado na Rua do Morangal em Vila Nova de Gaia, com 4 entradas e 3 pisos por entrada, oferece uma experiência de vida inesquecível. A poucos metros da praia e com vistas privilegiadas para o mar, o Vista Mar foi idealizado para proporcionar a maior segurança e privacidade aos seus habitantes, contemplando apenas dois apartamentos por piso, num total de 36 habitações T2 e T3 com áreas privadas compreendidas entre os 152 e 201 metros quadrados. Integrado num dos concelhos com maior procura do Grande Porto, trata-se de um projeto residencial que possui uma localização de excepcional qualidade e ótimos acessos para o Porto, Vila Nova de Gaia, Espinho e Santa Maria da Feira. O Vista Mar beneficia ainda da proximidade a todos os bens e serviços numa zona residencial calma ideal para famílias contemporâneas que procuram qualidade de vida todos os dias. Conclusão prevista para início de 2025.',
     },
-    mainImage: vistaMar1,
-    gallery: [vistaMar1, vistaMar2, vistaMar3, vistaMar4],
+    mainImage: vistaMarMain,
+    gallery: [
+      vistaMarMain,
+      vistaMar1,
+      vistaMar2,
+      vistaMar3,
+      vistaMar4,
+      vistaMar5,
+      vistaMar6,
+      vistaMar8,
+      vistaMar9,
+      vistaMar10,
+      vistaMar11,
+      vistaMar14,
+    ],
   },
   {
     id: 'tavira',
