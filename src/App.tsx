@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import Home from "./pages/Home";
@@ -18,35 +20,142 @@ import Legal from "./pages/Legal";
 import Privacy from "./pages/Privacy";
 import Disputes from "./pages/Disputes";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/admin/Login";
+import Dashboard from "./pages/admin/Dashboard";
+import Properties from "./pages/admin/Properties";
+import PropertyForm from "./pages/admin/PropertyForm";
+import Users from "./pages/admin/Users";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-            <Route path="/vision" element={<Vision />} />
-            <Route path="/investors" element={<Investors />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/disputes" element={<Disputes />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Footer />
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
+    <BrowserRouter>
+      <LanguageProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={
+                <>
+                  <Navbar />
+                  <Home />
+                  <Footer />
+                </>
+              } />
+              <Route path="/about" element={
+                <>
+                  <Navbar />
+                  <About />
+                  <Footer />
+                </>
+              } />
+              <Route path="/services" element={
+                <>
+                  <Navbar />
+                  <Services />
+                  <Footer />
+                </>
+              } />
+              <Route path="/portfolio" element={
+                <>
+                  <Navbar />
+                  <Portfolio />
+                  <Footer />
+                </>
+              } />
+              <Route path="/project/:id" element={
+                <>
+                  <Navbar />
+                  <ProjectDetail />
+                  <Footer />
+                </>
+              } />
+              <Route path="/vision" element={
+                <>
+                  <Navbar />
+                  <Vision />
+                  <Footer />
+                </>
+              } />
+              <Route path="/investors" element={
+                <>
+                  <Navbar />
+                  <Investors />
+                  <Footer />
+                </>
+              } />
+              <Route path="/contact" element={
+                <>
+                  <Navbar />
+                  <Contact />
+                  <Footer />
+                </>
+              } />
+              <Route path="/legal" element={
+                <>
+                  <Navbar />
+                  <Legal />
+                  <Footer />
+                </>
+              } />
+              <Route path="/privacy" element={
+                <>
+                  <Navbar />
+                  <Privacy />
+                  <Footer />
+                </>
+              } />
+              <Route path="/disputes" element={
+                <>
+                  <Navbar />
+                  <Disputes />
+                  <Footer />
+                </>
+              } />
+
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<Login />} />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/properties" element={
+                <ProtectedRoute>
+                  <Properties />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/properties/new" element={
+                <ProtectedRoute>
+                  <PropertyForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/properties/edit/:id" element={
+                <ProtectedRoute>
+                  <PropertyForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="admin">
+                  <Users />
+                </ProtectedRoute>
+              } />
+
+              <Route path="*" element={
+                <>
+                  <Navbar />
+                  <NotFound />
+                  <Footer />
+                </>
+              } />
+            </Routes>
+          </TooltipProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
