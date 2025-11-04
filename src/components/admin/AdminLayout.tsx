@@ -1,7 +1,8 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   LayoutDashboard,
   Building2,
@@ -12,9 +13,10 @@ import {
   Mail,
   LogOut,
   Menu,
-  X
+  X,
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
-import { useState } from 'react';
 import logo from '@/assets/logo.png';
 
 interface AdminLayoutProps {
@@ -32,10 +34,27 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients', disabled: true },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments', disabled: true },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', disabled: true },
-    { icon: Settings, label: 'Configurações', path: '/admin/settings', disabled: true },
+    { 
+      icon: Settings, 
+      label: 'Configurações', 
+      path: '/admin/settings',
+      submenu: [
+        { label: 'Gerais', path: '/admin/settings/general' },
+        { label: 'Sobre', path: '/admin/settings/about' },
+        { label: 'Serviços', path: '/admin/settings/services' },
+        { label: 'Portfólio', path: '/admin/settings/portfolio' },
+        { label: 'Visão', path: '/admin/settings/vision' },
+        { label: 'Investidores', path: '/admin/settings/investors' },
+        { label: 'Contacto', path: '/admin/settings/contact' },
+      ]
+    },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
     { icon: Mail, label: 'Newsletter', path: '/admin/newsletter', disabled: true },
   ];
+
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(
+    menuItems.find(item => item.submenu?.some(sub => location.pathname.startsWith(sub.path)))?.path || null
+  );
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,6 +94,56 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <Icon className="h-5 w-5 shrink-0" />
                   {sidebarOpen && <span className="text-sm">{item.label}</span>}
                 </div>
+              );
+            }
+
+            if (item.submenu) {
+              const isSubmenuActive = item.submenu.some(sub => location.pathname.startsWith(sub.path));
+              const isOpen = openSubmenu === item.path;
+
+              return (
+                <Collapsible
+                  key={item.path}
+                  open={isOpen}
+                  onOpenChange={(open) => setOpenSubmenu(open ? item.path : null)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                        isSubmenuActive ? 'bg-muted' : 'hover:bg-muted'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      {sidebarOpen && (
+                        <>
+                          <span className="text-sm flex-1 text-left">{item.label}</span>
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </>
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  {sidebarOpen && (
+                    <CollapsibleContent className="pl-8 mt-1 space-y-1">
+                      {item.submenu.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                            location.pathname === subItem.path
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
               );
             }
 
