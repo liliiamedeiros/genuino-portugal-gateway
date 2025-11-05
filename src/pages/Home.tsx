@@ -3,44 +3,59 @@ import { Button } from '@/components/ui/button';
 import { ProjectCard } from '@/components/ProjectCard';
 import { HeroSlider } from '@/components/HeroSlider';
 import { StatsSection } from '@/components/StatsSection';
-import { projects } from '@/data/projects';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
+import * as LucideIcons from 'lucide-react';
+
 export default function Home() {
-  const {
-    t,
-    language
-  } = useLanguage();
-  const featuredProjects = projects.slice(0, 3);
-  const testimonials = [{
-    name: 'Antoine Silva',
-    role: 'Client & Investisseur',
-    text: {
-      fr: 'Une expérience exceptionnelle du début à la fin. La qualité de construction et l\'attention aux détails sont remarquables.',
-      en: 'An exceptional experience from start to finish. The build quality and attention to detail are remarkable.',
-      de: 'Eine außergewöhnliche Erfahrung von Anfang bis Ende. Die Bauqualität und Liebe zum Detail sind bemerkenswert.',
-      pt: 'Uma experiência excecional do início ao fim. A qualidade de construção e atenção aos detalhes são notáveis.'
-    }
-  }, {
-    name: 'Álvaro Vieira',
-    role: 'Client & Investisseur',
-    text: {
-      fr: 'Un investissement solide avec une équipe professionnelle et transparente. Je recommande vivement.',
-      en: 'A solid investment with a professional and transparent team. Highly recommended.',
-      de: 'Eine solide Investition mit einem professionellen und transparenten Team. Sehr zu empfehlen.',
-      pt: 'Um investimento sólido com uma equipa profissional e transparente. Recomendo vivamente.'
-    }
-  }, {
-    name: 'José Pereira',
-    role: 'Client & Investisseur',
-    text: {
-      fr: 'Des projets d\'excellence qui valorisent notre patrimoine. Une vision à long terme impressionnante.',
-      en: 'Excellence projects that enhance our heritage. An impressive long-term vision.',
-      de: 'Exzellente Projekte, die unser Erbe aufwerten. Eine beeindruckende langfristige Vision.',
-      pt: 'Projetos de excelência que valorizam o nosso património. Uma visão a longo prazo impressionante.'
-    }
-  }];
+  const { t, language } = useLanguage();
+
+  const { data: featuredProjects } = useQuery({
+    queryKey: ['featured-projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('status', 'active')
+        .eq('featured', true)
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+  const { data: statistics } = useQuery({
+    queryKey: ['statistics', 'home'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('statistics')
+        .select('*')
+        .eq('is_active', true)
+        .in('key', ['years_home', 'projects_home', 'sqm_home'])
+        .order('order_index');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: testimonials } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index')
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
   return <div className="min-h-screen">
       {/* Hero Slider */}
       <HeroSlider />
@@ -55,7 +70,15 @@ export default function Home() {
             {t('home.projects.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProjects.map(project => <ProjectCard key={project.id} id={project.id} title={project.title[language]} location={`${project.location}, ${project.region}`} image={project.mainImage} />)}
+            {featuredProjects?.map(project => (
+              <ProjectCard 
+                key={project.id} 
+                id={project.id} 
+                title={(project as any)[`title_${language}`] || project.title_pt} 
+                location={`${project.location}, ${project.region}`} 
+                image={project.main_image || ''} 
+              />
+            ))}
           </div>
           <div className="text-center mt-12">
             <Link to="/portfolio">
@@ -72,28 +95,19 @@ export default function Home() {
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-            <div className="animate-bounce-in">
-              <Building2 className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">
-                +<AnimatedCounter end={10} /> ANS D'ACTIVITÉ
-              </p>
-            </div>
-            <div className="animate-bounce-in" style={{
-            animationDelay: '0.2s'
-          }}>
-              <TrendingUp className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">
-                <AnimatedCounter end={12} /> PROJETS RÉALISÉS
-              </p>
-            </div>
-            <div className="animate-bounce-in" style={{
-            animationDelay: '0.4s'
-          }}>
-              <Users className="h-12 w-12 mx-auto mb-4" />
-              <p className="text-4xl font-serif font-bold mb-2">
-                +<AnimatedCounter end={20000} /> M² CONSTRUITS
-              </p>
-            </div>
+            {statistics?.map((stat, index) => {
+              const Icon = (LucideIcons as any)[stat.icon_name] || LucideIcons.TrendingUp;
+              const label = (stat.label as any)[language] || (stat.label as any).pt;
+              
+              return (
+                <div key={stat.id} className="animate-bounce-in" style={{ animationDelay: `${index * 0.2}s` }}>
+                  <Icon className="h-12 w-12 mx-auto mb-4" />
+                  <p className="text-4xl font-serif font-bold mb-2">
+                    <AnimatedCounter end={stat.value} /> {label}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -105,15 +119,21 @@ export default function Home() {
             {t('home.testimonials.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => <div key={index} className="bg-secondary p-8 rounded-lg animate-slide-up" style={{
-            animationDelay: `${index * 0.2}s`
-          }}>
-                <p className="text-lg mb-6 italic">&ldquo;{testimonial.text[language]}&rdquo;</p>
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+            {testimonials?.map((testimonial, index) => {
+              const text = (testimonial.text as any)[language] || (testimonial.text as any).pt;
+              
+              return (
+                <div key={testimonial.id} className="bg-secondary p-8 rounded-lg animate-slide-up" style={{
+                  animationDelay: `${index * 0.2}s`
+                }}>
+                  <p className="text-lg mb-6 italic">&ldquo;{text}&rdquo;</p>
+                  <div>
+                    <p className="font-semibold">{testimonial.name}</p>
+                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                  </div>
                 </div>
-              </div>)}
+              );
+            })}
           </div>
         </div>
       </section>
