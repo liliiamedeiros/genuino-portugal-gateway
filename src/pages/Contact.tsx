@@ -7,7 +7,6 @@ import { StatsSection } from '@/components/StatsSection';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function Contact() {
   const { t } = useLanguage();
@@ -19,7 +18,7 @@ export default function Contact() {
     message: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -28,21 +27,7 @@ export default function Contact() {
       return;
     }
 
-    // Save to Supabase
-    const { error } = await supabase.from('contact_messages').insert({
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      message: formData.message,
-      status: 'new',
-    });
-
-    if (error) {
-      toast.error('Erreur lors de l\'envoi du message');
-      return;
-    }
-
+    // Simulate form submission
     toast.success('Message envoyé avec succès !');
     setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
   };

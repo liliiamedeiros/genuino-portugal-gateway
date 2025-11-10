@@ -25,11 +25,6 @@ import Dashboard from "./pages/admin/Dashboard";
 import Properties from "./pages/admin/Properties";
 import PropertyForm from "./pages/admin/PropertyForm";
 import Users from "./pages/admin/Users";
-import React, { lazy, Suspense } from "react";
-
-const GeneralSettings = lazy(() => import("./pages/admin/settings/General"));
-const AboutSettings = lazy(() => import("./pages/admin/settings/About"));
-const ServicesSettings = lazy(() => import("./pages/admin/settings/Services"));
 
 const queryClient = new QueryClient();
 
@@ -141,27 +136,6 @@ const App = () => (
               <Route path="/admin/properties/edit/:id" element={
                 <ProtectedRoute>
                   <PropertyForm />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings/general" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
-                    <GeneralSettings />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings/about" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
-                    <AboutSettings />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings/services" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
-                    <ServicesSettings />
-                  </Suspense>
                 </ProtectedRoute>
               } />
               <Route path="/admin/users" element={

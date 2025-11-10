@@ -1,24 +1,9 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProjectCard } from '@/components/ProjectCard';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { projects } from '@/data/projects';
 
 export default function Portfolio() {
   const { t, language } = useLanguage();
-
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-  });
 
   return (
     <div className="min-h-screen pt-20">
@@ -37,28 +22,22 @@ export default function Portfolio() {
       {/* Projects Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects?.map((project, index) => (
-                <div
-                  key={project.id}
-                  className="group animate-scale-in hover:-translate-y-2 transition-all duration-500"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <ProjectCard
-                    id={project.id}
-                    title={(project as any)[`title_${language}`] || project.title_pt}
-                    location={`${project.location}, ${project.region}`}
-                    image={project.main_image || ''}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project, index) => (
+              <div
+                key={project.id}
+                className="group animate-scale-in hover:-translate-y-2 transition-all duration-500"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProjectCard
+                  id={project.id}
+                  title={project.title[language]}
+                  location={`${project.location}, ${project.region}`}
+                  image={project.mainImage}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

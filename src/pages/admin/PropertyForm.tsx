@@ -7,12 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, X, Search } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
 export default function PropertyForm() {
   const { id } = useParams();
@@ -49,7 +48,6 @@ export default function PropertyForm() {
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [mainImagePreview, setMainImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
-  const [importUrl, setImportUrl] = useState('');
 
   const { data: existingProject } = useQuery({
     queryKey: ['project', id],
@@ -190,72 +188,6 @@ export default function PropertyForm() {
     }
   };
 
-  const handleImportFromUrl = async () => {
-    if (!importUrl) {
-      toast({
-        title: 'URL obrigatória',
-        description: 'Insira a URL do projeto',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Extract project ID from URL (e.g., /project/villas-alvor)
-    const urlParts = importUrl.split('/');
-    const projectId = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2];
-
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('id', projectId)
-      .single();
-
-    if (error || !project) {
-      toast({
-        title: 'Projeto não encontrado',
-        description: 'Verifique a URL e tente novamente',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Fill form with project data
-    setFormData({
-      id: project.id,
-      title_fr: project.title_fr,
-      title_en: project.title_en,
-      title_de: project.title_de,
-      title_pt: project.title_pt,
-      description_fr: project.description_fr,
-      description_en: project.description_en,
-      description_de: project.description_de,
-      description_pt: project.description_pt,
-      location: project.location,
-      region: project.region,
-      city: project.city || '',
-      address: project.address || '',
-      postal_code: project.postal_code || '',
-      property_type: project.property_type || 'apartment',
-      operation_type: project.operation_type || 'sale',
-      price: project.price?.toString() || '',
-      bedrooms: project.bedrooms?.toString() || '',
-      bathrooms: project.bathrooms?.toString() || '',
-      area_sqm: project.area_sqm?.toString() || '',
-      parking_spaces: project.parking_spaces?.toString() || '',
-      featured: project.featured || false,
-      status: project.status || 'active',
-    });
-
-    if (project.main_image) {
-      setMainImagePreview(project.main_image);
-    }
-
-    toast({
-      title: 'Dados importados!',
-      description: 'Os dados do projeto foram carregados com sucesso',
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -292,28 +224,6 @@ export default function PropertyForm() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Import from URL */}
-            {!isEdit && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Importar de URL Existente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    <Input
-                      placeholder="https://genuinoinvestments.ch/project/villas-alvor"
-                      value={importUrl}
-                      onChange={(e) => setImportUrl(e.target.value)}
-                    />
-                    <Button type="button" onClick={handleImportFromUrl}>
-                      <Search className="mr-2 h-4 w-4" />
-                      Importar Dados
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* ID do projeto */}
             {!isEdit && (
               <div>
