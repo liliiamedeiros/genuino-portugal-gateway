@@ -12,6 +12,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
+import type { WatermarkConfig } from '@/utils/watermarkUtils';
 
 export default function PropertyForm() {
   const { id } = useParams();
@@ -28,6 +31,9 @@ export default function PropertyForm() {
       .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
       .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
   };
+
+  const [watermarkEnabled, setWatermarkEnabled] = useState(true);
+  const [watermarkPosition, setWatermarkPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'center'>('bottom-right');
 
   const [formData, setFormData] = useState({
     id: '',
@@ -142,7 +148,14 @@ export default function PropertyForm() {
       if (mainImage) {
         try {
           setUploading(true);
-          const webpBlob = await convertToWebP(mainImage, 800, 600);
+          const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
+            enabled: true,
+            position: watermarkPosition,
+            text: '© Capital Estate Group',
+            opacity: 0.7
+          } : { enabled: false };
+          
+          const webpBlob = await convertToWebP(mainImage, 800, 600, watermarkConfig);
           const timestamp = Date.now();
           const projectId = formData.id || `${generateSlug(formData.title_pt)}-${timestamp}`;
           const path = `${projectId}/main-${timestamp}.webp`;
@@ -163,6 +176,31 @@ export default function PropertyForm() {
 
       // Generate ID if creating new property
       const projectId = formData.id || `${generateSlug(formData.title_pt)}-${Date.now()}`;
+
+      // Generate JSON-LD for SEO
+      const jsonLd = generatePropertyJsonLd({
+        id: projectId,
+        title_pt: formData.title_pt,
+        title_en: formData.title_en,
+        title_fr: formData.title_fr,
+        title_de: formData.title_de,
+        description_pt: formData.description_pt,
+        description_en: formData.description_en,
+        description_fr: formData.description_fr,
+        description_de: formData.description_de,
+        price: formData.price ? parseFloat(formData.price) : 0,
+        property_type: formData.property_type,
+        operation_type: formData.operation_type,
+        location: formData.location,
+        city: formData.city,
+        region: formData.region,
+        address: formData.address,
+        postal_code: formData.postal_code,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
+        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : undefined,
+        main_image: mainImageUrl
+      });
 
       const projectData = {
         id: projectId,
@@ -185,6 +223,7 @@ export default function PropertyForm() {
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
+        json_ld: jsonLd,
         parking_spaces: formData.parking_spaces ? parseInt(formData.parking_spaces) : null,
         featured: formData.featured,
         main_image: mainImageUrl,
@@ -211,7 +250,14 @@ export default function PropertyForm() {
         for (let i = 0; i < galleryImages.length; i++) {
           const { file } = galleryImages[i];
           try {
-            const webpBlob = await convertToWebP(file, 800, 600);
+            const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
+              enabled: true,
+              position: watermarkPosition,
+              text: '© Capital Estate Group',
+              opacity: 0.7
+            } : { enabled: false };
+            
+            const webpBlob = await convertToWebP(file, 800, 600, watermarkConfig);
             const timestamp = Date.now();
             const path = `${projectId}/gallery-${timestamp}-${i}.webp`;
             

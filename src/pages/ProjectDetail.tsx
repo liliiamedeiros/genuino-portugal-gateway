@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mail, Link as LinkIcon, Phone, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -139,6 +140,14 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen pt-20">
+      {project.json_ld && (
+        <Helmet>
+          <script type="application/ld+json">
+            {JSON.stringify(project.json_ld)}
+          </script>
+        </Helmet>
+      )}
+      
       {/* Hero */}
       <section className="relative h-[60vh] overflow-hidden">
         <img

@@ -33,6 +33,8 @@ import Newsletter from "./pages/admin/Newsletter";
 import NewCampaign from "./pages/admin/NewCampaign";
 import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
+import JsonLdValidator from "./pages/admin/JsonLdValidator";
+import JsonLdSystem from "./pages/admin/JsonLdSystem";
 
 const queryClient = new QueryClient();
 
@@ -196,6 +198,16 @@ const App = () => (
             <Route path="/admin/settings" element={
               <ProtectedRoute requiredRole="editor">
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/json-ld-validator" element={
+              <ProtectedRoute requiredRole="editor">
+                <JsonLdValidator />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/json-ld-system" element={
+              <ProtectedRoute requiredRole="editor">
+                <JsonLdSystem />
               </ProtectedRoute>
             } />
 

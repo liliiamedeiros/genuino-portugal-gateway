@@ -1,7 +1,10 @@
+import { applyWatermark, WatermarkConfig } from './watermarkUtils';
+
 export const convertToWebP = async (
   file: File,
   targetWidth: number = 800,
-  targetHeight: number = 600
+  targetHeight: number = 600,
+  watermarkConfig?: Partial<WatermarkConfig>
 ): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -37,9 +40,20 @@ export const convertToWebP = async (
         ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
         
         canvas.toBlob(
-          (blob) => {
+          async (blob) => {
             if (blob) {
-              resolve(blob);
+              // Apply watermark if configured
+              if (watermarkConfig) {
+                try {
+                  const watermarkedBlob = await applyWatermark(blob, watermarkConfig);
+                  resolve(watermarkedBlob);
+                } catch (error) {
+                  console.error('Failed to apply watermark:', error);
+                  resolve(blob); // Return original if watermark fails
+                }
+              } else {
+                resolve(blob);
+              }
             } else {
               reject(new Error('Failed to convert image to WebP'));
             }

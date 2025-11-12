@@ -12,7 +12,9 @@ import {
   Mail,
   LogOut,
   Menu,
-  X
+  X,
+  FileJson,
+  CheckCircle
 } from 'lucide-react';
 import { useState } from 'react';
 import logo from '@/assets/logo.png';
@@ -32,6 +34,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },
+    { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system' },
+    { icon: CheckCircle, label: 'Validador-JSON_LD', path: '/admin/json-ld-validator' },
     { icon: Settings, label: 'Configurações', path: '/admin/settings' },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
     { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },

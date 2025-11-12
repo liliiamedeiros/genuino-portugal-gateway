@@ -220,6 +220,36 @@ export type Database = {
         }
         Relationships: []
       }
+      json_ld_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template: Json
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template: Json
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template?: Json
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       newsletter_campaigns: {
         Row: {
           clicked_count: number | null
@@ -416,6 +446,7 @@ export type Database = {
           description_pt: string
           featured: boolean | null
           id: string
+          json_ld: Json | null
           location: string
           main_image: string | null
           operation_type: string | null
@@ -445,6 +476,7 @@ export type Database = {
           description_pt: string
           featured?: boolean | null
           id: string
+          json_ld?: Json | null
           location: string
           main_image?: string | null
           operation_type?: string | null
@@ -474,6 +506,7 @@ export type Database = {
           description_pt?: string
           featured?: boolean | null
           id?: string
+          json_ld?: Json | null
           location?: string
           main_image?: string | null
           operation_type?: string | null
