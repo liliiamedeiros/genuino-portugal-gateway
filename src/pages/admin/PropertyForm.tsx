@@ -246,12 +246,18 @@ export default function PropertyForm() {
       }
 
       // Upload gallery images
+      console.log('🖼️ Starting gallery upload. Total images:', galleryImages.length);
+      console.log('📊 Project ID:', projectId);
+      console.log('📋 Existing gallery images:', existingGalleryImages.length);
+      
       if (galleryImages.length > 0) {
         let successCount = 0;
         let errorCount = 0;
         
         for (let i = 0; i < galleryImages.length; i++) {
           const { file } = galleryImages[i];
+          console.log(`\n🔄 Processing image ${i + 1}/${galleryImages.length}:`, file.name);
+          
           try {
             const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
               enabled: true,
@@ -260,39 +266,57 @@ export default function PropertyForm() {
               opacity: 0.7
             } : { enabled: false };
             
+            console.log('⚙️ Converting to WebP with watermark:', watermarkEnabled);
             const webpBlob = await convertToWebP(file, 800, 600, watermarkConfig);
             const timestamp = Date.now();
             const path = `${projectId}/gallery-${timestamp}-${i}.webp`;
             
+            console.log('☁️ Uploading to storage:', path);
             const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
             
             if (error) {
-              console.error('Upload error:', error);
+              console.error('❌ Upload error:', error);
               errorCount++;
               continue;
             }
 
+            console.log('✅ Upload successful. URL:', url);
+
             if (url) {
-              const { error: insertError } = await supabase
+              const insertData = {
+                project_id: projectId,
+                image_url: url,
+                order_index: existingGalleryImages.length + i,
+              };
+              console.log('💾 Inserting into project_images:', insertData);
+              
+              const { data: insertedData, error: insertError } = await supabase
                 .from('project_images')
-                .insert({
-                  project_id: projectId,
-                  image_url: url,
-                  order_index: existingGalleryImages.length + i,
-                });
+                .insert(insertData)
+                .select();
               
               if (insertError) {
-                console.error('Insert error:', insertError);
+                console.error('❌ Insert error:', insertError);
+                console.error('Insert error code:', insertError.code);
+                console.error('Insert error details:', insertError.details);
+                console.error('Insert error hint:', insertError.hint);
                 errorCount++;
               } else {
+                console.log('✅ Insert successful:', insertedData);
                 successCount++;
               }
+            } else {
+              console.warn('⚠️ No URL returned from upload');
+              errorCount++;
             }
           } catch (error) {
-            console.error('Gallery image upload error:', error);
+            console.error('❌ Gallery image upload error:', error);
+            console.error('Error details:', JSON.stringify(error, null, 2));
             errorCount++;
           }
         }
+        
+        console.log(`\n📈 Upload summary: ${successCount} success, ${errorCount} errors`);
         
         // Feedback ao usuário
         if (successCount > 0) {
@@ -305,10 +329,12 @@ export default function PropertyForm() {
         if (errorCount > 0 && successCount === 0) {
           toast({
             title: 'Erro ao adicionar fotos',
-            description: `${errorCount} foto(s) não foram carregadas. Tente novamente.`,
+            description: `${errorCount} foto(s) não foram carregadas. Verifique o console para mais detalhes.`,
             variant: 'destructive',
           });
         }
+      } else {
+        console.log('ℹ️ No gallery images to upload');
       }
 
       setUploading(false);
