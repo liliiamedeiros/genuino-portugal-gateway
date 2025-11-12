@@ -27,11 +27,6 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-      },
-    },
+    minify: mode === 'production' ? 'esbuild' : false,
   },
 }));
