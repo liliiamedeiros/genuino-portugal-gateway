@@ -850,7 +850,7 @@ export default function PropertyForm() {
                         Adicionar fotos à galeria ({MAX_GALLERY_IMAGES - existingGalleryImages.length - galleryImages.length} restantes)
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Selecione múltiplas fotos (máximo 5MB cada)
+                        Selecione múltiplas fotos (máximo 20MB cada)
                       </p>
                     </div>
                   </Label>
