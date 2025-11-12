@@ -123,7 +123,11 @@ export default function Dashboard() {
               <Users className="mr-2 h-5 w-5" />
               Ver Clientes
             </Button>
-            <Button variant="outline" className="h-20" disabled>
+            <Button 
+              variant="outline" 
+              className="h-20"
+              onClick={() => navigate('/admin/appointments')}
+            >
               <Calendar className="mr-2 h-5 w-5" />
               Ver Agendamentos
             </Button>
