@@ -25,6 +25,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Properties from "./pages/admin/Properties";
 import PropertyForm from "./pages/admin/PropertyForm";
 import Users from "./pages/admin/Users";
+import Clients from "./pages/admin/Clients";
 
 const queryClient = new QueryClient();
 
@@ -141,6 +142,11 @@ const App = () => (
               <Route path="/admin/users" element={
                 <ProtectedRoute requiredRole="admin">
                   <Users />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/clients" element={
+                <ProtectedRoute requiredRole="editor">
+                  <Clients />
                 </ProtectedRoute>
               } />
 

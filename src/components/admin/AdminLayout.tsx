@@ -29,7 +29,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
-    { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients', disabled: true },
+    { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments', disabled: true },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', disabled: true },
     { icon: Settings, label: 'Configurações', path: '/admin/settings', disabled: true },

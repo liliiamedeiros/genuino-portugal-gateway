@@ -19,6 +19,30 @@ export default function Dashboard() {
     },
   });
 
+  const { data: clientsCount } = useQuery({
+    queryKey: ['clients-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+      return count || 0;
+    },
+  });
+
+  const { data: upcomingAppointments } = useQuery({
+    queryKey: ['upcoming-appointments'],
+    queryFn: async () => {
+      const today = new Date().toISOString();
+      const { count } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('appointment_date', today)
+        .in('status', ['scheduled', 'confirmed']);
+      return count || 0;
+    },
+  });
+
   const stats = [
     {
       title: 'Total de Imóveis',
@@ -27,14 +51,14 @@ export default function Dashboard() {
       color: 'text-blue-600',
     },
     {
-      title: 'Clientes',
-      value: '-',
+      title: 'Clientes Ativos',
+      value: clientsCount || 0,
       icon: Users,
       color: 'text-green-600',
     },
     {
       title: 'Agendamentos',
-      value: '-',
+      value: upcomingAppointments || 0,
       icon: Calendar,
       color: 'text-orange-600',
     },
@@ -91,7 +115,11 @@ export default function Dashboard() {
               <Building2 className="mr-2 h-5 w-5" />
               Ver Imóveis
             </Button>
-            <Button variant="outline" className="h-20" disabled>
+            <Button 
+              variant="outline" 
+              className="h-20"
+              onClick={() => navigate('/admin/clients')}
+            >
               <Users className="mr-2 h-5 w-5" />
               Ver Clientes
             </Button>
