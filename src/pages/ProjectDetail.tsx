@@ -3,7 +3,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowLeft, Bed, Bath, Square, Car } from 'lucide-react';
+import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mail, Link as LinkIcon, Phone, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -29,6 +30,33 @@ const translateOperationType = (type: string | null, lang: string) => {
 export default function ProjectDetail() {
   const { id } = useParams();
   const { language } = useLanguage();
+
+  const handleShare = (platform: string) => {
+    const url = window.location.href;
+    const title = project?.title_pt || project?.title_fr || project?.title_en || "Imóvel";
+    const text = `${title} - ${project?.location || ""}`;
+
+    switch (platform) {
+      case "facebook":
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank");
+        break;
+      case "whatsapp":
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank");
+        break;
+      case "email":
+        window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${url}`)}`;
+        break;
+      case "copy":
+        navigator.clipboard.writeText(url);
+        toast.success(
+          language === "pt" ? "Link copiado!" :
+          language === "fr" ? "Lien copié!" :
+          language === "en" ? "Link copied!" :
+          "Link kopiert!"
+        );
+        break;
+    }
+  };
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
@@ -180,11 +208,64 @@ export default function ProjectDetail() {
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
+          </div>
+        </div>
 
-            {/* Características */}
-            {(project.bedrooms || project.bathrooms || project.area_sqm || project.parking_spaces) && (
+        {/* Botões de Contacto */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 mb-8">
+          <h3 className="text-xl font-semibold mb-4">
+            {language === 'pt' && 'Entre em Contacto'}
+            {language === 'fr' && 'Nous Contacter'}
+            {language === 'en' && 'Get in Touch'}
+            {language === 'de' && 'Kontaktieren Sie uns'}
+          </h3>
+          <div className="flex flex-wrap gap-4">
+            <Button
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              asChild
+            >
+              <a
+                href={`https://wa.me/41784876000?text=${encodeURIComponent(
+                  language === 'pt' ? `Olá! Tenho interesse no imóvel: ${project.title_pt || project.title_fr || project.title_en} em ${project.location}` :
+                  language === 'fr' ? `Bonjour! Je suis intéressé par le bien: ${project.title_fr || project.title_pt || project.title_en} à ${project.location}` :
+                  language === 'en' ? `Hello! I'm interested in the property: ${project.title_en || project.title_pt || project.title_fr} in ${project.location}` :
+                  `Hallo! Ich interessiere mich für die Immobilie: ${project.title_de || project.title_en || project.title_pt} in ${project.location}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                WhatsApp
+              </a>
+            </Button>
+            
+            <Button size="lg" variant="outline" asChild>
+              <a href={`mailto:info@genuinoinvestments.ch?subject=${encodeURIComponent(
+                language === 'pt' ? `Interesse no imóvel: ${project.title_pt || project.title_fr || project.title_en}` :
+                language === 'fr' ? `Intérêt pour le bien: ${project.title_fr || project.title_pt || project.title_en}` :
+                language === 'en' ? `Interest in property: ${project.title_en || project.title_pt || project.title_fr}` :
+                `Interesse an Immobilie: ${project.title_de || project.title_en || project.title_pt}`
+              )}`}>
+                <Mail className="mr-2 h-5 w-5" />
+                Email
+              </a>
+            </Button>
+            
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/contact">
+                <Phone className="mr-2 h-5 w-5" />
+                {language === 'pt' && 'Agendar Visita'}
+                {language === 'fr' && 'Planifier une visite'}
+                {language === 'en' && 'Schedule Visit'}
+                {language === 'de' && 'Besuch planen'}
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Características */}
+        {(project.bedrooms || project.bathrooms || project.area_sqm || project.parking_spaces) && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {project.bedrooms && (
                   <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
@@ -291,7 +372,7 @@ export default function ProjectDetail() {
                   <p>
                     <strong>
                       {language === 'pt' && 'Região: '}
-                      {language === 'fr' && 'Région: '}
+                      {language === 'fr' && 'Região: '}
                       {language === 'en' && 'Region: '}
                       {language === 'de' && 'Region: '}
                     </strong>
@@ -300,6 +381,88 @@ export default function ProjectDetail() {
                 </div>
               </div>
             )}
+
+            {/* Mapa de Localização */}
+            {project.city && (
+              <div className="mb-12">
+                <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                  <MapPin className="h-6 w-6 text-primary" />
+                  {language === 'pt' && 'Localização no Mapa'}
+                  {language === 'fr' && 'Emplacement sur la carte'}
+                  {language === 'en' && 'Map Location'}
+                  {language === 'de' && 'Standort auf der Karte'}
+                </h3>
+                <div className="rounded-lg overflow-hidden shadow-lg h-[400px]">
+                  <iframe
+                    src={`https://www.google.com/maps?q=${encodeURIComponent(
+                      `${project.address || ''}, ${project.city}, ${project.region}, Portugal`
+                    )}&output=embed`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Property Location"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Partilha Social */}
+            <div className="bg-secondary/5 rounded-lg p-6 mb-12">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-primary" />
+                {language === 'pt' && 'Partilhar este imóvel'}
+                {language === 'fr' && 'Partager ce bien'}
+                {language === 'en' && 'Share this property'}
+                {language === 'de' && 'Diese Immobilie teilen'}
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleShare("facebook")}
+                  className="hover:bg-blue-600 hover:text-white hover:border-blue-600"
+                >
+                  <Facebook className="mr-2 h-5 w-5" />
+                  Facebook
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleShare("whatsapp")}
+                  className="hover:bg-green-600 hover:text-white hover:border-green-600"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  WhatsApp
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleShare("email")}
+                  className="hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Mail className="mr-2 h-5 w-5" />
+                  Email
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleShare("copy")}
+                  className="hover:bg-primary hover:text-primary-foreground"
+                >
+                  <LinkIcon className="mr-2 h-5 w-5" />
+                  {language === 'pt' && 'Copiar Link'}
+                  {language === 'fr' && 'Copier le lien'}
+                  {language === 'en' && 'Copy Link'}
+                  {language === 'de' && 'Link kopieren'}
+                </Button>
+              </div>
+            </div>
 
             {/* Gallery */}
             {allImages.length > 0 && (
