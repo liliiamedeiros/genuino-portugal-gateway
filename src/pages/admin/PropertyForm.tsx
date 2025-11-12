@@ -304,11 +304,11 @@ export default function PropertyForm() {
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
+      // Validate file size (max 20MB)
+      if (file.size > 20 * 1024 * 1024) {
         toast({
           title: 'Imagem muito grande',
-          description: 'O tamanho máximo da imagem é 5MB',
+          description: 'O tamanho máximo da imagem é 20MB',
           variant: 'destructive',
         });
         return;
@@ -347,10 +347,10 @@ export default function PropertyForm() {
     }
 
     const validFiles = files.filter(file => {
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > 20 * 1024 * 1024) {
         toast({
           title: 'Imagem muito grande',
-          description: `${file.name} excede 5MB`,
+          description: `${file.name} excede 20MB`,
           variant: 'destructive',
         });
         return false;

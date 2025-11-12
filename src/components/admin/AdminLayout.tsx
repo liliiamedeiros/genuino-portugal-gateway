@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   FileJson,
-  CheckCircle
+  CheckCircle,
+  ImageIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import logo from '@/assets/logo.png';
@@ -31,6 +32,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
+    { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },

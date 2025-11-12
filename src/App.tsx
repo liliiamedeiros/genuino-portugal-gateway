@@ -35,6 +35,7 @@ import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
 import JsonLdValidator from "./pages/admin/JsonLdValidator";
 import JsonLdSystem from "./pages/admin/JsonLdSystem";
+import ImageConverter from "./pages/admin/ImageConverter";
 
 const queryClient = new QueryClient();
 
@@ -208,6 +209,11 @@ const App = () => (
             <Route path="/admin/json-ld-system" element={
               <ProtectedRoute requiredRole="editor">
                 <JsonLdSystem />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/image-converter" element={
+              <ProtectedRoute requiredRole="editor">
+                <ImageConverter />
               </ProtectedRoute>
             } />
 

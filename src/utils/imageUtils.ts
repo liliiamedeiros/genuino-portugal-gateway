@@ -1,5 +1,62 @@
 import { applyWatermark, WatermarkConfig } from './watermarkUtils';
 
+export interface ImageAnalysis {
+  name: string;
+  format: string;
+  size: number; // bytes
+  sizeFormatted: string;
+  dimensions: { width: number; height: number };
+  estimatedWebPSize: number;
+  estimatedSavings: number; // percentage
+}
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
+export const validateImageSize = (file: File): { valid: boolean; error?: string } => {
+  if (file.size > MAX_FILE_SIZE) {
+    return {
+      valid: false,
+      error: `Arquivo muito grande. Máximo: 20MB (${(file.size / 1024 / 1024).toFixed(2)}MB enviado)`
+    };
+  }
+  return { valid: true };
+};
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+};
+
+export const analyzeImage = async (file: File): Promise<ImageAnalysis> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        const estimatedWebPSize = file.size * 0.35; // WebP typically 65% smaller
+        const savings = ((file.size - estimatedWebPSize) / file.size) * 100;
+
+        resolve({
+          name: file.name,
+          format: file.type.split('/')[1]?.toUpperCase() || 'UNKNOWN',
+          size: file.size,
+          sizeFormatted: formatFileSize(file.size),
+          dimensions: { width: img.width, height: img.height },
+          estimatedWebPSize,
+          estimatedSavings: Math.round(savings)
+        });
+      };
+      img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
+    reader.readAsDataURL(file);
+  });
+};
+
 export const convertToWebP = async (
   file: File,
   targetWidth: number = 800,
