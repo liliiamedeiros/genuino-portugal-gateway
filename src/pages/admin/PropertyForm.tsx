@@ -19,6 +19,16 @@ export default function PropertyForm() {
   const queryClient = useQueryClient();
   const isEdit = !!id;
 
+  // Helper function to generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  };
+
   const [formData, setFormData] = useState({
     id: '',
     title_fr: '',
@@ -102,21 +112,35 @@ export default function PropertyForm() {
     mutationFn: async () => {
       let mainImageUrl = mainImagePreview;
 
+      // Upload image if provided
       if (mainImage) {
-        setUploading(true);
-        const webpBlob = await convertToWebP(mainImage);
-        const timestamp = Date.now();
-        const path = `${formData.id || timestamp}/main-${timestamp}.webp`;
-        
-        const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
-        
-        if (error) throw error;
-        mainImageUrl = url || '';
-        setUploading(false);
+        try {
+          setUploading(true);
+          const webpBlob = await convertToWebP(mainImage);
+          const timestamp = Date.now();
+          const projectId = formData.id || `${generateSlug(formData.title_pt)}-${timestamp}`;
+          const path = `${projectId}/main-${timestamp}.webp`;
+          
+          const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
+          
+          if (error) {
+            console.error('Image upload error:', error);
+            throw new Error(`Erro ao fazer upload da imagem: ${error.message}`);
+          }
+          
+          mainImageUrl = url || '';
+          setUploading(false);
+        } catch (error: any) {
+          setUploading(false);
+          throw new Error(error.message || 'Erro ao fazer upload da imagem');
+        }
       }
 
+      // Generate ID if creating new property
+      const projectId = formData.id || `${generateSlug(formData.title_pt)}-${Date.now()}`;
+
       const projectData = {
-        id: formData.id || `project-${Date.now()}`,
+        id: projectId,
         title_fr: formData.title_fr,
         title_en: formData.title_en,
         title_de: formData.title_de,
@@ -179,6 +203,26 @@ export default function PropertyForm() {
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Imagem muito grande',
+          description: 'O tamanho máximo da imagem é 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file type
+      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+        toast({
+          title: 'Formato inválido',
+          description: 'Use apenas JPEG, PNG ou WebP',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       setMainImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -227,14 +271,16 @@ export default function PropertyForm() {
             {/* ID do projeto */}
             {!isEdit && (
               <div>
-                <Label htmlFor="id">ID do Projeto *</Label>
+                <Label htmlFor="id">ID do Projeto (opcional)</Label>
                 <Input
                   id="id"
                   value={formData.id}
                   onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                  placeholder="ex: vila-porto-center"
-                  required
+                  placeholder="Deixe vazio para gerar automaticamente"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se não preencher, será gerado automaticamente baseado no título em português
+                </p>
               </div>
             )}
 

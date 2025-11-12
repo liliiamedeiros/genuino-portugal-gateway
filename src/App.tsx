@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Portfolio from "./pages/Portfolio";
+import Properties from "./pages/Properties";
 import ProjectDetail from "./pages/ProjectDetail";
 import Vision from "./pages/Vision";
 import Investors from "./pages/Investors";
@@ -22,7 +23,7 @@ import Disputes from "./pages/Disputes";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
-import Properties from "./pages/admin/Properties";
+import AdminProperties from "./pages/admin/Properties";
 import PropertyForm from "./pages/admin/PropertyForm";
 import Users from "./pages/admin/Users";
 import Clients from "./pages/admin/Clients";
@@ -70,6 +71,13 @@ const App = () => (
                 <>
                   <Navbar />
                   <Portfolio />
+                  <Footer />
+                </>
+              } />
+              <Route path="/properties" element={
+                <>
+                  <Navbar />
+                  <Properties />
                   <Footer />
                 </>
               } />
@@ -132,7 +140,7 @@ const App = () => (
               } />
               <Route path="/admin/properties" element={
                 <ProtectedRoute>
-                  <Properties />
+                  <AdminProperties />
                 </ProtectedRoute>
               } />
               <Route path="/admin/properties/new" element={
