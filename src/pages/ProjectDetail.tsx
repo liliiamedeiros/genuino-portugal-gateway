@@ -12,10 +12,13 @@ export default function ProjectDetail() {
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
+      // Trim ID to remove extra spaces
+      const trimmedId = id?.trim();
+      
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('id', id)
+        .ilike('id', trimmedId)
         .eq('status', 'active')
         .maybeSingle();
       
