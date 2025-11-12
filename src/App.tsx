@@ -30,6 +30,8 @@ import ClientDetail from "./pages/admin/ClientDetail";
 import Appointments from "./pages/admin/Appointments";
 import Newsletter from "./pages/admin/Newsletter";
 import NewCampaign from "./pages/admin/NewCampaign";
+import Reports from "./pages/admin/Reports";
+import Settings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +178,16 @@ const App = () => (
             <Route path="/admin/newsletter/edit/:id" element={
               <ProtectedRoute requiredRole="editor">
                 <NewCampaign />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute requiredRole="editor">
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requiredRole="editor">
+                <Settings />
               </ProtectedRoute>
             } />
 

@@ -31,8 +31,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
-    { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', disabled: true },
-    { icon: Settings, label: 'Configurações', path: '/admin/settings', disabled: true },
+    { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },
+    { icon: Settings, label: 'Configurações', path: '/admin/settings' },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
     { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
   ];
@@ -64,7 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const disabled = item.disabled || (item.adminOnly && userRole !== 'admin');
+            const disabled = item.adminOnly && userRole !== 'admin';
             
             if (disabled) {
               return (
