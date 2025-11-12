@@ -1,13 +1,11 @@
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Resend } from 'npm:resend@4.0.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -17,13 +15,13 @@ serve(async (req) => {
     
     console.log('Iniciando envio da campanha:', campaignId);
     
-    // Inicializar clientes
+    // Inicializar cliente Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
     // Buscar campanha
     const { data: campaign, error: campaignError } = await supabaseClient
@@ -69,21 +67,29 @@ serve(async (req) => {
           `${Deno.env.get('SITE_URL')}/unsubscribe?token=${subscriber.id}`);
       
       try {
-        // Enviar email via Resend
-        const { data, error } = await resend.emails.send({
-          from: 'Newsletter <onboarding@resend.dev>',
-          to: [subscriber.email],
-          subject: subject,
-          html: personalizedContent,
-          tags: [
-            { name: 'campaign_id', value: campaignId },
-            { name: 'subscriber_id', value: subscriber.id }
-          ],
+        // Enviar email via Resend API
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: 'Newsletter <onboarding@resend.dev>',
+            to: [subscriber.email],
+            subject: subject,
+            html: personalizedContent,
+            tags: {
+              campaign_id: campaignId,
+              subscriber_id: subscriber.id
+            },
+          }),
         });
         
-        if (error) {
-          console.error(`Erro ao enviar para ${subscriber.email}:`, error);
-          errors.push({ email: subscriber.email, error: error.message });
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error(`Erro ao enviar para ${subscriber.email}:`, errorData);
+          errors.push({ email: subscriber.email, error: JSON.stringify(errorData) });
         } else {
           sentCount++;
           console.log(`Email enviado com sucesso para ${subscriber.email}`);

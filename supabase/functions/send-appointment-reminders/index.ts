@@ -1,13 +1,11 @@
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Resend } from 'npm:resend@4.0.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,7 +16,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
     // Calcular intervalo: 24h a partir de agora
     const now = new Date();
@@ -135,20 +133,29 @@ serve(async (req) => {
       `;
       
       try {
-        const { data, error } = await resend.emails.send({
-          from: 'Agendamentos <onboarding@resend.dev>',
-          to: [client.email],
-          subject: emailSubject,
-          html: emailHtml,
-          tags: [
-            { name: 'type', value: 'appointment_reminder' },
-            { name: 'appointment_id', value: appointment.id }
-          ],
+        // Enviar email via Resend API
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: 'Agendamentos <onboarding@resend.dev>',
+            to: [client.email],
+            subject: emailSubject,
+            html: emailHtml,
+            tags: {
+              type: 'appointment_reminder',
+              appointment_id: appointment.id
+            },
+          }),
         });
         
-        if (error) {
-          console.error(`Erro ao enviar lembrete para ${client.email}:`, error);
-          errors.push({ email: client.email, error: error.message });
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error(`Erro ao enviar lembrete para ${client.email}:`, errorData);
+          errors.push({ email: client.email, error: JSON.stringify(errorData) });
         } else {
           // Marcar como enviado
           await supabaseClient
