@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
 import logoWhite from '@/assets/logo-white.png';
 
@@ -68,10 +68,35 @@ export const Navbar = () => {
               </Link>
             ))}
             <LanguageSwitcher />
+            <Button 
+              asChild
+              variant="ghost"
+              size="sm"
+              className={`gap-2 ${
+                isScrolled 
+                  ? 'text-white hover:bg-white/10' 
+                  : 'text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Link to="/admin/login">
+                <LogIn className="h-4 w-4" />
+                <span>Entrar</span>
+              </Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
+            <Button 
+              asChild
+              variant="ghost"
+              size="sm"
+              className={isScrolled ? 'text-white hover:text-white/80' : ''}
+            >
+              <Link to="/admin/login">
+                <LogIn className="h-4 w-4" />
+              </Link>
+            </Button>
             <LanguageSwitcher />
             <Button 
               variant="ghost" 
