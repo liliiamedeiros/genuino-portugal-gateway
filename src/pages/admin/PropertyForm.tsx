@@ -142,7 +142,7 @@ export default function PropertyForm() {
       if (mainImage) {
         try {
           setUploading(true);
-          const webpBlob = await convertToWebP(mainImage);
+          const webpBlob = await convertToWebP(mainImage, 800, 600);
           const timestamp = Date.now();
           const projectId = formData.id || `${generateSlug(formData.title_pt)}-${timestamp}`;
           const path = `${projectId}/main-${timestamp}.webp`;
@@ -211,7 +211,7 @@ export default function PropertyForm() {
         for (let i = 0; i < galleryImages.length; i++) {
           const { file } = galleryImages[i];
           try {
-            const webpBlob = await convertToWebP(file);
+            const webpBlob = await convertToWebP(file, 800, 600);
             const timestamp = Date.now();
             const path = `${projectId}/gallery-${timestamp}-${i}.webp`;
             

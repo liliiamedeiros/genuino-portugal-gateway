@@ -217,4 +217,24 @@ All colors MUST be HSL.
       transform: scale(1);
     }
   }
+
+  /* Project card image sizing */
+  .project-card-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  @media (max-width: 1024px) {
+    .project-card-image {
+      height: 240px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .project-card-image {
+      height: 220px;
+    }
+  }
 }

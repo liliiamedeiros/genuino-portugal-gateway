@@ -1,4 +1,8 @@
-export const convertToWebP = async (file: File): Promise<Blob> => {
+export const convertToWebP = async (
+  file: File,
+  targetWidth: number = 800,
+  targetHeight: number = 600
+): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -7,8 +11,8 @@ export const convertToWebP = async (file: File): Promise<Blob> => {
       
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -16,7 +20,21 @@ export const convertToWebP = async (file: File): Promise<Blob> => {
           return;
         }
         
-        ctx.drawImage(img, 0, 0);
+        // Calculate scaling to cover the target dimensions (crop if needed)
+        const scale = Math.max(targetWidth / img.width, targetHeight / img.height);
+        const scaledWidth = img.width * scale;
+        const scaledHeight = img.height * scale;
+        
+        // Center the image
+        const x = (targetWidth - scaledWidth) / 2;
+        const y = (targetHeight - scaledHeight) / 2;
+        
+        // Fill with white background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
+        
+        // Draw the scaled and centered image
+        ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
         
         canvas.toBlob(
           (blob) => {
