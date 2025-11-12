@@ -149,13 +149,12 @@ export default function ProjectDetail() {
       )}
       
       {/* Hero */}
-      <section className="relative h-[60vh] overflow-hidden">
+      <section className="relative h-[70vh] overflow-hidden bg-black">
         <img
           src={project.main_image}
           alt={`${project[`title_${language}`]} – Luxurious real estate development in ${project.location}, ${project.region}, Portugal – Investment opportunity in Portuguese property`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* Content */}

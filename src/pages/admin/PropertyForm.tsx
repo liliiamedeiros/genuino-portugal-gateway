@@ -247,6 +247,9 @@ export default function PropertyForm() {
 
       // Upload gallery images
       if (galleryImages.length > 0) {
+        let successCount = 0;
+        let errorCount = 0;
+        
         for (let i = 0; i < galleryImages.length; i++) {
           const { file } = galleryImages[i];
           try {
@@ -263,20 +266,48 @@ export default function PropertyForm() {
             
             const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
             
-            if (error) throw error;
+            if (error) {
+              console.error('Upload error:', error);
+              errorCount++;
+              continue;
+            }
 
             if (url) {
-              await supabase
+              const { error: insertError } = await supabase
                 .from('project_images')
                 .insert({
                   project_id: projectId,
                   image_url: url,
                   order_index: existingGalleryImages.length + i,
                 });
+              
+              if (insertError) {
+                console.error('Insert error:', insertError);
+                errorCount++;
+              } else {
+                successCount++;
+              }
             }
           } catch (error) {
             console.error('Gallery image upload error:', error);
+            errorCount++;
           }
+        }
+        
+        // Feedback ao usuário
+        if (successCount > 0) {
+          toast({
+            title: `${successCount} foto(s) adicionada(s)`,
+            description: errorCount > 0 ? `${errorCount} foto(s) falharam` : 'Galeria atualizada com sucesso',
+          });
+        }
+        
+        if (errorCount > 0 && successCount === 0) {
+          toast({
+            title: 'Erro ao adicionar fotos',
+            description: `${errorCount} foto(s) não foram carregadas. Tente novamente.`,
+            variant: 'destructive',
+          });
         }
       }
 
