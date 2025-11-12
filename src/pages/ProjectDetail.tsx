@@ -1,34 +1,92 @@
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { projects } from '@/data/projects';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { MapPin, ArrowLeft } from 'lucide-react';
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const { language, t } = useLanguage();
-  const project = projects.find((p) => p.id === id);
+  const { language } = useLanguage();
+
+  const { data: project, isLoading } = useQuery({
+    queryKey: ['project', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: galleryImages } = useQuery({
+    queryKey: ['project-images', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_images')
+        .select('*')
+        .eq('project_id', id)
+        .order('order_index');
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!project,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <p className="text-lg">
+          {language === 'pt' && 'A carregar...'}
+          {language === 'fr' && 'Chargement...'}
+          {language === 'en' && 'Loading...'}
+          {language === 'de' && 'Wird geladen...'}
+        </p>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-serif font-bold mb-4">Projet non trouvé</h1>
-          <Link to="/portfolio">
-            <Button>Retour au portfolio</Button>
+          <h1 className="text-4xl font-serif font-bold mb-4">
+            {language === 'pt' && 'Imóvel não encontrado'}
+            {language === 'fr' && 'Bien immobilier non trouvé'}
+            {language === 'en' && 'Property not found'}
+            {language === 'de' && 'Immobilie nicht gefunden'}
+          </h1>
+          <Link to="/properties">
+            <Button>
+              {language === 'pt' && 'Voltar aos Imóveis'}
+              {language === 'fr' && 'Retour aux Biens'}
+              {language === 'en' && 'Back to Properties'}
+              {language === 'de' && 'Zurück zu Immobilien'}
+            </Button>
           </Link>
         </div>
       </div>
     );
   }
 
+  const allImages = [
+    project.main_image,
+    ...(galleryImages?.map(img => img.image_url) || [])
+  ].filter(Boolean);
+
   return (
     <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative h-[60vh] overflow-hidden">
         <img
-          src={project.mainImage}
-          alt={`${project.title[language]} – Luxurious real estate development in ${project.location}, ${project.region}, Portugal – Investment opportunity in Portuguese property`}
+          src={project.main_image}
+          alt={`${project[`title_${language}`]} – Luxurious real estate development in ${project.location}, ${project.region}, Portugal – Investment opportunity in Portuguese property`}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
@@ -37,16 +95,19 @@ export default function ProjectDetail() {
       {/* Content */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <Link to="/portfolio">
+          <Link to="/properties">
             <Button variant="ghost" className="mb-6">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour au portfolio
+              {language === 'pt' && 'Voltar aos Imóveis'}
+              {language === 'fr' && 'Retour aux Biens'}
+              {language === 'en' && 'Back to Properties'}
+              {language === 'de' && 'Zurück zu Immobilien'}
             </Button>
           </Link>
 
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl font-serif font-bold mb-4 animate-fade-in">
-              {project.title[language]}
+              {project[`title_${language}`]}
             </h1>
             <div className="flex items-center text-lg text-muted-foreground mb-8">
               <MapPin className="h-5 w-5 mr-2" />
@@ -54,23 +115,30 @@ export default function ProjectDetail() {
             </div>
 
             <div className="prose prose-lg max-w-none mb-12">
-              <p className="text-lg leading-relaxed">{project.description[language]}</p>
+              <p className="text-lg leading-relaxed">{project[`description_${language}`]}</p>
             </div>
 
             {/* Gallery */}
-            <div>
-              <h2 className="text-3xl font-serif font-bold mb-6">{t('project.gallery')}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {project.gallery.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`${project.title[language]} – Luxury villa in ${project.location}, Algarve, Portugal – High-end Portuguese real estate investment property with modern architecture and premium amenities – Photo ${index + 1}`}
-                    className="w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow"
-                  />
-                ))}
+            {allImages.length > 0 && (
+              <div>
+                <h2 className="text-3xl font-serif font-bold mb-6">
+                  {language === 'pt' && 'Galeria'}
+                  {language === 'fr' && 'Galerie'}
+                  {language === 'en' && 'Gallery'}
+                  {language === 'de' && 'Galerie'}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {allImages.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`${project[`title_${language}`]} – Luxury property in ${project.location}, Portugal – Photo ${index + 1}`}
+                      className="w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
