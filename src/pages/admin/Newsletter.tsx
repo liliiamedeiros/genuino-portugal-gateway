@@ -232,7 +232,9 @@ export default function Newsletter() {
                   <CardTitle>Subscritores</CardTitle>
                   <div className="flex gap-2">
                     <CSVImporter
-                      onImport={(data) => importSubscribersMutation.mutate(data)}
+                      onImport={async (data) => {
+                        importSubscribersMutation.mutate(data);
+                      }}
                       columns={[
                         { key: 'email', label: 'Email', required: true },
                         { key: 'full_name', label: 'Nome' },

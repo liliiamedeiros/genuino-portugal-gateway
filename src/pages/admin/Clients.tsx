@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Link } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -328,7 +329,14 @@ export default function Clients() {
               ) : clients && clients.length > 0 ? (
                 clients.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.full_name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link 
+                        to={`/admin/clients/${client.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {client.full_name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{client.email}</TableCell>
                     <TableCell>{client.phone || '-'}</TableCell>
                     <TableCell>

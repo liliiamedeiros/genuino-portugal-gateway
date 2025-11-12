@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface StatusBadgeProps {
   status: string;
-  type: 'client' | 'appointment' | 'newsletter' | 'project';
+  type: 'client' | 'appointment' | 'newsletter' | 'project' | 'campaign';
   className?: string;
 }
 
@@ -33,6 +33,12 @@ const statusConfig = {
     sold: { label: 'Vendido', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
     reserved: { label: 'Reservado', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400' },
     inactive: { label: 'Inativo', className: 'bg-gray-500/10 text-gray-700 dark:text-gray-400' },
+  },
+  campaign: {
+    draft: { label: 'Rascunho', className: 'bg-gray-500/10 text-gray-700 dark:text-gray-400' },
+    scheduled: { label: 'Agendada', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+    sent: { label: 'Enviada', className: 'bg-green-500/10 text-green-700 dark:text-green-400' },
+    sending: { label: 'Enviando', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400' },
   },
 };
 
