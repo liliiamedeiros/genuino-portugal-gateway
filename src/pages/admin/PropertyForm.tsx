@@ -57,7 +57,11 @@ export default function PropertyForm() {
 
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [mainImagePreview, setMainImagePreview] = useState<string>('');
+  const [galleryImages, setGalleryImages] = useState<Array<{ file: File; preview: string }>>([]);
+  const [existingGalleryImages, setExistingGalleryImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  const MAX_GALLERY_IMAGES = 10;
 
   const { data: existingProject } = useQuery({
     queryKey: ['project', id],
@@ -71,6 +75,22 @@ export default function PropertyForm() {
       
       if (error) throw error;
       return data;
+    },
+    enabled: isEdit,
+  });
+
+  const { data: existingGallery } = useQuery({
+    queryKey: ['project-gallery', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('project_images')
+        .select('*')
+        .eq('project_id', id)
+        .order('order_index');
+      
+      if (error) throw error;
+      return data || [];
     },
     enabled: isEdit,
   });
@@ -108,11 +128,17 @@ export default function PropertyForm() {
     }
   }, [existingProject]);
 
+  useEffect(() => {
+    if (existingGallery && existingGallery.length > 0) {
+      setExistingGalleryImages(existingGallery.map(img => img.image_url));
+    }
+  }, [existingGallery]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       let mainImageUrl = mainImagePreview;
 
-      // Upload image if provided
+      // Upload main image if provided
       if (mainImage) {
         try {
           setUploading(true);
@@ -129,7 +155,6 @@ export default function PropertyForm() {
           }
           
           mainImageUrl = url || '';
-          setUploading(false);
         } catch (error: any) {
           setUploading(false);
           throw new Error(error.message || 'Erro ao fazer upload da imagem');
@@ -180,6 +205,36 @@ export default function PropertyForm() {
         
         if (error) throw error;
       }
+
+      // Upload gallery images
+      if (galleryImages.length > 0) {
+        for (let i = 0; i < galleryImages.length; i++) {
+          const { file } = galleryImages[i];
+          try {
+            const webpBlob = await convertToWebP(file);
+            const timestamp = Date.now();
+            const path = `${projectId}/gallery-${timestamp}-${i}.webp`;
+            
+            const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
+            
+            if (error) throw error;
+
+            if (url) {
+              await supabase
+                .from('project_images')
+                .insert({
+                  project_id: projectId,
+                  image_url: url,
+                  order_index: existingGalleryImages.length + i,
+                });
+            }
+          } catch (error) {
+            console.error('Gallery image upload error:', error);
+          }
+        }
+      }
+
+      setUploading(false);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
@@ -229,6 +284,78 @@ export default function PropertyForm() {
         setMainImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGalleryImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const totalImages = existingGalleryImages.length + galleryImages.length + files.length;
+
+    if (totalImages > MAX_GALLERY_IMAGES) {
+      toast({
+        title: 'Limite excedido',
+        description: `Máximo de ${MAX_GALLERY_IMAGES} fotos permitidas na galeria`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const validFiles = files.filter(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Imagem muito grande',
+          description: `${file.name} excede 5MB`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+        toast({
+          title: 'Formato inválido',
+          description: `${file.name} não é um formato válido`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      return true;
+    });
+
+    const newImages = validFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setGalleryImages([...galleryImages, ...newImages]);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    const newImages = [...galleryImages];
+    URL.revokeObjectURL(newImages[index].preview);
+    newImages.splice(index, 1);
+    setGalleryImages(newImages);
+  };
+
+  const removeExistingGalleryImage = async (imageUrl: string) => {
+    try {
+      // Delete from database
+      await supabase
+        .from('project_images')
+        .delete()
+        .eq('project_id', id)
+        .eq('image_url', imageUrl);
+
+      setExistingGalleryImages(existingGalleryImages.filter(img => img !== imageUrl));
+      
+      toast({
+        title: 'Imagem removida',
+        description: 'A imagem foi removida da galeria',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível remover a imagem',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -602,6 +729,95 @@ export default function PropertyForm() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Galeria de Fotos */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">
+                Galeria de Fotos (Máximo {MAX_GALLERY_IMAGES})
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {existingGalleryImages.length + galleryImages.length} / {MAX_GALLERY_IMAGES} fotos
+              </p>
+              
+              {/* Existing Gallery Images */}
+              {existingGalleryImages.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium mb-2">Fotos Existentes:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {existingGalleryImages.map((imageUrl, index) => (
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
+                        <img
+                          src={imageUrl}
+                          alt={`Gallery ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeExistingGalleryImage(imageUrl)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New Gallery Images */}
+              {galleryImages.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium mb-2">Novas Fotos:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {galleryImages.map((image, index) => (
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
+                        <img
+                          src={image.preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeGalleryImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Button */}
+              {(existingGalleryImages.length + galleryImages.length) < MAX_GALLERY_IMAGES && (
+                <div>
+                  <Label htmlFor="gallery_images" className="cursor-pointer">
+                    <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Adicionar fotos à galeria ({MAX_GALLERY_IMAGES - existingGalleryImages.length - galleryImages.length} restantes)
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecione múltiplas fotos (máximo 5MB cada)
+                      </p>
+                    </div>
+                  </Label>
+                  <Input
+                    id="gallery_images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryImagesChange}
+                    className="hidden"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Botões */}

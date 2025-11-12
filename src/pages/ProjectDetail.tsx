@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mail, Link as LinkIcon, Phone, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
+import { ImageLightbox } from '@/components/ImageLightbox';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -30,6 +33,8 @@ const translateOperationType = (type: string | null, lang: string) => {
 export default function ProjectDetail() {
   const { id } = useParams();
   const { language } = useLanguage();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -468,21 +473,27 @@ export default function ProjectDetail() {
             {allImages.length > 0 && (
               <div>
                 <h2 className="text-3xl font-serif font-bold mb-6">
-                  {language === 'pt' && 'Galeria'}
-                  {language === 'fr' && 'Galerie'}
-                  {language === 'en' && 'Gallery'}
-                  {language === 'de' && 'Galerie'}
+                  {language === 'pt' && 'Galeria de Fotos'}
+                  {language === 'fr' && 'Galerie de Photos'}
+                  {language === 'en' && 'Photo Gallery'}
+                  {language === 'de' && 'Fotogalerie'}
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {allImages.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`${project[`title_${language}`]} – Luxury property in ${project.location}, Portugal – Photo ${index + 1}`}
-                      className="w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow"
-                    />
-                  ))}
-                </div>
+                <PropertyImageCarousel
+                  images={allImages}
+                  alt={project[`title_${language}`] || ''}
+                  onImageClick={(index) => {
+                    setLightboxIndex(index);
+                    setLightboxOpen(true);
+                  }}
+                />
+                
+                <ImageLightbox
+                  images={allImages}
+                  initialIndex={lightboxIndex}
+                  isOpen={lightboxOpen}
+                  onClose={() => setLightboxOpen(false)}
+                  alt={project[`title_${language}`] || ''}
+                />
               </div>
             )}
           </div>
