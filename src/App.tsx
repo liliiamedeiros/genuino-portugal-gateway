@@ -26,6 +26,10 @@ import Properties from "./pages/admin/Properties";
 import PropertyForm from "./pages/admin/PropertyForm";
 import Users from "./pages/admin/Users";
 import Clients from "./pages/admin/Clients";
+import ClientDetail from "./pages/admin/ClientDetail";
+import Appointments from "./pages/admin/Appointments";
+import Newsletter from "./pages/admin/Newsletter";
+import NewCampaign from "./pages/admin/NewCampaign";
 
 const queryClient = new QueryClient();
 
@@ -144,11 +148,36 @@ const App = () => (
                   <Users />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/clients" element={
-                <ProtectedRoute requiredRole="editor">
-                  <Clients />
-                </ProtectedRoute>
-              } />
+            <Route path="/admin/clients" element={
+              <ProtectedRoute requiredRole="editor">
+                <Clients />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/clients/:id" element={
+              <ProtectedRoute requiredRole="editor">
+                <ClientDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/appointments" element={
+              <ProtectedRoute requiredRole="editor">
+                <Appointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter" element={
+              <ProtectedRoute requiredRole="editor">
+                <Newsletter />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter/new" element={
+              <ProtectedRoute requiredRole="editor">
+                <NewCampaign />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter/edit/:id" element={
+              <ProtectedRoute requiredRole="editor">
+                <NewCampaign />
+              </ProtectedRoute>
+            } />
 
               <Route path="*" element={
                 <>
