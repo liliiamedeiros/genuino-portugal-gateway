@@ -6,7 +6,7 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import '@/styles/calendar.css';
-import { Calendar as CalendarIcon, List, Plus, Filter } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Plus, Filter, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -45,6 +45,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const localizer = dateFnsLocalizer({
   format,
@@ -73,6 +74,12 @@ export default function Appointments() {
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [calendarView, setCalendarView] = useState<View>(Views.MONTH);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('');
+  const [propertyFilter, setPropertyFilter] = useState('');
+  const [dateRangeStart, setDateRangeStart] = useState('');
+  const [dateRangeEnd, setDateRangeEnd] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -91,7 +98,7 @@ export default function Appointments() {
 
   // Query para agendamentos
   const { data: appointments, isLoading } = useQuery({
-    queryKey: ['appointments', statusFilter],
+    queryKey: ['appointments', statusFilter, typeFilter, clientFilter, propertyFilter, dateRangeStart, dateRangeEnd, searchTerm],
     queryFn: async () => {
       let query = supabase
         .from('appointments')
@@ -104,6 +111,32 @@ export default function Appointments() {
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
+      }
+
+      if (typeFilter !== 'all') {
+        query = query.eq('appointment_type', typeFilter);
+      }
+
+      if (clientFilter) {
+        query = query.eq('client_id', clientFilter);
+      }
+
+      if (propertyFilter) {
+        query = query.eq('property_id', propertyFilter);
+      }
+
+      if (dateRangeStart) {
+        query = query.gte('appointment_date', dateRangeStart);
+      }
+
+      if (dateRangeEnd) {
+        const endDate = new Date(dateRangeEnd);
+        endDate.setHours(23, 59, 59);
+        query = query.lte('appointment_date', endDate.toISOString());
+      }
+
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query;
@@ -197,6 +230,60 @@ export default function Appointments() {
     video_call: 'Videochamada',
   };
 
+  const exportToCSV = () => {
+    if (!appointments || appointments.length === 0) {
+      toast.error('Nenhum agendamento para exportar');
+      return;
+    }
+    
+    const csvData = appointments.map(apt => ({
+      'Data/Hora': format(new Date(apt.appointment_date), 'dd/MM/yyyy HH:mm'),
+      'Cliente': apt.clients?.full_name || '-',
+      'Email Cliente': apt.clients?.email || '-',
+      'Telefone Cliente': apt.clients?.phone || '-',
+      'Imóvel': apt.projects?.title_pt || '-',
+      'Tipo': typeLabels[apt.appointment_type],
+      'Status': apt.status,
+      'Duração (min)': apt.duration_minutes,
+      'Localização': apt.location || '-',
+      'Título': apt.title,
+      'Descrição': apt.description || '-',
+      'Notas': apt.notes || '-',
+    }));
+    
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        headers.map(header => 
+          `"${(row[header as keyof typeof row] || '').toString().replace(/"/g, '""')}"`
+        ).join(',')
+      )
+    ].join('\n');
+    
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `agendamentos_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Agendamentos exportados com sucesso');
+  };
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setClientFilter('');
+    setPropertyFilter('');
+    setDateRangeStart('');
+    setDateRangeEnd('');
+    setSearchTerm('');
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -206,20 +293,90 @@ export default function Appointments() {
             <h1 className="text-3xl font-bold">Agendamentos</h1>
             <p className="text-muted-foreground">Gerencie visitas e reuniões</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue />
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos Status</SelectItem>
                 <SelectItem value="scheduled">Agendado</SelectItem>
                 <SelectItem value="confirmed">Confirmado</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
                 <SelectItem value="cancelled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos Tipos</SelectItem>
+                <SelectItem value="viewing">Visita</SelectItem>
+                <SelectItem value="meeting">Reunião</SelectItem>
+                <SelectItem value="call">Chamada</SelectItem>
+                <SelectItem value="video_call">Videochamada</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <ClientSelector
+              value={clientFilter}
+              onChange={setClientFilter}
+              placeholder="Cliente"
+            />
+
+            <PropertySelector
+              value={propertyFilter}
+              onChange={setPropertyFilter}
+              placeholder="Imóvel"
+            />
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[180px]">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRangeStart ? 
+                    `${format(new Date(dateRangeStart), 'dd/MM')} - ${dateRangeEnd ? format(new Date(dateRangeEnd), 'dd/MM') : '...'}` 
+                    : 'Período'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4">
+                <div className="space-y-2">
+                  <Label>Data Início</Label>
+                  <Input
+                    type="date"
+                    value={dateRangeStart}
+                    onChange={(e) => setDateRangeStart(e.target.value)}
+                  />
+                  <Label>Data Fim</Label>
+                  <Input
+                    type="date"
+                    value={dateRangeEnd}
+                    onChange={(e) => setDateRangeEnd(e.target.value)}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Input
+              placeholder="Buscar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[200px]"
+            />
+
+            {(statusFilter !== 'all' || typeFilter !== 'all' || clientFilter || propertyFilter || dateRangeStart || searchTerm) && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="mr-2 h-4 w-4" />
+                Limpar
+              </Button>
+            )}
+
+            <Button variant="outline" onClick={exportToCSV}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
 
             <div className="flex gap-1 border rounded-lg p-1">
               <Button

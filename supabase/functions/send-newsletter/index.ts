@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Resend } from 'npm:resend@2.0.0';
+import { Resend } from 'npm:resend@4.0.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -94,7 +94,7 @@ serve(async (req) => {
         
       } catch (error) {
         console.error(`Erro ao enviar para ${subscriber.email}:`, error);
-        errors.push({ email: subscriber.email, error: error.message });
+        errors.push({ email: subscriber.email, error: String(error) });
       }
     }
     
@@ -123,7 +123,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Erro na função send-newsletter:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

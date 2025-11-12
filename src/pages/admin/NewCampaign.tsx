@@ -92,15 +92,24 @@ export default function NewCampaign() {
         .single();
 
       if (error) throw error;
+
+      // Se for enviar agora, chamar Edge Function
+      if (sendOption === 'now') {
+        const { error: sendError } = await supabase.functions.invoke('send-newsletter', {
+          body: { campaignId: data.id }
+        });
+        if (sendError) throw sendError;
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newsletter-campaigns'] });
-      toast.success('Campanha criada com sucesso');
+      toast.success(sendOption === 'now' ? 'Newsletter enviada com sucesso!' : 'Campanha agendada com sucesso');
       navigate('/admin/newsletter');
     },
     onError: () => {
-      toast.error('Erro ao criar campanha');
+      toast.error('Erro ao processar campanha');
     },
   });
 
