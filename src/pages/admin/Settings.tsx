@@ -113,9 +113,11 @@ export default function Settings() {
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
             <TabsTrigger value="system">Sistema</TabsTrigger>
             <TabsTrigger value="security">Segurança</TabsTrigger>
+            <TabsTrigger value="integrations">Integrações</TabsTrigger>
           </TabsList>
 
           {/* General Settings */}
@@ -159,7 +161,106 @@ export default function Settings() {
                     }
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company_logo_url">URL do Logo</Label>
+                  <Input
+                    id="company_logo_url"
+                    value={settings.company_logo_url || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, company_logo_url: e.target.value })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company_slogan">Slogan da Empresa</Label>
+                  <Input
+                    id="company_slogan"
+                    value={settings.company_slogan || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, company_slogan: e.target.value })
+                    }
+                  />
+                </div>
                 <Button onClick={handleSaveGeneral}>Salvar Alterações</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Email Settings */}
+          <TabsContent value="email">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações de Email</CardTitle>
+                <CardDescription>
+                  Configure o servidor SMTP para envio de emails
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="smtp_host">Servidor SMTP</Label>
+                  <Input
+                    id="smtp_host"
+                    value={settings.smtp_host || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, smtp_host: e.target.value })
+                    }
+                    placeholder="smtp.example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtp_port">Porta SMTP</Label>
+                  <Input
+                    id="smtp_port"
+                    type="number"
+                    value={settings.smtp_port || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, smtp_port: parseInt(e.target.value) })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtp_user">Usuário SMTP</Label>
+                  <Input
+                    id="smtp_user"
+                    value={settings.smtp_user || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, smtp_user: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtp_password">Senha SMTP</Label>
+                  <Input
+                    id="smtp_password"
+                    type="password"
+                    value={settings.smtp_password || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, smtp_password: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email_from">Email Remetente</Label>
+                  <Input
+                    id="email_from"
+                    type="email"
+                    value={settings.email_from || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, email_from: e.target.value })
+                    }
+                    placeholder="noreply@example.com"
+                  />
+                </div>
+                <Button onClick={() => {
+                  updateSettingMutation.mutate({ key: "smtp_host", value: settings.smtp_host });
+                  updateSettingMutation.mutate({ key: "smtp_port", value: settings.smtp_port });
+                  updateSettingMutation.mutate({ key: "smtp_user", value: settings.smtp_user });
+                  updateSettingMutation.mutate({ key: "smtp_password", value: settings.smtp_password });
+                  updateSettingMutation.mutate({ key: "email_from", value: settings.email_from });
+                }}>
+                  Salvar Alterações
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -297,24 +398,129 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle>Configurações de Segurança</CardTitle>
                 <CardDescription>
-                  Gerencie a segurança da sua conta
+                  Gerencie a segurança e políticas de senha
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Autenticação de Dois Fatores</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Adicione uma camada extra de segurança
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.enable_2fa || false}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, enable_2fa: checked })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="min_password_length">Comprimento Mínimo da Senha</Label>
+                  <Input
+                    id="min_password_length"
+                    type="number"
+                    value={settings.min_password_length || 8}
+                    onChange={(e) =>
+                      setSettings({ ...settings, min_password_length: parseInt(e.target.value) })
+                    }
+                    min="6"
+                    max="20"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Exigir Caracteres Especiais</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Senhas devem conter caracteres especiais
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.require_special_chars || false}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, require_special_chars: checked })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="session_timeout">Timeout da Sessão (minutos)</Label>
+                  <Input
+                    id="session_timeout"
+                    type="number"
+                    value={settings.session_timeout || 30}
+                    onChange={(e) =>
+                      setSettings({ ...settings, session_timeout: parseInt(e.target.value) })
+                    }
+                    min="5"
+                    max="120"
+                  />
+                </div>
+                <Button onClick={() => {
+                  updateSettingMutation.mutate({ key: "enable_2fa", value: settings.enable_2fa });
+                  updateSettingMutation.mutate({ key: "min_password_length", value: settings.min_password_length });
+                  updateSettingMutation.mutate({ key: "require_special_chars", value: settings.require_special_chars });
+                  updateSettingMutation.mutate({ key: "session_timeout", value: settings.session_timeout });
+                }}>
+                  Salvar Alterações
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Integrations Settings */}
+          <TabsContent value="integrations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Integrações</CardTitle>
+                <CardDescription>
+                  Configure integrações com serviços externos
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Alterar Senha</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Use uma senha forte com pelo menos 8 caracteres
-                  </p>
-                  <Button variant="outline">Alterar Senha</Button>
+                  <Label htmlFor="google_analytics_id">Google Analytics ID</Label>
+                  <Input
+                    id="google_analytics_id"
+                    value={settings.google_analytics_id || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, google_analytics_id: e.target.value })
+                    }
+                    placeholder="G-XXXXXXXXXX"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label>Logs de Acesso</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Visualize o histórico de acessos à sua conta
-                  </p>
-                  <Button variant="outline">Ver Logs</Button>
+                  <Label htmlFor="facebook_pixel_id">Facebook Pixel ID</Label>
+                  <Input
+                    id="facebook_pixel_id"
+                    value={settings.facebook_pixel_id || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, facebook_pixel_id: e.target.value })
+                    }
+                    placeholder="123456789012345"
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="webhook_url">Webhook URL</Label>
+                  <Input
+                    id="webhook_url"
+                    value={settings.webhook_url || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, webhook_url: e.target.value })
+                    }
+                    placeholder="https://example.com/webhook"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    URL para receber notificações de eventos do sistema
+                  </p>
+                </div>
+                <Button onClick={() => {
+                  updateSettingMutation.mutate({ key: "google_analytics_id", value: settings.google_analytics_id });
+                  updateSettingMutation.mutate({ key: "facebook_pixel_id", value: settings.facebook_pixel_id });
+                  updateSettingMutation.mutate({ key: "webhook_url", value: settings.webhook_url });
+                }}>
+                  Salvar Alterações
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

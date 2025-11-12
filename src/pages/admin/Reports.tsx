@@ -49,10 +49,20 @@ export default function Reports() {
 
   // Calculate metrics
   const totalProperties = properties.length;
+  const activeProperties = properties.filter(p => p.status === "active").length;
+  const soldProperties = properties.filter(p => p.status === "sold").length;
   const activeClients = clients.filter(c => c.status === "active").length;
+  const leadClients = clients.filter(c => c.status === "lead").length;
   const totalAppointments = appointments.length;
   const completedAppointments = appointments.filter(a => a.status === "completed").length;
+  const cancelledAppointments = appointments.filter(a => a.status === "cancelled").length;
   const attendanceRate = totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
+  
+  // Calculate total portfolio value
+  const totalPortfolioValue = properties.reduce((sum, p) => sum + (p.price || 0), 0);
+  
+  // Calculate conversion rate
+  const conversionRate = leadClients > 0 ? Math.round((activeClients / leadClients) * 100) : 0;
 
   // Clients by status for pie chart
   const clientsByStatus = [
@@ -70,28 +80,32 @@ export default function Reports() {
 
   const stats = [
     {
-      title: "Total de Imóveis",
-      value: totalProperties,
+      title: "Valor Total do Portfólio",
+      value: `€${totalPortfolioValue.toLocaleString()}`,
       icon: Home,
       color: "text-blue-600",
+      subtitle: `${activeProperties} ativos, ${soldProperties} vendidos`,
     },
     {
       title: "Clientes Ativos",
       value: activeClients,
       icon: Users,
       color: "text-green-600",
+      subtitle: `${leadClients} potenciais leads`,
     },
     {
       title: "Agendamentos",
       value: totalAppointments,
       icon: Calendar,
       color: "text-purple-600",
+      subtitle: `${cancelledAppointments} cancelados`,
     },
     {
-      title: "Taxa de Comparecimento",
-      value: `${attendanceRate}%`,
+      title: "Taxa de Conversão",
+      value: `${conversionRate}%`,
       icon: TrendingUp,
       color: "text-orange-600",
+      subtitle: `${attendanceRate}% comparecimento`,
     },
   ];
 
@@ -137,6 +151,9 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
+                {stat.subtitle && (
+                  <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
+                )}
               </CardContent>
             </Card>
           ))}

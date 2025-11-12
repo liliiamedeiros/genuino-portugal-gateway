@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
+import { NewsletterForm } from '@/components/NewsletterForm';
 
 export const Footer = () => {
   const { t } = useLanguage();
@@ -9,7 +10,7 @@ export const Footer = () => {
   return (
     <footer className="bg-background py-12 mt-20 border-t-2 border-primary">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <img src={logo} alt="Genuíno Investments Switzerland" className="h-16 w-auto mb-4" />
             <p className="text-sm text-muted-foreground">
@@ -39,6 +40,10 @@ export const Footer = () => {
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
+          </div>
+
+          <div>
+            <NewsletterForm />
           </div>
         </div>
 

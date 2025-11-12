@@ -24,20 +24,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Trash, Shield, ShieldAlert, User2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Users() {
   const queryClient = useQueryClient();
+  const { userRole: currentUserRole } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
-    role: 'editor' as 'admin' | 'editor',
+    role: 'editor' as 'super_admin' | 'admin' | 'editor',
   });
 
   const { data: users, isLoading } = useQuery({
@@ -186,7 +188,7 @@ export default function Users() {
                   <Label htmlFor="role">Função</Label>
                   <Select
                     value={formData.role}
-                    onValueChange={(value: 'admin' | 'editor') =>
+                    onValueChange={(value: 'super_admin' | 'admin' | 'editor') =>
                       setFormData({ ...formData, role: value })
                     }
                   >
@@ -195,7 +197,12 @@ export default function Users() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
+                      {(currentUserRole === 'super_admin' || currentUserRole === 'admin') && (
+                        <SelectItem value="admin">Administrador</SelectItem>
+                      )}
+                      {currentUserRole === 'super_admin' && (
+                        <SelectItem value="super_admin">Super Administrador</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -237,10 +244,17 @@ export default function Users() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell className="capitalize">
                         {user.role ? (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.role === 'super_admin' 
+                              ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
+                              : user.role === 'admin' 
+                              ? 'bg-purple-100 text-purple-800' 
+                              : 'bg-blue-100 text-blue-800'
                           }`}>
-                            {user.role === 'admin' ? 'Administrador' : 'Editor'}
+                            {user.role === 'super_admin' && <ShieldAlert className="h-3 w-3" />}
+                            {user.role === 'admin' && <Shield className="h-3 w-3" />}
+                            {user.role === 'editor' && <User2 className="h-3 w-3" />}
+                            {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Administrador' : 'Editor'}
                           </span>
                         ) : (
                           '-'

@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'editor';
+  requiredRole?: 'super_admin' | 'admin' | 'editor';
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -21,7 +21,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
+  if (requiredRole && userRole !== requiredRole && userRole !== 'admin' && userRole !== 'super_admin') {
     return <Navigate to="/admin" replace />;
   }
 

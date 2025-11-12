@@ -64,7 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const disabled = item.adminOnly && userRole !== 'admin';
+            const disabled = item.adminOnly && userRole !== 'admin' && userRole !== 'super_admin';
             
             if (disabled) {
               return (
@@ -100,7 +100,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           {sidebarOpen && (
             <div className="mb-2 text-sm">
               <p className="font-medium truncate">{user?.email}</p>
-              <p className="text-muted-foreground capitalize">{userRole}</p>
+              <p className="text-muted-foreground capitalize">
+                {userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Administrador' : 'Editor'}
+              </p>
             </div>
           )}
           <Button
