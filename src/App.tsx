@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { OrganizationSchema } from "@/components/OrganizationSchema";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -45,6 +46,7 @@ const App = () => (
       <LanguageProvider>
         <AuthProvider>
           <TooltipProvider>
+            <OrganizationSchema />
             <Toaster />
             <Sonner />
             <Routes>

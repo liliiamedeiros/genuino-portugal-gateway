@@ -1,6 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Building2, Hammer, Megaphone, Scale, DollarSign } from 'lucide-react';
+import { SEOHead } from '@/components/SEOHead';
 
 export default function Services() {
   const { t } = useLanguage();
@@ -45,7 +46,14 @@ export default function Services() {
   ];
 
   return (
-    <div className="min-h-screen pt-20">
+    <>
+      <SEOHead 
+        title="Serviços"
+        description="Serviços completos de desenvolvimento imobiliário: estudos econômicos, gestão de projetos, construção, marketing e consultoria legal."
+        keywords="serviços imobiliários, gestão projetos, construção, marketing imobiliário"
+        url="/services"
+      />
+      <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -87,6 +95,7 @@ export default function Services() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

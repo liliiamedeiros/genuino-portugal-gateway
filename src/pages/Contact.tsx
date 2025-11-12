@@ -7,6 +7,7 @@ import { StatsSection } from '@/components/StatsSection';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { SEOHead } from '@/components/SEOHead';
 
 export default function Contact() {
   const { t } = useLanguage();
@@ -33,7 +34,14 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen pt-20">
+    <>
+      <SEOHead 
+        title="Contacto"
+        description="Entre em contato com Genuíno Investments. Escritórios em Lisboa e Genebra. Tel: +41 78 487 60 00 | Email: info@genuinoinvestments.ch"
+        keywords="contacto genuino investments, email, telefone, escritórios"
+        url="/contact"
+      />
+      <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -179,6 +187,7 @@ export default function Contact() {
 
       {/* Stats Section */}
       <StatsSection />
-    </div>
+      </div>
+    </>
   );
 }

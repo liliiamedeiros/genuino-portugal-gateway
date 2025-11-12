@@ -7,6 +7,7 @@ import { projects } from '@/data/projects';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
+import { SEOHead } from '@/components/SEOHead';
 export default function Home() {
   const {
     t,
@@ -41,7 +42,14 @@ export default function Home() {
       pt: 'Projetos de excelência que valorizam o nosso património. Uma visão a longo prazo impressionante.'
     }
   }];
-  return <div className="min-h-screen">
+  return <>
+      <SEOHead 
+        title="Imobiliária Internacional Portugal & Suíça"
+        description="Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo. Escritórios em Lisboa e Genebra."
+        keywords="investimentos imobiliários, imóveis luxo Portugal, casas praia Portugal, propriedades Suíça, investimento imobiliário"
+        url="/"
+      />
+      <div className="min-h-screen">
       {/* Hero Slider */}
       <HeroSlider />
 
@@ -144,5 +152,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>;
+      </div>
+    </>;
 }

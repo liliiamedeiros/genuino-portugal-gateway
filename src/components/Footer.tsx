@@ -47,9 +47,33 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border pt-8">
+        {/* Seção Institucional */}
+        <div className="border-t border-border pt-8 mt-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h3 className="text-xl font-serif font-bold mb-4 text-primary">
+              Genuíno Investments
+            </h3>
+            <p className="text-sm mb-3 text-muted-foreground">
+              Escritórios: Lisboa (Portugal) | Genève (Switzerland)
+            </p>
+            <p className="text-sm mb-4 text-muted-foreground">
+              Investimentos Imobiliários – Férias, Praia e Campo
+            </p>
+            <div className="flex justify-center gap-3 text-sm text-muted-foreground/75 flex-wrap">
+              <span>Português</span>
+              <span>•</span>
+              <span>English</span>
+              <span>•</span>
+              <span>Français</span>
+              <span>•</span>
+              <span>Deutsch</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">{t('footer.rights')}</p>
+            <p className="text-sm text-muted-foreground">© 2025 Genuíno Investments. {t('footer.rights')}</p>
             <div className="flex gap-6 text-sm">
               <Link to="/legal" className="text-muted-foreground hover:text-primary transition-colors">
                 {t('footer.legal')}

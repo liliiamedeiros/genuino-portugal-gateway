@@ -1,12 +1,20 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProjectCard } from '@/components/ProjectCard';
 import { projects } from '@/data/projects';
+import { SEOHead } from '@/components/SEOHead';
 
 export default function Portfolio() {
   const { t, language } = useLanguage();
 
   return (
-    <div className="min-h-screen pt-20">
+    <>
+      <SEOHead 
+        title="Portfólio"
+        description="Explore nosso portfólio de projetos imobiliários de luxo em Portugal. Propriedades exclusivas em Algarve, Porto e Lisboa."
+        keywords="portfólio imóveis Portugal, projetos imobiliários, propriedades luxo"
+        url="/portfolio"
+      />
+      <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -40,6 +48,7 @@ export default function Portfolio() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

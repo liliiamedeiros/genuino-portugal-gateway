@@ -1,14 +1,36 @@
+# Genuíno Investments - robots.txt
+User-agent: *
+Allow: /
+
+# Bloquear área administrativa
+Disallow: /admin/
+Disallow: /admin
+
+# Permitir crawlers principais
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: Twitterbot
+User-agent: Slurp
 Allow: /
 
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# Social Media Crawlers
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: Twitterbot
 Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Sitemap
+Sitemap: https://genuinoinvestments.ch/sitemap.xml

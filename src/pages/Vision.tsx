@@ -1,11 +1,19 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import santaMarinha from '@/assets/santa-marinha.jpg';
+import { SEOHead } from '@/components/SEOHead';
 
 export default function Vision() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen pt-20">
+    <>
+      <SEOHead 
+        title="Nossa Visão"
+        description="Nossa visão é criar espaços que transcendem o tempo, integrando sustentabilidade, inovação e design atemporal em cada projeto."
+        keywords="visão genuino investments, arquitetura intemporal, sustentabilidade"
+        url="/vision"
+      />
+      <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -67,6 +75,7 @@ export default function Vision() {
           </blockquote>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
