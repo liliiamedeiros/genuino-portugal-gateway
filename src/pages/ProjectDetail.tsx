@@ -3,7 +3,28 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowLeft } from 'lucide-react';
+import { MapPin, ArrowLeft, Bed, Bath, Square, Car } from 'lucide-react';
+
+const translatePropertyType = (type: string | null, lang: string) => {
+  if (!type) return '';
+  const translations: Record<string, Record<string, string>> = {
+    apartment: { pt: 'Apartamento', fr: 'Appartement', en: 'Apartment', de: 'Wohnung' },
+    house: { pt: 'Moradia', fr: 'Maison', en: 'House', de: 'Haus' },
+    villa: { pt: 'Villa', fr: 'Villa', en: 'Villa', de: 'Villa' },
+    land: { pt: 'Terreno', fr: 'Terrain', en: 'Land', de: 'Grundstück' },
+    commercial: { pt: 'Comercial', fr: 'Commercial', en: 'Commercial', de: 'Gewerbe' }
+  };
+  return translations[type]?.[lang] || type;
+};
+
+const translateOperationType = (type: string | null, lang: string) => {
+  if (!type) return '';
+  const translations: Record<string, Record<string, string>> = {
+    sale: { pt: 'Venda', fr: 'Vente', en: 'Sale', de: 'Verkauf' },
+    rent: { pt: 'Arrendamento', fr: 'Location', en: 'Rent', de: 'Miete' }
+  };
+  return translations[type]?.[lang] || type;
+};
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -117,9 +138,168 @@ export default function ProjectDetail() {
               {project.location}, {project.region}
             </div>
 
+            {/* Preço e Tipo */}
+            <div className="bg-primary/5 rounded-lg p-6 mb-8">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {language === 'pt' && 'Preço'}
+                    {language === 'fr' && 'Prix'}
+                    {language === 'en' && 'Price'}
+                    {language === 'de' && 'Preis'}
+                  </p>
+                  <p className="text-4xl font-bold text-primary">
+                    {project.price ? new Intl.NumberFormat('pt-PT', { 
+                      style: 'currency', 
+                      currency: 'EUR',
+                      maximumFractionDigits: 0 
+                    }).format(Number(project.price)) : '-'}
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  {project.property_type && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {language === 'pt' && 'Tipo'}
+                        {language === 'fr' && 'Type'}
+                        {language === 'en' && 'Type'}
+                        {language === 'de' && 'Typ'}
+                      </p>
+                      <p className="font-semibold">{translatePropertyType(project.property_type, language)}</p>
+                    </div>
+                  )}
+                  {project.operation_type && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {language === 'pt' && 'Operação'}
+                        {language === 'fr' && 'Opération'}
+                        {language === 'en' && 'Operation'}
+                        {language === 'de' && 'Betrieb'}
+                      </p>
+                      <p className="font-semibold">{translateOperationType(project.operation_type, language)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Características */}
+            {(project.bedrooms || project.bathrooms || project.area_sqm || project.parking_spaces) && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {project.bedrooms && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
+                    <Bed className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="text-2xl font-bold">{project.bedrooms}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {language === 'pt' && 'Quartos'}
+                        {language === 'fr' && 'Chambres'}
+                        {language === 'en' && 'Bedrooms'}
+                        {language === 'de' && 'Schlafzimmer'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {project.bathrooms && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
+                    <Bath className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="text-2xl font-bold">{project.bathrooms}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {language === 'pt' && 'Casas de Banho'}
+                        {language === 'fr' && 'Salles de bain'}
+                        {language === 'en' && 'Bathrooms'}
+                        {language === 'de' && 'Badezimmer'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {project.area_sqm && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
+                    <Square className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="text-2xl font-bold">{project.area_sqm}</p>
+                      <p className="text-sm text-muted-foreground">m²</p>
+                    </div>
+                  </div>
+                )}
+                {project.parking_spaces && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
+                    <Car className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="text-2xl font-bold">{project.parking_spaces}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {language === 'pt' && 'Estacionamento'}
+                        {language === 'fr' && 'Parking'}
+                        {language === 'en' && 'Parking'}
+                        {language === 'de' && 'Parkplatz'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="prose prose-lg max-w-none mb-12">
               <p className="text-lg leading-relaxed">{project[`description_${language}`]}</p>
             </div>
+
+            {/* Localização Detalhada */}
+            {(project.city || project.address || project.postal_code) && (
+              <div className="bg-secondary/10 rounded-lg p-6 mb-12">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  {language === 'pt' && 'Localização Detalhada'}
+                  {language === 'fr' && 'Emplacement détaillé'}
+                  {language === 'en' && 'Detailed Location'}
+                  {language === 'de' && 'Detaillierter Standort'}
+                </h3>
+                <div className="space-y-2">
+                  {project.city && (
+                    <p>
+                      <strong>
+                        {language === 'pt' && 'Cidade: '}
+                        {language === 'fr' && 'Ville: '}
+                        {language === 'en' && 'City: '}
+                        {language === 'de' && 'Stadt: '}
+                      </strong>
+                      {project.city}
+                    </p>
+                  )}
+                  {project.address && (
+                    <p>
+                      <strong>
+                        {language === 'pt' && 'Endereço: '}
+                        {language === 'fr' && 'Adresse: '}
+                        {language === 'en' && 'Address: '}
+                        {language === 'de' && 'Adresse: '}
+                      </strong>
+                      {project.address}
+                    </p>
+                  )}
+                  {project.postal_code && (
+                    <p>
+                      <strong>
+                        {language === 'pt' && 'Código Postal: '}
+                        {language === 'fr' && 'Code postal: '}
+                        {language === 'en' && 'Postal Code: '}
+                        {language === 'de' && 'Postleitzahl: '}
+                      </strong>
+                      {project.postal_code}
+                    </p>
+                  )}
+                  <p>
+                    <strong>
+                      {language === 'pt' && 'Região: '}
+                      {language === 'fr' && 'Région: '}
+                      {language === 'en' && 'Region: '}
+                      {language === 'de' && 'Region: '}
+                    </strong>
+                    {project.region}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Gallery */}
             {allImages.length > 0 && (
