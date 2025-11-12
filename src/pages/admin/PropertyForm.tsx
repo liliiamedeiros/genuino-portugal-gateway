@@ -275,7 +275,7 @@ export default function PropertyForm() {
                 <Input
                   id="id"
                   value={formData.id}
-                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, id: e.target.value.trim() })}
                   placeholder="Deixe vazio para gerar automaticamente"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
