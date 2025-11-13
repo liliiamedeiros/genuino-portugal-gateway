@@ -8,7 +8,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Users, TrendingUp } from 'lucide-react';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { SEOHead } from '@/components/SEOHead';
+import { useRoutePreload } from '@/hooks/useRoutePreload';
+
 export default function Home() {
+  useRoutePreload();
   const {
     t,
     language

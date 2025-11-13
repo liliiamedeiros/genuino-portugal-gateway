@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,35 +11,51 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Services from "./pages/Services";
-import Portfolio from "./pages/Portfolio";
-import Properties from "./pages/Properties";
-import ProjectDetail from "./pages/ProjectDetail";
-import Vision from "./pages/Vision";
-import Investors from "./pages/Investors";
-import Contact from "./pages/Contact";
-import Legal from "./pages/Legal";
-import Privacy from "./pages/Privacy";
-import Disputes from "./pages/Disputes";
-import Install from "./pages/Install";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/admin/Login";
-import Dashboard from "./pages/admin/Dashboard";
-import AdminProperties from "./pages/admin/Properties";
-import PropertyForm from "./pages/admin/PropertyForm";
-import Users from "./pages/admin/Users";
-import Clients from "./pages/admin/Clients";
-import ClientDetail from "./pages/admin/ClientDetail";
-import Appointments from "./pages/admin/Appointments";
-import Newsletter from "./pages/admin/Newsletter";
-import NewCampaign from "./pages/admin/NewCampaign";
-import Reports from "./pages/admin/Reports";
-import Settings from "./pages/admin/Settings";
-import JsonLdValidator from "./pages/admin/JsonLdValidator";
-import JsonLdSystem from "./pages/admin/JsonLdSystem";
-import ImageConverter from "./pages/admin/ImageConverter";
+import { NotificationPrompt } from "@/components/NotificationPrompt";
+
+// Lazy load de páginas públicas
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Properties = lazy(() => import('./pages/Properties'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const Vision = lazy(() => import('./pages/Vision'));
+const Investors = lazy(() => import('./pages/Investors'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Legal = lazy(() => import('./pages/Legal'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Disputes = lazy(() => import('./pages/Disputes'));
+const Install = lazy(() => import('./pages/Install'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Lazy load de páginas admin (chunk separado)
+const Login = lazy(() => import('./pages/admin/Login'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminProperties = lazy(() => import('./pages/admin/Properties'));
+const PropertyForm = lazy(() => import('./pages/admin/PropertyForm'));
+const Users = lazy(() => import('./pages/admin/Users'));
+const Clients = lazy(() => import('./pages/admin/Clients'));
+const ClientDetail = lazy(() => import('./pages/admin/ClientDetail'));
+const Appointments = lazy(() => import('./pages/admin/Appointments'));
+const Newsletter = lazy(() => import('./pages/admin/Newsletter'));
+const NewCampaign = lazy(() => import('./pages/admin/NewCampaign'));
+const Reports = lazy(() => import('./pages/admin/Reports'));
+const Settings = lazy(() => import('./pages/admin/Settings'));
+const JsonLdValidator = lazy(() => import('./pages/admin/JsonLdValidator'));
+const JsonLdSystem = lazy(() => import('./pages/admin/JsonLdSystem'));
+const ImageConverter = lazy(() => import('./pages/admin/ImageConverter'));
+const NotificationSettings = lazy(() => import('./pages/admin/NotificationSettings'));
+
+// Componente de Loading
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-muted-foreground">Carregando...</p>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -50,9 +67,11 @@ const App = () => (
           <TooltipProvider>
             <OrganizationSchema />
             <PWAInstallPrompt />
+            <NotificationPrompt />
             <Toaster />
             <Sonner />
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={
                 <>
@@ -229,6 +248,12 @@ const App = () => (
               </ProtectedRoute>
             } />
 
+              <Route path="/admin/notification-settings" element={
+                <ProtectedRoute requiredRole="editor">
+                  <NotificationSettings />
+                </ProtectedRoute>
+              } />
+
               <Route path="*" element={
                 <>
                   <Navbar />
@@ -236,7 +261,8 @@ const App = () => (
                   <Footer />
                 </>
               } />
-            </Routes>
+              </Routes>
+            </Suspense>
           </TooltipProvider>
         </AuthProvider>
       </LanguageProvider>
