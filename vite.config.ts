@@ -118,12 +118,56 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        manualChunks: (id) => {
+          // React e React Router
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router-dom')) {
+            return 'react-vendor';
+          }
+          
+          // Radix UI (componentes UI)
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'ui-vendor';
+          }
+          
+          // Bibliotecas pesadas de gráficos/dados
+          if (id.includes('node_modules/recharts') || 
+              id.includes('node_modules/react-big-calendar')) {
+            return 'charts-vendor';
+          }
+          
+          // Editor de texto rico
+          if (id.includes('node_modules/react-quill') || 
+              id.includes('node_modules/quill')) {
+            return 'editor-vendor';
+          }
+          
+          // Supabase e queries
+          if (id.includes('node_modules/@supabase') || 
+              id.includes('node_modules/@tanstack/react-query')) {
+            return 'data-vendor';
+          }
+          
+          // Páginas admin em chunk separado
+          if (id.includes('src/pages/admin')) {
+            return 'admin-pages';
+          }
+          
+          // Date utilities
+          if (id.includes('node_modules/date-fns')) {
+            return 'date-vendor';
+          }
+          
+          // Utilities
+          if (id.includes('node_modules/papaparse') || 
+              id.includes('node_modules/zod')) {
+            return 'utils-vendor';
+          }
         },
       },
     },
+    chunkSizeWarningLimit: 1000,
     minify: mode === 'production' ? 'esbuild' : false,
   },
 }));
