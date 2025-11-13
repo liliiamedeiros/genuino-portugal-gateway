@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -21,6 +22,7 @@ import Contact from "./pages/Contact";
 import Legal from "./pages/Legal";
 import Privacy from "./pages/Privacy";
 import Disputes from "./pages/Disputes";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
@@ -47,6 +49,7 @@ const App = () => (
         <AuthProvider>
           <TooltipProvider>
             <OrganizationSchema />
+            <PWAInstallPrompt />
             <Toaster />
             <Sonner />
             <Routes>
@@ -132,6 +135,13 @@ const App = () => (
                 <>
                   <Navbar />
                   <Disputes />
+                  <Footer />
+                </>
+              } />
+              <Route path="/install" element={
+                <>
+                  <Navbar />
+                  <Install />
                   <Footer />
                 </>
               } />
