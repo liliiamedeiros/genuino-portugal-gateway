@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useNotifications } from '@/hooks/useNotifications';
 
 const quillModules = {
   toolbar: [
@@ -45,7 +44,6 @@ export default function NewCampaign() {
   const [confirmed, setConfirmed] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { sendNotification, isEnabled } = useNotifications();
 
   // Query para contar destinatários
   const { data: audienceCount } = useQuery({
@@ -105,27 +103,9 @@ export default function NewCampaign() {
 
       return data;
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newsletter-campaigns'] });
-      
-      const successMessage = sendOption === 'now' ? 'Newsletter enviada com sucesso!' : 'Campanha agendada com sucesso';
-      toast.success(successMessage);
-      
-      // Enviar notificação push se habilitado e enviando agora
-      if (sendOption === 'now' && isEnabled) {
-        try {
-          await sendNotification('Nova Newsletter Publicada! 🎉', {
-            body: subject.pt || 'Confira as novidades',
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            tag: 'newsletter',
-            data: { url: '/' },
-          });
-        } catch (error) {
-          console.error('Erro ao enviar notificação push:', error);
-        }
-      }
-      
+      toast.success(sendOption === 'now' ? 'Newsletter enviada com sucesso!' : 'Campanha agendada com sucesso');
       navigate('/admin/newsletter');
     },
     onError: () => {
