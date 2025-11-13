@@ -1,12 +1,26 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { LanguageDetector } from '@/utils/languageDetection';
+import { format } from 'date-fns';
+import { ptBR, enUS, fr, de } from 'date-fns/locale';
 
 type Language = 'fr' | 'en' | 'de' | 'pt';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  formatDate: (date: Date, formatStr: string) => string;
+  formatNumber: (num: number, options?: Intl.NumberFormatOptions) => string;
+  formatCurrency: (amount: number, currency?: string) => string;
 }
+
+// Mapa de locales do date-fns
+const dateLocales = {
+  pt: ptBR,
+  en: enUS,
+  fr: fr,
+  de: de,
+};
 
 const translations: Record<Language, Record<string, string>> = {
   fr: {
@@ -370,14 +384,87 @@ const translations: Record<Language, Record<string, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('fr');
+  const [language, setLanguageState] = useState<Language>('pt');
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const t = (key: string): string => {
-    return translations[language][key] || key;
+  // Detecção automática na inicialização
+  useEffect(() => {
+    const initLanguage = async () => {
+      const result = await LanguageDetector.detectLanguage();
+      setLanguageState(result.language);
+      setIsInitialized(true);
+      
+      console.log(`🌍 Language detected: ${result.language} (${result.source}, ${result.confidence} confidence)`);
+    };
+    
+    initLanguage();
+  }, []);
+
+  // Função melhorada de tradução com interpolação
+  const t = (key: string, vars?: Record<string, string | number>): string => {
+    let translation = translations[language][key] || key;
+    
+    // Interpolação de variáveis {{varName}}
+    if (vars) {
+      Object.entries(vars).forEach(([varKey, varValue]) => {
+        translation = translation.replace(
+          new RegExp(`{{${varKey}}}`, 'g'),
+          String(varValue)
+        );
+      });
+    }
+    
+    return translation;
   };
 
+  // Setter que salva no localStorage
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    LanguageDetector.saveLanguagePreference(lang);
+  };
+
+  // Formatação de datas
+  const formatDate = (date: Date, formatStr: string): string => {
+    return format(date, formatStr, { locale: dateLocales[language] });
+  };
+
+  // Formatação de números
+  const formatNumber = (num: number, options?: Intl.NumberFormatOptions): string => {
+    const localeMap = {
+      pt: 'pt-PT',
+      fr: 'fr-FR',
+      en: 'en-US',
+      de: 'de-DE',
+    };
+    return new Intl.NumberFormat(localeMap[language], options).format(num);
+  };
+
+  // Formatação de moeda
+  const formatCurrency = (amount: number, currency: string = 'EUR'): string => {
+    return formatNumber(amount, {
+      style: 'currency',
+      currency: currency,
+    });
+  };
+
+  // Não renderizar até a detecção ser concluída
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      t,
+      formatDate,
+      formatNumber,
+      formatCurrency
+    }}>
       {children}
     </LanguageContext.Provider>
   );
