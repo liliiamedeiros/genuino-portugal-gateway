@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNotifications } from '@/hooks/useNotifications';
 import {
   Plus,
   Upload,
@@ -72,7 +71,6 @@ export default function Newsletter() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { sendNotification, isEnabled } = useNotifications();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<SubscriberFormData>({
     resolver: zodResolver(subscriberSchema),

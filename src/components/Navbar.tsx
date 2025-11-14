@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn, Home, MessageCircle } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
 import logoWhite from '@/assets/logo-white.png';
 
@@ -22,7 +22,6 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { to: '/', label: 'Home', icon: Home },
     { to: '/about', label: t('nav.about') },
     { to: '/services', label: t('nav.services') },
     { to: '/portfolio', label: t('nav.portfolio') },
@@ -30,7 +29,6 @@ export const Navbar = () => {
     { to: '/vision', label: t('nav.vision') },
     { to: '/investors', label: t('nav.investors') },
     { to: '/contact', label: t('nav.contact') },
-    { to: '/chat', label: 'Chat', icon: MessageCircle },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -55,24 +53,20 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`text-sm font-serif font-semibold uppercase tracking-wider transition-all duration-300 relative group flex items-center gap-2 ${
-                    isScrolled 
-                      ? 'text-white hover:brightness-110' 
-                      : 'text-primary hover:text-accent'
-                  }`}
-                >
-                  {Icon && <Icon className="h-4 w-4" />}
-                  {link.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full" />
-                </Link>
-              );
-            })}
+            {navLinks.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`text-sm font-serif font-semibold uppercase tracking-wider transition-all duration-300 relative group ${
+                  isScrolled 
+                    ? 'text-white hover:brightness-110' 
+                    : 'text-primary hover:text-accent'
+                }`}
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full" />
+              </Link>
+            ))}
             <LanguageSwitcher />
             <Button 
               asChild
@@ -119,24 +113,20 @@ export const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-4">
-              {navLinks.map(link => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`text-sm font-serif font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 ${
-                      isScrolled 
-                        ? 'text-white hover:brightness-110' 
-                        : 'text-primary hover:text-accent'
-                    }`}
-                  >
-                    {Icon && <Icon className="h-4 w-4" />}
-                    {link.label}
-                  </Link>
-                );
-              })}
+              {navLinks.map(link => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`text-sm font-serif font-semibold uppercase tracking-wider transition-colors ${
+                    isScrolled 
+                      ? 'text-white hover:brightness-110' 
+                      : 'text-primary hover:text-accent'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </div>
         )}
