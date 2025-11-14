@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mail, Link as LinkIcon, Phone, Share2 } from 'lucide-react';
+import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mail, Link as LinkIcon, Phone, Share2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
 import { ImageLightbox } from '@/components/ImageLightbox';
@@ -338,6 +338,50 @@ export default function ProjectDetail() {
               <p className="text-lg leading-relaxed">{project[`description_${language}`]}</p>
             </div>
 
+            {/* Características Adicionais */}
+            {project.features && Object.entries(project.features).some(([_, value]) => value) && (
+              <div className="bg-card rounded-lg p-6 border mb-12">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
+                  {language === 'pt' && 'Características'}
+                  {language === 'fr' && 'Caractéristiques'}
+                  {language === 'en' && 'Features'}
+                  {language === 'de' && 'Eigenschaften'}
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {Object.entries(project.features).map(([key, value]) => {
+                    if (!value) return null;
+                    
+                    const featureLabels: Record<string, { pt: string; fr: string; en: string; de: string; icon: string }> = {
+                      air_conditioning: { pt: 'Ar Condicionado', fr: 'Climatisation', en: 'Air Conditioning', de: 'Klimaanlage', icon: '❄️' },
+                      balcony: { pt: 'Varanda', fr: 'Balcon', en: 'Balcony', de: 'Balkon', icon: '🏡' },
+                      terrace: { pt: 'Terraço', fr: 'Terrasse', en: 'Terrace', de: 'Terrasse', icon: '🌅' },
+                      garage: { pt: 'Garagem', fr: 'Garage', en: 'Garage', de: 'Garage', icon: '🚗' },
+                      garden: { pt: 'Jardim', fr: 'Jardin', en: 'Garden', de: 'Garten', icon: '🌳' },
+                      pool: { pt: 'Piscina', fr: 'Piscine', en: 'Pool', de: 'Pool', icon: '🏊' },
+                      storage: { pt: 'Arrecadação', fr: 'Stockage', en: 'Storage', de: 'Lagerung', icon: '📦' },
+                      adapted: { pt: 'Casa Adaptada', fr: 'Adapté', en: 'Adapted', de: 'Angepasst', icon: '♿' },
+                      top_floor: { pt: 'Último Andar', fr: 'Dernier étage', en: 'Top Floor', de: 'Obergeschoss', icon: '🔝' },
+                      middle_floors: { pt: 'Andares Intermédios', fr: 'Étages intermédiaires', en: 'Middle Floors', de: 'Mittelgeschosse', icon: '🏢' },
+                      ground_floor: { pt: 'Rés do Chão', fr: 'Rez-de-chaussée', en: 'Ground Floor', de: 'Erdgeschoss', icon: '⬇️' },
+                      multimedia: { pt: 'Multimédia', fr: 'Multimédia', en: 'Multimedia', de: 'Multimedia', icon: '📺' },
+                      floor_plan: { pt: 'Com Planta', fr: 'Avec plan', en: 'With Floor Plan', de: 'Mit Grundriss', icon: '📐' },
+                    };
+                    
+                    const feature = featureLabels[key];
+                    if (!feature) return null;
+                    
+                    return (
+                      <div key={key} className="flex items-center gap-2 text-sm bg-secondary/10 p-3 rounded-lg">
+                        <span className="text-xl">{feature.icon}</span>
+                        <span>{feature[language as keyof typeof feature]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Localização Detalhada */}
             {(project.city || project.address || project.postal_code) && (
               <div className="bg-secondary/10 rounded-lg p-6 mb-12">
@@ -396,7 +440,7 @@ export default function ProjectDetail() {
             )}
 
             {/* Mapa de Localização */}
-            {project.city && (
+            {(project.map_embed_url || project.city) && (
               <div className="mb-12">
                 <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                   <MapPin className="h-6 w-6 text-primary" />
@@ -407,7 +451,7 @@ export default function ProjectDetail() {
                 </h3>
                 <div className="rounded-lg overflow-hidden shadow-lg h-[400px]">
                   <iframe
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(
+                    src={project.map_embed_url || `https://www.google.com/maps?q=${encodeURIComponent(
                       `${project.address || ''}, ${project.city}, ${project.region}, Portugal`
                     )}&output=embed`}
                     width="100%"

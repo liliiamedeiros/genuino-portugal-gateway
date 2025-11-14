@@ -27,6 +27,7 @@ const Legal = lazy(() => import('./pages/Legal'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disputes = lazy(() => import('./pages/Disputes'));
 const Install = lazy(() => import('./pages/Install'));
+const Chat = lazy(() => import('./pages/Chat'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load de páginas admin (chunk separado)
@@ -133,6 +134,13 @@ const App = () => (
                 <>
                   <Navbar />
                   <Contact />
+                  <Footer />
+                </>
+              } />
+              <Route path="/chat" element={
+                <>
+                  <Navbar />
+                  <Chat />
                   <Footer />
                 </>
               } />
