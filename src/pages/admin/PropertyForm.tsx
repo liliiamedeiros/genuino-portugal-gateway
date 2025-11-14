@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, MapPin } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
 import type { WatermarkConfig } from '@/utils/watermarkUtils';
@@ -59,6 +59,28 @@ export default function PropertyForm() {
     parking_spaces: '',
     featured: false,
     status: 'active',
+  });
+
+  const [features, setFeatures] = useState({
+    air_conditioning: false,
+    balcony: false,
+    terrace: false,
+    garage: false,
+    garden: false,
+    pool: false,
+    storage: false,
+    adapted: false,
+    top_floor: false,
+    middle_floors: false,
+    ground_floor: false,
+    multimedia: false,
+    floor_plan: false,
+  });
+
+  const [mapData, setMapData] = useState({
+    latitude: '',
+    longitude: '',
+    embedUrl: '',
   });
 
   const [mainImage, setMainImage] = useState<File | null>(null);
@@ -131,6 +153,20 @@ export default function PropertyForm() {
       if (existingProject.main_image) {
         setMainImagePreview(existingProject.main_image);
       }
+      
+      // Load features if they exist
+      if (existingProject.features && typeof existingProject.features === 'object') {
+        setFeatures({ ...features, ...(existingProject.features as Record<string, boolean>) });
+      }
+      
+      // Load map data if exists
+      if (existingProject.map_latitude) {
+        setMapData({
+          latitude: existingProject.map_latitude?.toString() || '',
+          longitude: existingProject.map_longitude?.toString() || '',
+          embedUrl: existingProject.map_embed_url || '',
+        });
+      }
     }
   }, [existingProject]);
 
@@ -174,8 +210,30 @@ export default function PropertyForm() {
         }
       }
 
-      // Generate ID if creating new property
-      const projectId = formData.id || `${generateSlug(formData.title_pt)}-${Date.now()}`;
+      // Generate unique ID with better collision prevention
+      const generateUniqueId = () => {
+        const randomString = Math.random().toString(36).substring(2, 9);
+        const timestamp = Date.now();
+        const slug = formData.title_pt 
+          ? generateSlug(formData.title_pt).substring(0, 30)
+          : 'property';
+        return `${slug}-${timestamp}-${randomString}`;
+      };
+
+      let projectId = formData.id || generateUniqueId();
+      
+      // Validate ID doesn't exist (for new projects)
+      if (!isEdit) {
+        const { data: existing } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('id', projectId)
+          .maybeSingle();
+        
+        if (existing) {
+          projectId = generateUniqueId();
+        }
+      }
 
       // Generate JSON-LD for SEO
       const jsonLd = generatePropertyJsonLd({
@@ -228,6 +286,10 @@ export default function PropertyForm() {
         featured: formData.featured,
         main_image: mainImageUrl,
         status: formData.status,
+        features: features,
+        map_latitude: mapData.latitude ? parseFloat(mapData.latitude) : null,
+        map_longitude: mapData.longitude ? parseFloat(mapData.longitude) : null,
+        map_embed_url: mapData.embedUrl || null,
       };
 
       if (isEdit) {
@@ -918,6 +980,110 @@ export default function PropertyForm() {
                     multiple
                     onChange={handleGalleryImagesChange}
                     className="hidden"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Características do Imóvel */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Características</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { key: 'air_conditioning', label: 'Ar Condicionado', icon: '❄️' },
+                  { key: 'balcony', label: 'Varanda', icon: '🏡' },
+                  { key: 'terrace', label: 'Terraço', icon: '🌅' },
+                  { key: 'garage', label: 'Lugar de Garagem', icon: '🚗' },
+                  { key: 'garden', label: 'Jardim', icon: '🌳' },
+                  { key: 'pool', label: 'Piscina', icon: '🏊' },
+                  { key: 'storage', label: 'Arrecadação', icon: '📦' },
+                  { key: 'adapted', label: 'Casa Adaptada', icon: '♿' },
+                  { key: 'top_floor', label: 'Último Andar', icon: '🔝' },
+                  { key: 'middle_floors', label: 'Andares Intermédios', icon: '🏢' },
+                  { key: 'ground_floor', label: 'Rés do Chão', icon: '⬇️' },
+                  { key: 'multimedia', label: 'Multimédia', icon: '📺' },
+                  { key: 'floor_plan', label: 'Com Planta', icon: '📐' },
+                ].map(({ key, label, icon }) => (
+                  <div key={key} className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-accent/50 transition-colors">
+                    <Checkbox
+                      id={key}
+                      checked={features[key as keyof typeof features]}
+                      onCheckedChange={(checked) => 
+                        setFeatures({ ...features, [key]: checked })
+                      }
+                    />
+                    <Label htmlFor={key} className="cursor-pointer flex items-center gap-2 flex-1">
+                      <span className="text-xl">{icon}</span>
+                      <span className="text-sm">{label}</span>
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Localização no Mapa */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                Localização no Mapa
+              </h3>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input
+                    id="latitude"
+                    type="text"
+                    placeholder="38.7223"
+                    value={mapData.latitude}
+                    onChange={(e) => setMapData({ ...mapData, latitude: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Exemplo: 38.7223
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input
+                    id="longitude"
+                    type="text"
+                    placeholder="-9.1393"
+                    value={mapData.longitude}
+                    onChange={(e) => setMapData({ ...mapData, longitude: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Exemplo: -9.1393
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="mapEmbed">URL do Mapa Incorporado (Google Maps)</Label>
+                <Input
+                  id="mapEmbed"
+                  type="url"
+                  placeholder="https://www.google.com/maps/embed?..."
+                  value={mapData.embedUrl}
+                  onChange={(e) => setMapData({ ...mapData, embedUrl: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Cole o URL do iframe de incorporação do Google Maps
+                </p>
+              </div>
+              
+              {/* Preview do Mapa */}
+              {mapData.embedUrl && (
+                <div className="border rounded-lg overflow-hidden">
+                  <iframe
+                    src={mapData.embedUrl}
+                    width="100%"
+                    height="300"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Map Preview"
                   />
                 </div>
               )}
