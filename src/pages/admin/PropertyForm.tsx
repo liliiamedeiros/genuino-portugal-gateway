@@ -11,10 +11,12 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, AlertCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
 import type { WatermarkConfig } from '@/utils/watermarkUtils';
+import { propertySchema } from '@/schemas/propertySchema';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function PropertyForm() {
   const { id } = useParams();
@@ -22,18 +24,19 @@ export default function PropertyForm() {
   const queryClient = useQueryClient();
   const isEdit = !!id;
 
-  // Helper function to generate slug from title
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   };
 
   const [watermarkEnabled, setWatermarkEnabled] = useState(true);
   const [watermarkPosition, setWatermarkPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'center'>('bottom-right');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -59,6 +62,25 @@ export default function PropertyForm() {
     parking_spaces: '',
     featured: false,
     status: 'active',
+    map_embed_url: '',
+    map_latitude: '',
+    map_longitude: '',
+  });
+
+  const [features, setFeatures] = useState({
+    ar_condicionado: false,
+    varanda: false,
+    terraco: false,
+    lugar_garagem: false,
+    jardim: false,
+    piscina: false,
+    arrecadacao: false,
+    casa_adaptada: false,
+    ultimo_andar: false,
+    andares_intermedios: false,
+    res_do_chao: false,
+    multimedia: false,
+    com_planta: false,
   });
 
   const [mainImage, setMainImage] = useState<File | null>(null);
@@ -73,7 +95,7 @@ export default function PropertyForm() {
     queryKey: ['project', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('projects')
         .select('*')
         .eq('id', id)
@@ -127,7 +149,30 @@ export default function PropertyForm() {
         parking_spaces: existingProject.parking_spaces?.toString() || '',
         featured: existingProject.featured || false,
         status: existingProject.status || 'active',
+        map_embed_url: existingProject.map_embed_url || '',
+        map_latitude: existingProject.map_latitude?.toString() || '',
+        map_longitude: existingProject.map_longitude?.toString() || '',
       });
+
+      if (existingProject.features && typeof existingProject.features === 'object') {
+        const projectFeatures = existingProject.features as any;
+        setFeatures({
+          ar_condicionado: projectFeatures.ar_condicionado || false,
+          varanda: projectFeatures.varanda || false,
+          terraco: projectFeatures.terraco || false,
+          lugar_garagem: projectFeatures.lugar_garagem || false,
+          jardim: projectFeatures.jardim || false,
+          piscina: projectFeatures.piscina || false,
+          arrecadacao: projectFeatures.arrecadacao || false,
+          casa_adaptada: projectFeatures.casa_adaptada || false,
+          ultimo_andar: projectFeatures.ultimo_andar || false,
+          andares_intermedios: projectFeatures.andares_intermedios || false,
+          res_do_chao: projectFeatures.res_do_chao || false,
+          multimedia: projectFeatures.multimedia || false,
+          com_planta: projectFeatures.com_planta || false,
+        });
+      }
+
       if (existingProject.main_image) {
         setMainImagePreview(existingProject.main_image);
       }
@@ -140,44 +185,93 @@ export default function PropertyForm() {
     }
   }, [existingGallery]);
 
+  const checkForDuplicates = async (titlePt: string, address: string, postalCode: string): Promise<boolean> => {
+    setCheckingDuplicate(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, title_pt, address, postal_code')
+        .or(`title_pt.ilike.${titlePt},and(address.ilike.${address || 'null'},postal_code.eq.${postalCode || 'null'})`)
+        .neq('id', id || '');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const duplicateReasons = [];
+        if (data.some(p => p.title_pt.toLowerCase() === titlePt.toLowerCase())) {
+          duplicateReasons.push('título em português');
+        }
+        if (address && postalCode && data.some(p => p.address?.toLowerCase() === address.toLowerCase() && p.postal_code === postalCode)) {
+          duplicateReasons.push('endereço + código postal');
+        }
+        
+        toast({
+          title: "Imóvel duplicado detectado",
+          description: `Já existe um imóvel com o mesmo ${duplicateReasons.join(' e ')}.`,
+          variant: "destructive",
+        });
+        return true;
+      }
+
+      return false;
+    } catch (error: any) {
+      console.error('Erro ao verificar duplicados:', error);
+      return false;
+    } finally {
+      setCheckingDuplicate(false);
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      let mainImageUrl = mainImagePreview;
+      setValidationErrors([]);
 
-      // Upload main image if provided
-      if (mainImage) {
-        try {
-          setUploading(true);
-          const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
-            enabled: true,
-            position: watermarkPosition,
-            text: '© Capital Estate Group',
-            opacity: 0.7
-          } : { enabled: false };
-          
-          const webpBlob = await convertToWebP(mainImage, 800, 600, watermarkConfig);
-          const timestamp = Date.now();
-          const projectId = formData.id || `${generateSlug(formData.title_pt)}-${timestamp}`;
-          const path = `${projectId}/main-${timestamp}.webp`;
-          
-          const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
-          
-          if (error) {
-            console.error('Image upload error:', error);
-            throw new Error(`Erro ao fazer upload da imagem: ${error.message}`);
-          }
-          
-          mainImageUrl = url || '';
-        } catch (error: any) {
-          setUploading(false);
-          throw new Error(error.message || 'Erro ao fazer upload da imagem');
+      // Validação com Zod
+      const validation = propertySchema.safeParse({
+        ...formData,
+        featured: formData.featured,
+      });
+
+      if (!validation.success) {
+        const errors = validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+        setValidationErrors(errors);
+        throw new Error('Erros de validação');
+      }
+
+      // Verificar duplicados antes de criar/editar
+      if (!isEdit) {
+        const isDuplicate = await checkForDuplicates(
+          formData.title_pt,
+          formData.address,
+          formData.postal_code
+        );
+        if (isDuplicate) {
+          throw new Error('Imóvel duplicado');
         }
       }
 
-      // Generate ID if creating new property
-      const projectId = formData.id || `${generateSlug(formData.title_pt)}-${Date.now()}`;
+      const slug = generateSlug(formData.title_pt);
+      const projectId = isEdit ? formData.id : `${slug}-${Date.now()}`;
+      
+      let mainImageUrl = existingProject?.main_image || null;
 
-      // Generate JSON-LD for SEO
+      if (mainImage) {
+        const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
+          position: watermarkPosition,
+          opacity: 0.7,
+        } : undefined;
+
+        const webpBlob = await convertToWebP(mainImage, 1920, 1080, watermarkConfig);
+        const uploadResult = await uploadImageToStorage(
+          webpBlob,
+          `properties/${projectId}/main-${Date.now()}.webp`,
+          supabase
+        );
+
+        if (uploadResult.error) throw uploadResult.error;
+        mainImageUrl = uploadResult.url;
+      }
+
       const jsonLd = generatePropertyJsonLd({
         id: projectId,
         title_pt: formData.title_pt,
@@ -188,18 +282,14 @@ export default function PropertyForm() {
         description_en: formData.description_en,
         description_fr: formData.description_fr,
         description_de: formData.description_de,
-        price: formData.price ? parseFloat(formData.price) : 0,
-        property_type: formData.property_type,
-        operation_type: formData.operation_type,
+        price: formData.price ? parseFloat(formData.price) : null,
         location: formData.location,
-        city: formData.city,
         region: formData.region,
-        address: formData.address,
-        postal_code: formData.postal_code,
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
-        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
-        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : undefined,
-        main_image: mainImageUrl
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
+        main_image: mainImageUrl,
+        property_type: formData.property_type,
       });
 
       const projectData = {
@@ -214,146 +304,97 @@ export default function PropertyForm() {
         description_pt: formData.description_pt,
         location: formData.location,
         region: formData.region,
-        city: formData.city,
-        address: formData.address,
-        postal_code: formData.postal_code,
+        city: formData.city || null,
+        address: formData.address || null,
+        postal_code: formData.postal_code || null,
         property_type: formData.property_type,
         operation_type: formData.operation_type,
         price: formData.price ? parseFloat(formData.price) : null,
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
-        json_ld: jsonLd,
         parking_spaces: formData.parking_spaces ? parseInt(formData.parking_spaces) : null,
         featured: formData.featured,
-        main_image: mainImageUrl,
         status: formData.status,
+        main_image: mainImageUrl,
+        json_ld: jsonLd,
+        features: features,
+        map_embed_url: formData.map_embed_url || null,
+        map_latitude: formData.map_latitude ? parseFloat(formData.map_latitude) : null,
+        map_longitude: formData.map_longitude ? parseFloat(formData.map_longitude) : null,
       };
 
-      if (isEdit) {
-        const { error } = await supabase
-          .from('projects')
-          .update(projectData)
-          .eq('id', id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('projects')
-          .insert([projectData]);
-        
-        if (error) throw error;
-      }
+      const { error: projectError } = await supabase
+        .from('projects')
+        .upsert(projectData);
+
+      if (projectError) throw projectError;
 
       // Upload gallery images
-      console.log('🖼️ Starting gallery upload. Total images:', galleryImages.length);
-      console.log('📊 Project ID:', projectId);
-      console.log('📋 Existing gallery images:', existingGalleryImages.length);
-      
       if (galleryImages.length > 0) {
-        let successCount = 0;
-        let errorCount = 0;
-        
         for (let i = 0; i < galleryImages.length; i++) {
-          const { file } = galleryImages[i];
-          console.log(`\n🔄 Processing image ${i + 1}/${galleryImages.length}:`, file.name);
-          
-          try {
-            const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
-              enabled: true,
-              position: watermarkPosition,
-              text: '© Capital Estate Group',
-              opacity: 0.7
-            } : { enabled: false };
-            
-            console.log('⚙️ Converting to WebP with watermark:', watermarkEnabled);
-            const webpBlob = await convertToWebP(file, 800, 600, watermarkConfig);
-            const timestamp = Date.now();
-            const path = `${projectId}/gallery-${timestamp}-${i}.webp`;
-            
-            console.log('☁️ Uploading to storage:', path);
-            const { url, error } = await uploadImageToStorage(webpBlob, path, supabase);
-            
-            if (error) {
-              console.error('❌ Upload error:', error);
-              errorCount++;
-              continue;
-            }
+          const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
+            position: watermarkPosition,
+            opacity: 0.7,
+          } : undefined;
 
-            console.log('✅ Upload successful. URL:', url);
+          const webpBlob = await convertToWebP(galleryImages[i].file, 1920, 1080, watermarkConfig);
+          const uploadResult = await uploadImageToStorage(
+            webpBlob,
+            `properties/${projectId}/gallery-${Date.now()}-${i}.webp`,
+            supabase
+          );
 
-            if (url) {
-              const insertData = {
-                project_id: projectId,
-                image_url: url,
-                order_index: existingGalleryImages.length + i,
-              };
-              console.log('💾 Inserting into project_images:', insertData);
-              
-              const { data: insertedData, error: insertError } = await supabase
-                .from('project_images')
-                .insert(insertData)
-                .select();
-              
-              if (insertError) {
-                console.error('❌ Insert error:', insertError);
-                console.error('Insert error code:', insertError.code);
-                console.error('Insert error details:', insertError.details);
-                console.error('Insert error hint:', insertError.hint);
-                errorCount++;
-              } else {
-                console.log('✅ Insert successful:', insertedData);
-                successCount++;
-              }
-            } else {
-              console.warn('⚠️ No URL returned from upload');
-              errorCount++;
-            }
-          } catch (error) {
-            console.error('❌ Gallery image upload error:', error);
-            console.error('Error details:', JSON.stringify(error, null, 2));
-            errorCount++;
-          }
+          if (uploadResult.error) throw uploadResult.error;
+
+          const { error: galleryError } = await supabase
+            .from('project_images')
+            .insert({
+              project_id: projectId,
+              image_url: uploadResult.url!,
+              order_index: existingGalleryImages.length + i,
+            });
+
+          if (galleryError) throw galleryError;
         }
-        
-        console.log(`\n📈 Upload summary: ${successCount} success, ${errorCount} errors`);
-        
-        // Feedback ao usuário
-        if (successCount > 0) {
-          toast({
-            title: `${successCount} foto(s) adicionada(s)`,
-            description: errorCount > 0 ? `${errorCount} foto(s) falharam` : 'Galeria atualizada com sucesso',
-          });
-        }
-        
-        if (errorCount > 0 && successCount === 0) {
-          toast({
-            title: 'Erro ao adicionar fotos',
-            description: `${errorCount} foto(s) não foram carregadas. Verifique o console para mais detalhes.`,
-            variant: 'destructive',
-          });
-        }
-      } else {
-        console.log('ℹ️ No gallery images to upload');
       }
 
-      setUploading(false);
+      return projectId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
+    onSuccess: (projectId) => {
       toast({
-        title: isEdit ? 'Imóvel atualizado' : 'Imóvel criado',
-        description: isEdit 
-          ? 'O imóvel foi atualizado com sucesso' 
-          : 'O imóvel foi criado com sucesso',
+        title: isEdit ? "Imóvel atualizado" : "Imóvel criado",
+        description: isEdit ? "As alterações foram guardadas com sucesso." : "O imóvel foi criado com sucesso.",
       });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       navigate('/admin/properties');
     },
     onError: (error: any) => {
+      console.error('Erro detalhado ao salvar imóvel:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+
+      let errorMessage = 'Erro ao salvar o imóvel. Por favor, tente novamente.';
+      
+      if (error.message === 'Imóvel duplicado') {
+        errorMessage = 'Este imóvel já existe no sistema.';
+      } else if (error.message === 'Erros de validação') {
+        errorMessage = 'Por favor, corrija os erros de validação.';
+      } else if (error.code === '23505') {
+        errorMessage = 'Já existe um imóvel com este identificador.';
+      } else if (error.code === '42501') {
+        errorMessage = 'Você não tem permissão para realizar esta operação. Entre em contato com um administrador.';
+      } else if (error.details) {
+        errorMessage = `Erro: ${error.details}`;
+      }
+
       toast({
-        title: 'Erro',
-        description: error.message || 'Ocorreu um erro ao salvar o imóvel',
-        variant: 'destructive',
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
       });
     },
   });
@@ -361,22 +402,20 @@ export default function PropertyForm() {
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 20MB)
       if (file.size > 20 * 1024 * 1024) {
         toast({
-          title: 'Imagem muito grande',
-          description: 'O tamanho máximo da imagem é 20MB',
-          variant: 'destructive',
+          title: "Ficheiro muito grande",
+          description: "O tamanho máximo permitido é 20MB",
+          variant: "destructive",
         });
         return;
       }
 
-      // Validate file type
-      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      if (!file.type.startsWith('image/')) {
         toast({
-          title: 'Formato inválido',
-          description: 'Use apenas JPEG, PNG ou WebP',
-          variant: 'destructive',
+          title: "Ficheiro inválido",
+          description: "Por favor selecione apenas ficheiros de imagem",
+          variant: "destructive",
         });
         return;
       }
@@ -392,13 +431,13 @@ export default function PropertyForm() {
 
   const handleGalleryImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const totalImages = existingGalleryImages.length + galleryImages.length + files.length;
-
-    if (totalImages > MAX_GALLERY_IMAGES) {
+    const remainingSlots = MAX_GALLERY_IMAGES - (existingGalleryImages.length + galleryImages.length);
+    
+    if (files.length > remainingSlots) {
       toast({
-        title: 'Limite excedido',
-        description: `Máximo de ${MAX_GALLERY_IMAGES} fotos permitidas na galeria`,
-        variant: 'destructive',
+        title: "Limite de imagens excedido",
+        description: `Pode adicionar no máximo ${remainingSlots} imagens adicionais (limite total: ${MAX_GALLERY_IMAGES})`,
+        variant: "destructive",
       });
       return;
     }
@@ -406,543 +445,602 @@ export default function PropertyForm() {
     const validFiles = files.filter(file => {
       if (file.size > 20 * 1024 * 1024) {
         toast({
-          title: 'Imagem muito grande',
+          title: "Ficheiro muito grande",
           description: `${file.name} excede 20MB`,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return false;
       }
-      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      if (!file.type.startsWith('image/')) {
         toast({
-          title: 'Formato inválido',
-          description: `${file.name} não é um formato válido`,
-          variant: 'destructive',
+          title: "Ficheiro inválido",
+          description: `${file.name} não é uma imagem`,
+          variant: "destructive",
         });
         return false;
       }
       return true;
     });
 
-    const newImages = validFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    const newImages = validFiles.map(file => {
+      const reader = new FileReader();
+      return new Promise<{ file: File; preview: string }>((resolve) => {
+        reader.onloadend = () => {
+          resolve({ file, preview: reader.result as string });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
 
-    setGalleryImages([...galleryImages, ...newImages]);
+    Promise.all(newImages).then(images => {
+      setGalleryImages(prev => [...prev, ...images]);
+    });
   };
 
   const removeGalleryImage = (index: number) => {
-    const newImages = [...galleryImages];
-    URL.revokeObjectURL(newImages[index].preview);
-    newImages.splice(index, 1);
-    setGalleryImages(newImages);
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingGalleryImage = async (imageUrl: string) => {
     try {
-      // Delete from database
-      await supabase
-        .from('project_images')
-        .delete()
-        .eq('project_id', id)
-        .eq('image_url', imageUrl);
+      const imageRecord = existingGallery?.find(img => img.image_url === imageUrl);
+      if (imageRecord) {
+        const { error } = await supabase
+          .from('project_images')
+          .delete()
+          .eq('id', imageRecord.id);
 
-      setExistingGalleryImages(existingGalleryImages.filter(img => img !== imageUrl));
-      
-      toast({
-        title: 'Imagem removida',
-        description: 'A imagem foi removida da galeria',
-      });
+        if (error) throw error;
+
+        setExistingGalleryImages(prev => prev.filter(url => url !== imageUrl));
+        queryClient.invalidateQueries({ queryKey: ['project-gallery', id] });
+        
+        toast({
+          title: "Imagem removida",
+          description: "A imagem foi removida com sucesso",
+        });
+      }
     } catch (error) {
+      console.error('Erro ao remover imagem:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível remover a imagem',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Erro ao remover a imagem",
+        variant: "destructive",
       });
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title_pt || !formData.description_pt || !formData.location || !formData.region) {
+    if (!formData.title_pt || !formData.location || !formData.region) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha todos os campos obrigatórios',
-        variant: 'destructive',
+        title: "Campos obrigatórios em falta",
+        description: "Por favor preencha todos os campos obrigatórios",
+        variant: "destructive",
       });
       return;
     }
 
-    if (!mainImagePreview && !isEdit) {
-      toast({
-        title: 'Imagem obrigatória',
-        description: 'Adicione uma imagem principal para o imóvel',
-        variant: 'destructive',
-      });
-      return;
+    setUploading(true);
+    try {
+      await saveMutation.mutateAsync();
+    } finally {
+      setUploading(false);
     }
-
-    saveMutation.mutate();
   };
 
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">
-            {isEdit ? 'Editar Imóvel' : 'Novo Imóvel'}
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            {isEdit ? 'Atualize as informações do imóvel' : 'Adicione um novo imóvel ao sistema'}
-          </p>
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">
+          {isEdit ? 'Editar Imóvel' : 'Adicionar Novo Imóvel'}
+        </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* ID do projeto */}
-            {!isEdit && (
+        {validationErrors.length > 0 && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <ul className="list-disc list-inside">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Tabs defaultValue="pt" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="pt">Português</TabsTrigger>
+              <TabsTrigger value="fr">Français</TabsTrigger>
+              <TabsTrigger value="en">English</TabsTrigger>
+              <TabsTrigger value="de">Deutsch</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pt" className="space-y-4">
               <div>
-                <Label htmlFor="id">ID do Projeto (opcional)</Label>
+                <Label htmlFor="title_pt">Título (PT) *</Label>
                 <Input
-                  id="id"
-                  value={formData.id}
-                  onChange={(e) => setFormData({ ...formData, id: e.target.value.trim() })}
-                  placeholder="Deixe vazio para gerar automaticamente"
+                  id="title_pt"
+                  value={formData.title_pt}
+                  onChange={(e) => setFormData({ ...formData, title_pt: e.target.value })}
+                  required
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Se não preencher, será gerado automaticamente baseado no título em português
-                </p>
               </div>
-            )}
-
-            {/* Títulos multilíngues */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Títulos (Multilíngue)</h3>
-              <Tabs defaultValue="pt" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="pt">Português</TabsTrigger>
-                  <TabsTrigger value="fr">Français</TabsTrigger>
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="de">Deutsch</TabsTrigger>
-                </TabsList>
-                <TabsContent value="pt" className="space-y-4">
-                  <div>
-                    <Label htmlFor="title_pt">Título (Português) *</Label>
-                    <Input
-                      id="title_pt"
-                      value={formData.title_pt}
-                      onChange={(e) => setFormData({ ...formData, title_pt: e.target.value })}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="fr" className="space-y-4">
-                  <div>
-                    <Label htmlFor="title_fr">Titre (Français) *</Label>
-                    <Input
-                      id="title_fr"
-                      value={formData.title_fr}
-                      onChange={(e) => setFormData({ ...formData, title_fr: e.target.value })}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="en" className="space-y-4">
-                  <div>
-                    <Label htmlFor="title_en">Title (English) *</Label>
-                    <Input
-                      id="title_en"
-                      value={formData.title_en}
-                      onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="de" className="space-y-4">
-                  <div>
-                    <Label htmlFor="title_de">Titel (Deutsch) *</Label>
-                    <Input
-                      id="title_de"
-                      value={formData.title_de}
-                      onChange={(e) => setFormData({ ...formData, title_de: e.target.value })}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Descrições multilíngues */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Descrições (Multilíngue)</h3>
-              <Tabs defaultValue="pt" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="pt">Português</TabsTrigger>
-                  <TabsTrigger value="fr">Français</TabsTrigger>
-                  <TabsTrigger value="en">English</TabsTrigger>
-                  <TabsTrigger value="de">Deutsch</TabsTrigger>
-                </TabsList>
-                <TabsContent value="pt" className="space-y-4">
-                  <div>
-                    <Label htmlFor="description_pt">Descrição (Português) *</Label>
-                    <Textarea
-                      id="description_pt"
-                      value={formData.description_pt}
-                      onChange={(e) => setFormData({ ...formData, description_pt: e.target.value })}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="fr" className="space-y-4">
-                  <div>
-                    <Label htmlFor="description_fr">Description (Français) *</Label>
-                    <Textarea
-                      id="description_fr"
-                      value={formData.description_fr}
-                      onChange={(e) => setFormData({ ...formData, description_fr: e.target.value })}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="en" className="space-y-4">
-                  <div>
-                    <Label htmlFor="description_en">Description (English) *</Label>
-                    <Textarea
-                      id="description_en"
-                      value={formData.description_en}
-                      onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="de" className="space-y-4">
-                  <div>
-                    <Label htmlFor="description_de">Beschreibung (Deutsch) *</Label>
-                    <Textarea
-                      id="description_de"
-                      value={formData.description_de}
-                      onChange={(e) => setFormData({ ...formData, description_de: e.target.value })}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Localização */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Localização</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="location">Localização *</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Ex: Lisboa"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="region">Região *</Label>
-                  <Input
-                    id="region"
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    placeholder="Ex: Lisboa"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="address">Endereço</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="postal_code">Código Postal</Label>
-                  <Input
-                    id="postal_code"
-                    value={formData.postal_code}
-                    onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                    placeholder="1000-000"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Tipo e Preço */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Tipo e Preço</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="property_type">Tipo de Imóvel</Label>
-                  <Select
-                    value={formData.property_type}
-                    onValueChange={(value) => setFormData({ ...formData, property_type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="apartment">Apartamento</SelectItem>
-                      <SelectItem value="house">Moradia</SelectItem>
-                      <SelectItem value="villa">Villa</SelectItem>
-                      <SelectItem value="land">Terreno</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="operation_type">Tipo de Operação</Label>
-                  <Select
-                    value={formData.operation_type}
-                    onValueChange={(value) => setFormData({ ...formData, operation_type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sale">Venda</SelectItem>
-                      <SelectItem value="rent">Arrendamento</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="price">Preço (€)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="250000"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Características */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Características</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="bedrooms">Quartos</Label>
-                  <Input
-                    id="bedrooms"
-                    type="number"
-                    value={formData.bedrooms}
-                    onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bathrooms">Casas de Banho</Label>
-                  <Input
-                    id="bathrooms"
-                    type="number"
-                    value={formData.bathrooms}
-                    onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="area_sqm">Área (m²)</Label>
-                  <Input
-                    id="area_sqm"
-                    type="number"
-                    value={formData.area_sqm}
-                    onChange={(e) => setFormData({ ...formData, area_sqm: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="parking_spaces">Estacionamento</Label>
-                  <Input
-                    id="parking_spaces"
-                    type="number"
-                    value={formData.parking_spaces}
-                    onChange={(e) => setFormData({ ...formData, parking_spaces: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="h-4 w-4"
+              <div>
+                <Label htmlFor="description_pt">Descrição (PT) *</Label>
+                <Textarea
+                  id="description_pt"
+                  value={formData.description_pt}
+                  onChange={(e) => setFormData({ ...formData, description_pt: e.target.value })}
+                  rows={6}
+                  required
                 />
-                <Label htmlFor="featured">Destacar este imóvel na página inicial</Label>
               </div>
-            </div>
+            </TabsContent>
 
-            {/* Imagem Principal */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Imagem Principal *</h3>
-              <div className="space-y-4">
-                {mainImagePreview && (
-                  <div className="relative w-full h-64 rounded-lg overflow-hidden border">
-                    <img
-                      src={mainImagePreview}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setMainImage(null);
-                        setMainImagePreview('');
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                <div>
-                  <Label htmlFor="main_image" className="cursor-pointer">
-                    <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Clique para selecionar uma imagem
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        A imagem será automaticamente convertida para WebP
-                      </p>
-                    </div>
-                  </Label>
-                  <Input
-                    id="main_image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleMainImageChange}
-                    className="hidden"
-                  />
-                </div>
+            <TabsContent value="fr" className="space-y-4">
+              <div>
+                <Label htmlFor="title_fr">Titre (FR) *</Label>
+                <Input
+                  id="title_fr"
+                  value={formData.title_fr}
+                  onChange={(e) => setFormData({ ...formData, title_fr: e.target.value })}
+                  required
+                />
               </div>
-            </div>
+              <div>
+                <Label htmlFor="description_fr">Description (FR) *</Label>
+                <Textarea
+                  id="description_fr"
+                  value={formData.description_fr}
+                  onChange={(e) => setFormData({ ...formData, description_fr: e.target.value })}
+                  rows={6}
+                  required
+                />
+              </div>
+            </TabsContent>
 
-            {/* Galeria de Fotos */}
+            <TabsContent value="en" className="space-y-4">
+              <div>
+                <Label htmlFor="title_en">Title (EN) *</Label>
+                <Input
+                  id="title_en"
+                  value={formData.title_en}
+                  onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description_en">Description (EN) *</Label>
+                <Textarea
+                  id="description_en"
+                  value={formData.description_en}
+                  onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+                  rows={6}
+                  required
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="de" className="space-y-4">
+              <div>
+                <Label htmlFor="title_de">Titel (DE) *</Label>
+                <Input
+                  id="title_de"
+                  value={formData.title_de}
+                  onChange={(e) => setFormData({ ...formData, title_de: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description_de">Beschreibung (DE) *</Label>
+                <Textarea
+                  id="description_de"
+                  value={formData.description_de}
+                  onChange={(e) => setFormData({ ...formData, description_de: e.target.value })}
+                  rows={6}
+                  required
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Galeria de Fotos (Máximo {MAX_GALLERY_IMAGES})
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {existingGalleryImages.length + galleryImages.length} / {MAX_GALLERY_IMAGES} fotos
-              </p>
-              
-              {/* Existing Gallery Images */}
-              {existingGalleryImages.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm font-medium mb-2">Fotos Existentes:</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {existingGalleryImages.map((imageUrl, index) => (
-                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
-                        <img
-                          src={imageUrl}
-                          alt={`Gallery ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeExistingGalleryImage(imageUrl)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* New Gallery Images */}
-              {galleryImages.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm font-medium mb-2">Novas Fotos:</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {galleryImages.map((image, index) => (
-                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
-                        <img
-                          src={image.preview}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeGalleryImage(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Upload Button */}
-              {(existingGalleryImages.length + galleryImages.length) < MAX_GALLERY_IMAGES && (
-                <div>
-                  <Label htmlFor="gallery_images" className="cursor-pointer">
-                    <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Adicionar fotos à galeria ({MAX_GALLERY_IMAGES - existingGalleryImages.length - galleryImages.length} restantes)
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Selecione múltiplas fotos (máximo 20MB cada)
-                      </p>
-                    </div>
-                  </Label>
-                  <Input
-                    id="gallery_images"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleGalleryImagesChange}
-                    className="hidden"
-                  />
-                </div>
-              )}
+              <Label htmlFor="location">Localização *</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                required
+              />
             </div>
+            <div>
+              <Label htmlFor="region">Região *</Label>
+              <Input
+                id="region"
+                value={formData.region}
+                onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Endereço</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="postal_code">Código Postal</Label>
+              <Input
+                id="postal_code"
+                value={formData.postal_code}
+                onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+              />
+            </div>
+          </div>
 
-            {/* Botões */}
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/admin/properties')}
-                disabled={saveMutation.isPending || uploading}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="property_type">Tipo de Imóvel</Label>
+              <Select
+                value={formData.property_type}
+                onValueChange={(value) => setFormData({ ...formData, property_type: value })}
               >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saveMutation.isPending || uploading}>
-                {saveMutation.isPending || uploading
-                  ? 'Salvando...'
-                  : isEdit
-                  ? 'Atualizar Imóvel'
-                  : 'Criar Imóvel'}
-              </Button>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apartment">Apartamento</SelectItem>
+                  <SelectItem value="house">Moradia</SelectItem>
+                  <SelectItem value="villa">Villa</SelectItem>
+                  <SelectItem value="land">Terreno</SelectItem>
+                  <SelectItem value="commercial">Comercial</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </form>
-        </div>
+
+            <div>
+              <Label htmlFor="operation_type">Tipo de Operação</Label>
+              <Select
+                value={formData.operation_type}
+                onValueChange={(value) => setFormData({ ...formData, operation_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sale">Venda</SelectItem>
+                  <SelectItem value="rent">Arrendamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="price">Preço (€)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="area_sqm">Área (m²)</Label>
+              <Input
+                id="area_sqm"
+                type="number"
+                value={formData.area_sqm}
+                onChange={(e) => setFormData({ ...formData, area_sqm: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bedrooms">Quartos</Label>
+              <Input
+                id="bedrooms"
+                type="number"
+                value={formData.bedrooms}
+                onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bathrooms">Casas de Banho</Label>
+              <Input
+                id="bathrooms"
+                type="number"
+                value={formData.bathrooms}
+                onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="parking_spaces">Lugares de Garagem</Label>
+              <Input
+                id="parking_spaces"
+                type="number"
+                value={formData.parking_spaces}
+                onChange={(e) => setFormData({ ...formData, parking_spaces: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-lg font-semibold mb-3 block">Características do Imóvel</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries({
+                ar_condicionado: 'Ar Condicionado',
+                varanda: 'Varanda',
+                terraco: 'Terraço',
+                lugar_garagem: 'Lugar de Garagem',
+                jardim: 'Jardim',
+                piscina: 'Piscina',
+                arrecadacao: 'Arrecadação',
+                casa_adaptada: 'Casa Adaptada',
+                ultimo_andar: 'Último Andar',
+                andares_intermedios: 'Andares Intermédios',
+                res_do_chao: 'Rés do Chão',
+                multimedia: 'Multimédia',
+                com_planta: 'Com Planta',
+              }).map(([key, label]) => (
+                <div key={key} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={key}
+                    checked={features[key as keyof typeof features]}
+                    onCheckedChange={(checked) => 
+                      setFeatures({ ...features, [key]: checked === true })
+                    }
+                  />
+                  <Label htmlFor={key} className="cursor-pointer">{label}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold">Mapa do Imóvel</Label>
+            <div>
+              <Label htmlFor="map_embed_url">URL de Incorporação do Mapa (iframe do Google Maps)</Label>
+              <Input
+                id="map_embed_url"
+                type="url"
+                placeholder="https://www.google.com/maps/embed?pb=..."
+                value={formData.map_embed_url}
+                onChange={(e) => setFormData({ ...formData, map_embed_url: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Cole o URL de incorporação do Google Maps (iframe src)
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="map_latitude">Latitude</Label>
+                <Input
+                  id="map_latitude"
+                  type="number"
+                  step="any"
+                  placeholder="41.1579"
+                  value={formData.map_latitude}
+                  onChange={(e) => setFormData({ ...formData, map_latitude: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="map_longitude">Longitude</Label>
+                <Input
+                  id="map_longitude"
+                  type="number"
+                  step="any"
+                  placeholder="-8.6291"
+                  value={formData.map_longitude}
+                  onChange={(e) => setFormData({ ...formData, map_longitude: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="watermark"
+                  checked={watermarkEnabled}
+                  onCheckedChange={(checked) => setWatermarkEnabled(checked === true)}
+                />
+                <Label htmlFor="watermark">Adicionar marca d'água</Label>
+              </div>
+              
+              {watermarkEnabled && (
+                <Select
+                  value={watermarkPosition}
+                  onValueChange={(value: any) => setWatermarkPosition(value)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bottom-right">Inferior Direita</SelectItem>
+                    <SelectItem value="bottom-left">Inferior Esquerda</SelectItem>
+                    <SelectItem value="top-right">Superior Direita</SelectItem>
+                    <SelectItem value="top-left">Superior Esquerda</SelectItem>
+                    <SelectItem value="center">Centro</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="main_image">Imagem Principal</Label>
+              <div className="mt-2">
+                <label htmlFor="main_image" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                    {mainImagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={mainImagePreview}
+                          alt="Preview"
+                          className="max-h-64 mx-auto rounded"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setMainImage(null);
+                            setMainImagePreview('');
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                        <p>Clique para selecionar uma imagem</p>
+                        <p className="text-sm text-gray-500">PNG, JPG até 20MB</p>
+                      </div>
+                    )}
+                  </div>
+                </label>
+                <input
+                  id="main_image"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleMainImageChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="gallery_images">
+                Galeria de Imagens ({existingGalleryImages.length + galleryImages.length}/{MAX_GALLERY_IMAGES})
+              </Label>
+              <div className="mt-2">
+                <label htmlFor="gallery_images" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                    <Upload className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                    <p>Clique para adicionar imagens à galeria</p>
+                    <p className="text-sm text-gray-500">
+                      Pode adicionar até {MAX_GALLERY_IMAGES - existingGalleryImages.length - galleryImages.length} imagens
+                    </p>
+                  </div>
+                </label>
+                <input
+                  id="gallery_images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleGalleryImagesChange}
+                  disabled={existingGalleryImages.length + galleryImages.length >= MAX_GALLERY_IMAGES}
+                />
+              </div>
+
+              {(existingGalleryImages.length > 0 || galleryImages.length > 0) && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                  {existingGalleryImages.map((imageUrl, index) => (
+                    <div key={`existing-${index}`} className="relative">
+                      <img
+                        src={imageUrl}
+                        alt={`Gallery ${index + 1}`}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeExistingGalleryImage(imageUrl)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {galleryImages.map((image, index) => (
+                    <div key={`new-${index}`} className="relative">
+                      <img
+                        src={image.preview}
+                        alt={`New ${index + 1}`}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeGalleryImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="featured"
+                checked={formData.featured}
+                onCheckedChange={(checked) => setFormData({ ...formData, featured: checked === true })}
+              />
+              <Label htmlFor="featured">Destacar no site</Label>
+            </div>
+
+            <div>
+              <Label htmlFor="status">Estado</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="sold">Vendido</SelectItem>
+                  <SelectItem value="rented">Arrendado</SelectItem>
+                  <SelectItem value="draft">Rascunho</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              type="submit"
+              disabled={uploading || checkingDuplicate}
+              className="flex-1"
+            >
+              {uploading ? 'A guardar...' : checkingDuplicate ? 'A verificar...' : isEdit ? 'Atualizar Imóvel' : 'Criar Imóvel'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/admin/properties')}
+              disabled={uploading}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </form>
       </div>
     </AdminLayout>
   );

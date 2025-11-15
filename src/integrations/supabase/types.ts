@@ -445,10 +445,14 @@ export type Database = {
           description_fr: string
           description_pt: string
           featured: boolean | null
+          features: Json | null
           id: string
           json_ld: Json | null
           location: string
           main_image: string | null
+          map_embed_url: string | null
+          map_latitude: number | null
+          map_longitude: number | null
           operation_type: string | null
           parking_spaces: number | null
           postal_code: string | null
@@ -475,10 +479,14 @@ export type Database = {
           description_fr: string
           description_pt: string
           featured?: boolean | null
+          features?: Json | null
           id: string
           json_ld?: Json | null
           location: string
           main_image?: string | null
+          map_embed_url?: string | null
+          map_latitude?: number | null
+          map_longitude?: number | null
           operation_type?: string | null
           parking_spaces?: number | null
           postal_code?: string | null
@@ -505,10 +513,14 @@ export type Database = {
           description_fr?: string
           description_pt?: string
           featured?: boolean | null
+          features?: Json | null
           id?: string
           json_ld?: Json | null
           location?: string
           main_image?: string | null
+          map_embed_url?: string | null
+          map_latitude?: number | null
+          map_longitude?: number | null
           operation_type?: string | null
           parking_spaces?: number | null
           postal_code?: string | null
