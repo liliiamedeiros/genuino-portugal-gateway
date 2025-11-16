@@ -9,6 +9,7 @@ import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mai
 import { toast } from 'sonner';
 import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
 import { ImageLightbox } from '@/components/ImageLightbox';
+import { projects } from '@/data/projects';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -67,9 +68,9 @@ export default function ProjectDetail() {
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
-      // Trim ID to remove extra spaces
       const trimmedId = id?.trim();
       
+      // First try to fetch from Supabase
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -78,13 +79,71 @@ export default function ProjectDetail() {
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      
+      // If found in database, return it
+      if (data) return { ...data, isStatic: false };
+      
+      // Fallback to static data
+      const staticProject = projects.find(p => p.id === trimmedId);
+      if (staticProject) {
+        // Transform static project to match database format
+        return {
+          id: staticProject.id,
+          title_pt: staticProject.title.pt,
+          title_fr: staticProject.title.fr,
+          title_en: staticProject.title.en,
+          title_de: staticProject.title.de,
+          description_pt: staticProject.description.pt,
+          description_fr: staticProject.description.fr,
+          description_en: staticProject.description.en,
+          description_de: staticProject.description.de,
+          location: staticProject.location,
+          region: staticProject.region,
+          main_image: staticProject.mainImage,
+          gallery: staticProject.gallery,
+          isStatic: true,
+          status: 'active',
+          // Optional fields not in static data
+          price: null,
+          bedrooms: null,
+          bathrooms: null,
+          area_sqm: null,
+          parking_spaces: null,
+          property_type: null,
+          operation_type: null,
+          city: null,
+          address: null,
+          postal_code: null,
+          map_embed_url: null,
+          map_latitude: null,
+          map_longitude: null,
+          json_ld: null,
+          features: null,
+          featured: false,
+          created_at: null,
+          updated_at: null,
+          created_by: null
+        };
+      }
+      
+      return null;
     },
   });
 
   const { data: galleryImages } = useQuery({
     queryKey: ['project-images', id],
     queryFn: async () => {
+      // If it's a static project, use its gallery array
+      if (project?.isStatic && project?.gallery) {
+        return project.gallery.map((url: string, index: number) => ({
+          id: `static-${index}`,
+          image_url: url,
+          order_index: index,
+          project_id: id
+        }));
+      }
+      
+      // Otherwise fetch from database
       const { data, error } = await supabase
         .from('project_images')
         .select('*')
