@@ -111,6 +111,22 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.investors': 'Transparence, performance et croissance durable — notre engagement envers vous.',
     'hero.contact': 'Contactez-nous — ensemble, donnons vie à vos rêves immobiliers.',
     'hero.about': 'Les plus beaux projets portugais, signés avec la précision suisse',
+    
+    // Filters
+    'filters.region': 'Région',
+    'filters.propertyType': 'Type de propriété',
+    'filters.price': 'Prix',
+    'filters.priceRange': 'Gamme de prix',
+    'filters.all': 'Toutes',
+    'filters.allTypes': 'Tous les types',
+    'filters.clearFilters': 'Effacer les filtres',
+    'filters.resultsCount': '{{count}} propriétés trouvées',
+    'filters.noResults': 'Aucune propriété ne correspond à vos critères',
+    'filters.apartment': 'Appartement',
+    'filters.house': 'Maison',
+    'filters.villa': 'Villa',
+    'filters.land': 'Terrain',
+    'filters.commercial': 'Commercial',
   },
   en: {
     // Navigation
@@ -200,6 +216,22 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.investors': 'Transparency, performance and sustainable growth — our commitment to you.',
     'hero.contact': 'Contact us — together, let\'s bring your real estate dreams to life.',
     'hero.about': 'The finest Portuguese projects, crafted with Swiss precision',
+    
+    // Filters
+    'filters.region': 'Region',
+    'filters.propertyType': 'Property Type',
+    'filters.price': 'Price',
+    'filters.priceRange': 'Price Range',
+    'filters.all': 'All',
+    'filters.allTypes': 'All Types',
+    'filters.clearFilters': 'Clear Filters',
+    'filters.resultsCount': '{{count}} properties found',
+    'filters.noResults': 'No properties match your criteria',
+    'filters.apartment': 'Apartment',
+    'filters.house': 'House',
+    'filters.villa': 'Villa',
+    'filters.land': 'Land',
+    'filters.commercial': 'Commercial',
   },
   de: {
     // Navigation
@@ -289,6 +321,22 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.investors': 'Transparenz, Leistung und nachhaltiges Wachstum — unser Engagement für Sie.',
     'hero.contact': 'Kontaktieren Sie uns — gemeinsam erwecken wir Ihre Immobilienträume zum Leben.',
     'hero.about': 'Die schönsten portugiesischen Projekte, mit Schweizer Präzision gefertigt',
+    
+    // Filters
+    'filters.region': 'Region',
+    'filters.propertyType': 'Immobilientyp',
+    'filters.price': 'Preis',
+    'filters.priceRange': 'Preisspanne',
+    'filters.all': 'Alle',
+    'filters.allTypes': 'Alle Typen',
+    'filters.clearFilters': 'Filter löschen',
+    'filters.resultsCount': '{{count}} Immobilien gefunden',
+    'filters.noResults': 'Keine Immobilien entsprechen Ihren Kriterien',
+    'filters.apartment': 'Wohnung',
+    'filters.house': 'Haus',
+    'filters.villa': 'Villa',
+    'filters.land': 'Grundstück',
+    'filters.commercial': 'Gewerbe',
   },
   pt: {
     // Navigation
@@ -378,6 +426,22 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.investors': 'Transparência, desempenho e crescimento sustentável — o nosso compromisso consigo.',
     'hero.contact': 'Contacte-nos — juntos, damos vida aos seus sonhos imobiliários.',
     'hero.about': 'Os mais belos projetos portugueses, assinados com precisão suíça',
+    
+    // Filters
+    'filters.region': 'Região',
+    'filters.propertyType': 'Tipo de Imóvel',
+    'filters.price': 'Preço',
+    'filters.priceRange': 'Intervalo de Preço',
+    'filters.all': 'Todas',
+    'filters.allTypes': 'Todos os Tipos',
+    'filters.clearFilters': 'Limpar Filtros',
+    'filters.resultsCount': '{{count}} propriedades encontradas',
+    'filters.noResults': 'Nenhuma propriedade corresponde aos seus critérios',
+    'filters.apartment': 'Apartamento',
+    'filters.house': 'Moradia',
+    'filters.villa': 'Villa',
+    'filters.land': 'Terreno',
+    'filters.commercial': 'Comercial',
   },
 };
 
