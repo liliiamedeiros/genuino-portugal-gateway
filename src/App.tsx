@@ -39,6 +39,7 @@ import Settings from "./pages/admin/Settings";
 import JsonLdValidator from "./pages/admin/JsonLdValidator";
 import JsonLdSystem from "./pages/admin/JsonLdSystem";
 import ImageConverter from "./pages/admin/ImageConverter";
+import MigrateProjects from "./pages/admin/MigrateProjects";
 
 const queryClient = new QueryClient();
 
@@ -226,6 +227,11 @@ const App = () => (
             <Route path="/admin/image-converter" element={
               <ProtectedRoute requiredRole="editor">
                 <ImageConverter />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/migrate-projects" element={
+              <ProtectedRoute requiredRole="admin">
+                <MigrateProjects />
               </ProtectedRoute>
             } />
 

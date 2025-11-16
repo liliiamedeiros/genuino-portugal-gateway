@@ -1,241 +1,192 @@
-import { useLanguage } from '@/contexts/LanguageContext';
-import { ProjectCard } from '@/components/ProjectCard';
-import { projects } from '@/data/projects';
-import { SEOHead } from '@/components/SEOHead';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+import { ProjectCard } from '@/components/ProjectCard';
+import { SEOHead } from '@/components/SEOHead';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
 export default function Portfolio() {
   const { t, language } = useLanguage();
-  
-  // Filter states
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
-  
-  // Fetch projects from database
-  const { data: dbProjects = [] } = useQuery({
-    queryKey: ['projects-db'],
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PROJECTS_PER_PAGE = 12;
+
+  const { data: queryResult, isLoading } = useQuery({
+    queryKey: ['projects-paginated', currentPage, regionFilter, propertyTypeFilter, priceRange, sortBy],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('status', 'active');
+      let query = supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'active');
+      if (regionFilter !== 'all') query = query.eq('region', regionFilter);
+      if (propertyTypeFilter !== 'all') query = query.eq('property_type', propertyTypeFilter);
+      if (priceRange[0] > 0 || priceRange[1] < 2000000) query = query.gte('price', priceRange[0]).lte('price', priceRange[1]);
       
+      switch (sortBy) {
+        case 'price-asc': query = query.order('price', { ascending: true, nullsFirst: false }); break;
+        case 'price-desc': query = query.order('price', { ascending: false, nullsFirst: false }); break;
+        case 'date-desc': query = query.order('created_at', { ascending: false }); break;
+        case 'date-asc': query = query.order('created_at', { ascending: true }); break;
+        case 'name-asc': query = query.order(`title_${language}`, { ascending: true }); break;
+        case 'name-desc': query = query.order(`title_${language}`, { ascending: false }); break;
+      }
+      
+      const from = (currentPage - 1) * PROJECTS_PER_PAGE;
+      query = query.range(from, from + PROJECTS_PER_PAGE - 1);
+      const { data, count, error } = await query;
       if (error) throw error;
-      return data || [];
+      return { projects: data || [], total: count || 0 };
     }
   });
-  
-  // Combine static and database projects
-  const allProjects = useMemo(() => {
-    const staticProjects = projects.map(p => ({
-      ...p,
-      source: 'static' as const,
-      displayTitle: p.title[language],
-      displayRegion: p.region,
-      price: null,
-      property_type: null
-    }));
-    
-    const databaseProjects = dbProjects.map(p => ({
-      ...p,
-      source: 'database' as const,
-      id: p.id,
-      displayTitle: p[`title_${language}` as keyof typeof p] as string,
-      location: p.location,
-      displayRegion: p.region,
-      mainImage: p.main_image,
-      price: p.price ? Number(p.price) : null,
-      property_type: p.property_type
-    }));
-    
-    return [...staticProjects, ...databaseProjects];
-  }, [dbProjects, language]);
-  
-  // Extract unique regions
-  const uniqueRegions = useMemo(() => {
-    const regions = new Set<string>();
-    projects.forEach(p => regions.add(p.region));
-    dbProjects.forEach(p => p.region && regions.add(p.region));
-    return Array.from(regions).sort();
-  }, [dbProjects]);
-  
-  // Filter projects
-  const filteredProjects = useMemo(() => {
-    return allProjects.filter(project => {
-      // Region filter (works for both)
-      if (regionFilter !== 'all' && project.displayRegion !== regionFilter) {
-        return false;
-      }
-      
-      // Property type filter (only for database projects)
-      if (propertyTypeFilter !== 'all' && project.source === 'database') {
-        if (project.property_type !== propertyTypeFilter) {
-          return false;
-        }
-      }
-      
-      // Price filter (only for database projects with price)
-      if (project.source === 'database' && project.price !== null) {
-        const price = project.price;
-        if (price < priceRange[0] || price > priceRange[1]) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  }, [allProjects, regionFilter, propertyTypeFilter, priceRange]);
-  
+
+  const dbProjects = queryResult?.projects || [];
+  const totalCount = queryResult?.total || 0;
+  const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
+
+  const displayProjects = useMemo(() => dbProjects.map(p => ({
+    id: p.id,
+    displayTitle: String(p[`title_${language}` as keyof typeof p] || p.title_pt),
+    location: p.location,
+    image: p.main_image || '',
+  })), [dbProjects, language]);
+
+  const { data: allRegions } = useQuery({
+    queryKey: ['all-regions'],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('region').eq('status', 'active');
+      return Array.from(new Set(data?.map(p => p.region) || [])).sort();
+    }
+  });
+
   const clearFilters = () => {
     setRegionFilter('all');
     setPropertyTypeFilter('all');
     setPriceRange([0, 2000000]);
+    setSortBy('date-desc');
+    setCurrentPage(1);
   };
-  
+
   const hasActiveFilters = regionFilter !== 'all' || propertyTypeFilter !== 'all' || priceRange[0] !== 0 || priceRange[1] !== 2000000;
 
-  return (
-    <>
-      <SEOHead 
-        title="Portfólio"
-        description="Explore nosso portfólio de projetos imobiliários de luxo em Portugal. Propriedades exclusivas em Algarve, Porto e Lisboa."
-        keywords="portfólio imóveis Portugal, projetos imobiliários, propriedades luxo"
-        url="/portfolio"
-      />
-      <div className="min-h-screen pt-20">
-        {/* Hero */}
-        <section className="relative py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
-          <div className="container mx-auto px-4 text-center relative z-10">
-            <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 animate-fade-in text-white">
-              {t('nav.portfolio')}
+  useEffect(() => { setCurrentPage(1); }, [regionFilter, propertyTypeFilter, priceRange, sortBy]);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentPage]);
+
+  return (<>
+    <SEOHead title="Portfólio" description="Explore nosso portfólio de projetos imobiliários de luxo em Portugal" url="/portfolio" />
+    <Navbar />
+    <div className="min-h-screen pt-20">
+      <section className="py-16 bg-gradient-to-b from-background via-secondary/5 to-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 bg-gradient-to-r from-primary via-[#887350] to-primary bg-clip-text text-transparent">
+              {language === 'pt' ? 'Portfólio' : 'Portfolio'}
             </h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto animate-slide-up text-white/90 leading-relaxed">
-              {t('hero.portfolio')}
-            </p>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Filters Section */}
-        <section className="py-8 bg-muted/30 border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-              {/* Region Filter */}
-              <div className="flex-1 w-full">
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  {t('filters.region')}
-                </label>
-                <Select value={regionFilter} onValueChange={setRegionFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('filters.all')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('filters.all')}</SelectItem>
-                    {uniqueRegions.map(region => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Property Type Filter */}
-              <div className="flex-1 w-full">
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  {t('filters.propertyType')}
-                </label>
-                <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('filters.allTypes')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
-                    <SelectItem value="apartment">{t('filters.apartment')}</SelectItem>
-                    <SelectItem value="house">{t('filters.house')}</SelectItem>
-                    <SelectItem value="villa">{t('filters.villa')}</SelectItem>
-                    <SelectItem value="land">{t('filters.land')}</SelectItem>
-                    <SelectItem value="commercial">{t('filters.commercial')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Price Range Filter */}
-              <div className="flex-1 w-full">
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  {t('filters.priceRange')}: €{priceRange[0].toLocaleString()} - €{priceRange[1].toLocaleString()}
-                </label>
-                <Slider
-                  value={priceRange}
-                  onValueChange={(value) => setPriceRange(value as [number, number])}
-                  min={0}
-                  max={2000000}
-                  step={50000}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Clear Filters Button */}
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  className="whitespace-nowrap"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  {t('filters.clearFilters')}
-                </Button>
-              )}
-            </div>
-
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-muted-foreground">
-              {filteredProjects.length > 0 ? (
-                t('filters.resultsCount').replace('{{count}}', filteredProjects.length.toString())
-              ) : (
-                <span className="text-destructive">{t('filters.noResults')}</span>
-              )}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">{t('filters.region')}</label>
+            <Select value={regionFilter} onValueChange={setRegionFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filters.all')}</SelectItem>
+                {allRegions?.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">{t('filters.propertyType')}</label>
+            <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filters.all')}</SelectItem>
+                <SelectItem value="apartment">{t('filters.apartment')}</SelectItem>
+                <SelectItem value="house">{t('filters.house')}</SelectItem>
+                <SelectItem value="villa">{t('filters.villa')}</SelectItem>
+                <SelectItem value="land">{t('filters.land')}</SelectItem>
+                <SelectItem value="commercial">{t('filters.commercial')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">{t('filters.price')}</label>
+            <Slider value={priceRange} onValueChange={(v) => setPriceRange(v as [number, number])} min={0} max={2000000} step={50000} />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{priceRange[0].toLocaleString()}€</span>
+              <span>{priceRange[1].toLocaleString()}€</span>
             </div>
           </div>
-        </section>
-
-        {/* Projects Grid */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            {filteredProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((project, index) => (
-                  <div
-                    key={`${project.source}-${project.id}`}
-                    className="group animate-scale-in hover:-translate-y-2 transition-all duration-500"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <ProjectCard
-                      id={project.id}
-                      title={project.displayTitle}
-                      location={`${project.location}, ${project.displayRegion}`}
-                      image={project.source === 'static' ? project.mainImage : project.mainImage || ''}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <p className="text-xl text-muted-foreground">{t('filters.noResults')}</p>
-                <Button onClick={clearFilters} className="mt-4">
-                  {t('filters.clearFilters')}
-                </Button>
-              </div>
-            )}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">{t('sorting.label')}</label>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-desc">{t('sorting.dateDesc')}</SelectItem>
+                <SelectItem value="date-asc">{t('sorting.dateAsc')}</SelectItem>
+                <SelectItem value="name-asc">{t('sorting.nameAsc')}</SelectItem>
+                <SelectItem value="name-desc">{t('sorting.nameDesc')}</SelectItem>
+                <SelectItem value="price-asc">{t('sorting.priceAsc')}</SelectItem>
+                <SelectItem value="price-desc">{t('sorting.priceDesc')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </section>
+        </div>
+        {hasActiveFilters && <Button onClick={clearFilters} variant="outline" className="mb-4">{t('filters.clearFilters')}</Button>}
+        <div className="text-sm text-muted-foreground mb-8">
+          {t('pagination.showing')} {displayProjects.length > 0 ? (currentPage - 1) * PROJECTS_PER_PAGE + 1 : 0}-{Math.min(currentPage * PROJECTS_PER_PAGE, totalCount)} {t('pagination.of')} {totalCount} {t('pagination.properties')}
+        </div>
       </div>
-    </>
-  );
+
+      <div className="container mx-auto px-4 pb-16">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />)}
+          </div>
+        ) : displayProjects.length > 0 ? (<>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} />)}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-12 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                      return <PaginationItem key={page}><PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink></PaginationItem>;
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
+                    }
+                    return null;
+                  })}
+                  <PaginationItem>
+                    <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">Nenhuma propriedade encontrada.</p>
+            <Button onClick={clearFilters} variant="outline">{t('filters.clearFilters')}</Button>
+          </div>
+        )}
+      </div>
+    </div>
+    <Footer />
+  </>);
 }

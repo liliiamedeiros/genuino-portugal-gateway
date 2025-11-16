@@ -232,6 +232,20 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.villa': 'Villa',
     'filters.land': 'Land',
     'filters.commercial': 'Commercial',
+    // Pagination
+    'pagination.previous': 'Previous',
+    'pagination.next': 'Next',
+    'pagination.showing': 'Showing',
+    'pagination.of': 'of',
+    'pagination.properties': 'properties',
+    // Sorting
+    'sorting.label': 'Sort by',
+    'sorting.dateDesc': 'Most Recent',
+    'sorting.dateAsc': 'Oldest',
+    'sorting.nameAsc': 'Name (A-Z)',
+    'sorting.nameDesc': 'Name (Z-A)',
+    'sorting.priceAsc': 'Price (Low)',
+    'sorting.priceDesc': 'Price (High)',
   },
   de: {
     // Navigation
