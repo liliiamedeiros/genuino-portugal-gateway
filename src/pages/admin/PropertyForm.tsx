@@ -290,6 +290,7 @@ export default function PropertyForm() {
         area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
         main_image: mainImageUrl,
         property_type: formData.property_type,
+        operation_type: formData.operation_type,
       });
 
       const projectData = {
