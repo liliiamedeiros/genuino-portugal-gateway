@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Upload, X, AlertCircle, Languages } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
 import type { WatermarkConfig } from '@/utils/watermarkUtils';
@@ -37,6 +37,7 @@ export default function PropertyForm() {
   const [watermarkPosition, setWatermarkPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'center'>('bottom-right');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -222,14 +223,104 @@ export default function PropertyForm() {
     }
   };
 
+  const handleAutoTranslate = async () => {
+    if (!formData.title_pt || !formData.description_pt) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o título e descrição em Português primeiro",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-property', {
+        body: {
+          title_pt: formData.title_pt,
+          description_pt: formData.description_pt
+        }
+      });
+
+      if (error) throw error;
+
+      // Atualizar formData com traduções
+      setFormData(prev => ({
+        ...prev,
+        title_fr: data.title_fr,
+        title_en: data.title_en,
+        title_de: data.title_de,
+        description_fr: data.description_fr,
+        description_en: data.description_en,
+        description_de: data.description_de,
+      }));
+
+      toast({
+        title: "✅ Tradução concluída",
+        description: "Os textos foram traduzidos automaticamente para FR, EN e DE",
+      });
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast({
+        title: "Erro na tradução",
+        description: "Não foi possível traduzir automaticamente. Preencha manualmente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       setValidationErrors([]);
 
-      // Validação com Zod
+      let currentFormData = { ...formData };
+
+      // Auto-translate if fields are empty
+      const needsTranslation = !formData.title_fr || !formData.title_en || !formData.title_de;
+      if (needsTranslation && formData.title_pt && formData.description_pt) {
+        toast({
+          title: "A traduzir automaticamente...",
+          description: "Por favor aguarde",
+        });
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('translate-property', {
+            body: {
+              title_pt: formData.title_pt,
+              description_pt: formData.description_pt
+            }
+          });
+
+          if (error) throw error;
+
+          currentFormData = {
+            ...currentFormData,
+            title_fr: data.title_fr,
+            title_en: data.title_en,
+            title_de: data.title_de,
+            description_fr: data.description_fr,
+            description_en: data.description_en,
+            description_de: data.description_de,
+          };
+
+          setFormData(currentFormData);
+        } catch (error) {
+          console.error('Translation error:', error);
+          toast({
+            title: "Erro na tradução",
+            description: "Preencha manualmente os campos FR, EN e DE",
+            variant: "destructive"
+          });
+          throw new Error('Translation failed');
+        }
+      }
+
+      // Validação com Zod using the potentially translated data
       const validation = propertySchema.safeParse({
-        ...formData,
-        featured: formData.featured,
+        ...currentFormData,
+        featured: currentFormData.featured,
       });
 
       if (!validation.success) {
@@ -241,17 +332,17 @@ export default function PropertyForm() {
       // Verificar duplicados antes de criar/editar
       if (!isEdit) {
         const isDuplicate = await checkForDuplicates(
-          formData.title_pt,
-          formData.address,
-          formData.postal_code
+          currentFormData.title_pt,
+          currentFormData.address,
+          currentFormData.postal_code
         );
         if (isDuplicate) {
           throw new Error('Imóvel duplicado');
         }
       }
 
-      const slug = generateSlug(formData.title_pt);
-      const projectId = isEdit ? formData.id : `${slug}-${Date.now()}`;
+      const slug = generateSlug(currentFormData.title_pt);
+      const projectId = isEdit ? currentFormData.id : `${slug}-${Date.now()}`;
       
       let mainImageUrl = existingProject?.main_image || null;
 
@@ -274,55 +365,55 @@ export default function PropertyForm() {
 
       const jsonLd = generatePropertyJsonLd({
         id: projectId,
-        title_pt: formData.title_pt,
-        title_en: formData.title_en,
-        title_fr: formData.title_fr,
-        title_de: formData.title_de,
-        description_pt: formData.description_pt,
-        description_en: formData.description_en,
-        description_fr: formData.description_fr,
-        description_de: formData.description_de,
-        price: formData.price ? parseFloat(formData.price) : null,
-        location: formData.location,
-        region: formData.region,
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
-        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
+        title_pt: currentFormData.title_pt,
+        title_en: currentFormData.title_en,
+        title_fr: currentFormData.title_fr,
+        title_de: currentFormData.title_de,
+        description_pt: currentFormData.description_pt,
+        description_en: currentFormData.description_en,
+        description_fr: currentFormData.description_fr,
+        description_de: currentFormData.description_de,
+        price: currentFormData.price ? parseFloat(currentFormData.price) : null,
+        location: currentFormData.location,
+        region: currentFormData.region,
+        bedrooms: currentFormData.bedrooms ? parseInt(currentFormData.bedrooms) : null,
+        bathrooms: currentFormData.bathrooms ? parseInt(currentFormData.bathrooms) : null,
+        area_sqm: currentFormData.area_sqm ? parseFloat(currentFormData.area_sqm) : null,
         main_image: mainImageUrl,
-        property_type: formData.property_type,
-        operation_type: formData.operation_type,
+        property_type: currentFormData.property_type,
+        operation_type: currentFormData.operation_type,
       });
 
       const projectData = {
         id: projectId,
-        title_fr: formData.title_fr,
-        title_en: formData.title_en,
-        title_de: formData.title_de,
-        title_pt: formData.title_pt,
-        description_fr: formData.description_fr,
-        description_en: formData.description_en,
-        description_de: formData.description_de,
-        description_pt: formData.description_pt,
-        location: formData.location,
-        region: formData.region,
-        city: formData.city || null,
-        address: formData.address || null,
-        postal_code: formData.postal_code || null,
-        property_type: formData.property_type,
-        operation_type: formData.operation_type,
-        price: formData.price ? parseFloat(formData.price) : null,
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
-        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
-        parking_spaces: formData.parking_spaces ? parseInt(formData.parking_spaces) : null,
-        featured: formData.featured,
-        status: formData.status,
+        title_fr: currentFormData.title_fr,
+        title_en: currentFormData.title_en,
+        title_de: currentFormData.title_de,
+        title_pt: currentFormData.title_pt,
+        description_fr: currentFormData.description_fr,
+        description_en: currentFormData.description_en,
+        description_de: currentFormData.description_de,
+        description_pt: currentFormData.description_pt,
+        location: currentFormData.location,
+        region: currentFormData.region,
+        city: currentFormData.city || null,
+        address: currentFormData.address || null,
+        postal_code: currentFormData.postal_code || null,
+        property_type: currentFormData.property_type,
+        operation_type: currentFormData.operation_type,
+        price: currentFormData.price ? parseFloat(currentFormData.price) : null,
+        bedrooms: currentFormData.bedrooms ? parseInt(currentFormData.bedrooms) : null,
+        bathrooms: currentFormData.bathrooms ? parseInt(currentFormData.bathrooms) : null,
+        area_sqm: currentFormData.area_sqm ? parseFloat(currentFormData.area_sqm) : null,
+        parking_spaces: currentFormData.parking_spaces ? parseInt(currentFormData.parking_spaces) : null,
+        featured: currentFormData.featured,
+        status: currentFormData.status,
         main_image: mainImageUrl,
         json_ld: jsonLd,
         features: features,
-        map_embed_url: formData.map_embed_url || null,
-        map_latitude: formData.map_latitude ? parseFloat(formData.map_latitude) : null,
-        map_longitude: formData.map_longitude ? parseFloat(formData.map_longitude) : null,
+        map_embed_url: currentFormData.map_embed_url || null,
+        map_latitude: currentFormData.map_latitude ? parseFloat(currentFormData.map_latitude) : null,
+        map_longitude: currentFormData.map_longitude ? parseFloat(currentFormData.map_longitude) : null,
       };
 
       const { error: projectError } = await supabase
@@ -552,6 +643,21 @@ export default function PropertyForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Informações Multilíngues</h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoTranslate}
+              disabled={isTranslating || !formData.title_pt || !formData.description_pt}
+              className="gap-2"
+            >
+              <Languages className="h-4 w-4" />
+              {isTranslating ? "A traduzir..." : "Traduzir Automaticamente"}
+            </Button>
+          </div>
+
           <Tabs defaultValue="pt" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="pt">Português</TabsTrigger>
