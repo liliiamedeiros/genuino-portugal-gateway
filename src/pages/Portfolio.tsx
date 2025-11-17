@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { projects as staticProjects } from '@/data/projects';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
@@ -48,21 +49,93 @@ export default function Portfolio() {
   });
 
   const dbProjects = queryResult?.projects || [];
-  const totalCount = queryResult?.total || 0;
-  const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
+  
+  // Combine static projects with database projects
+  const allProjects = useMemo(() => {
+    const staticMapped = staticProjects.map(p => ({
+      id: p.id,
+      displayTitle: p.title[language],
+      location: p.location,
+      image: p.mainImage,
+      region: p.region,
+      source: 'static' as const,
+      price: null,
+      property_type: null,
+      created_at: null,
+    }));
+    
+    const dbMapped = dbProjects.map(p => ({
+      id: p.id,
+      displayTitle: String(p[`title_${language}` as keyof typeof p] || p.title_pt),
+      location: p.location,
+      image: p.main_image || '',
+      region: p.region,
+      source: 'database' as const,
+      price: p.price,
+      property_type: p.property_type,
+      created_at: p.created_at,
+    }));
+    
+    return [...staticMapped, ...dbMapped];
+  }, [dbProjects, language]);
 
-  const displayProjects = useMemo(() => dbProjects.map(p => ({
-    id: p.id,
-    displayTitle: String(p[`title_${language}` as keyof typeof p] || p.title_pt),
-    location: p.location,
-    image: p.main_image || '',
-  })), [dbProjects, language]);
+  // Apply filters to all projects
+  const filteredProjects = useMemo(() => {
+    return allProjects.filter(p => {
+      if (regionFilter !== 'all' && p.region !== regionFilter) return false;
+      if (propertyTypeFilter !== 'all' && p.property_type !== propertyTypeFilter) return false;
+      if (p.price !== null && (p.price < priceRange[0] || p.price > priceRange[1])) return false;
+      return true;
+    });
+  }, [allProjects, regionFilter, propertyTypeFilter, priceRange]);
+
+  // Apply sorting
+  const sortedProjects = useMemo(() => {
+    const sorted = [...filteredProjects];
+    switch (sortBy) {
+      case 'price-asc':
+        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case 'price-desc':
+        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case 'date-desc':
+        return sorted.sort((a, b) => {
+          if (a.source === 'static' && b.source === 'static') return 0;
+          if (a.source === 'static') return -1;
+          if (b.source === 'static') return 1;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+      case 'date-asc':
+        return sorted.sort((a, b) => {
+          if (a.source === 'static' && b.source === 'static') return 0;
+          if (a.source === 'static') return 1;
+          if (b.source === 'static') return -1;
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
+      case 'name-asc':
+        return sorted.sort((a, b) => a.displayTitle.localeCompare(b.displayTitle));
+      case 'name-desc':
+        return sorted.sort((a, b) => b.displayTitle.localeCompare(a.displayTitle));
+      default:
+        return sorted;
+    }
+  }, [filteredProjects, sortBy]);
+
+  // Paginate sorted projects
+  const totalCount = sortedProjects.length;
+  const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
+  const displayProjects = useMemo(() => {
+    const start = (currentPage - 1) * PROJECTS_PER_PAGE;
+    const end = start + PROJECTS_PER_PAGE;
+    return sortedProjects.slice(start, end);
+  }, [sortedProjects, currentPage]);
 
   const { data: allRegions } = useQuery({
     queryKey: ['all-regions'],
     queryFn: async () => {
       const { data } = await supabase.from('projects').select('region').eq('status', 'active');
-      return Array.from(new Set(data?.map(p => p.region) || [])).sort();
+      const dbRegions = data?.map(p => p.region) || [];
+      const staticRegions = staticProjects.map(p => p.region);
+      return Array.from(new Set([...dbRegions, ...staticRegions])).sort();
     }
   });
 
@@ -149,11 +222,7 @@ export default function Portfolio() {
       </div>
 
       <div className="container mx-auto px-4 pb-16">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />)}
-          </div>
-        ) : displayProjects.length > 0 ? (<>
+        {displayProjects.length > 0 ? (<>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} />)}
           </div>
