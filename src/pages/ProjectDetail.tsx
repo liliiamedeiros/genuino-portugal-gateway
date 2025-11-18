@@ -9,7 +9,6 @@ import { MapPin, ArrowLeft, Bed, Bath, Square, Car, Facebook, MessageCircle, Mai
 import { toast } from 'sonner';
 import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
 import { ImageLightbox } from '@/components/ImageLightbox';
-import { projects } from '@/data/projects';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -65,68 +64,34 @@ export default function ProjectDetail() {
     }
   };
 
+  // Fetch project from database
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
       const trimmedId = id?.trim();
       
-      // First try to fetch from Supabase
-      const { data, error } = await supabase
+      const { data: projectData, error } = await supabase
         .from('projects')
         .select('*')
-        .ilike('id', trimmedId)
+        .eq('id', trimmedId)
         .eq('status', 'active')
         .maybeSingle();
       
       if (error) throw error;
-      
-      // If found in database, return it
-      if (data) return { ...data, isStatic: false };
-      
-      // Fallback to static data
-      const staticProject = projects.find(p => p.id === trimmedId);
-      if (staticProject) {
-        // Transform static project to match database format
-        return {
-          id: staticProject.id,
-          title_pt: staticProject.title.pt,
-          title_fr: staticProject.title.fr,
-          title_en: staticProject.title.en,
-          title_de: staticProject.title.de,
-          description_pt: staticProject.description.pt,
-          description_fr: staticProject.description.fr,
-          description_en: staticProject.description.en,
-          description_de: staticProject.description.de,
-          location: staticProject.location,
-          region: staticProject.region,
-          main_image: staticProject.mainImage,
-          gallery: staticProject.gallery,
-          isStatic: true,
-          status: 'active',
-          // Optional fields not in static data
-          price: null,
-          bedrooms: null,
-          bathrooms: null,
-          area_sqm: null,
-          parking_spaces: null,
-          property_type: null,
-          operation_type: null,
-          city: null,
-          address: null,
-          postal_code: null,
-          map_embed_url: null,
-          map_latitude: null,
-          map_longitude: null,
-          json_ld: null,
-          features: null,
-          featured: false,
-          created_at: null,
-          updated_at: null,
-          created_by: null
-        };
-      }
-      
-      return null;
+      if (!projectData) return null;
+
+      // Fetch gallery images
+      const { data: imagesData } = await supabase
+        .from('project_images')
+        .select('*')
+        .eq('project_id', trimmedId)
+        .order('order_index');
+
+      return {
+        ...projectData,
+        gallery: imagesData?.map(img => img.image_url) || [],
+      };
+    },
     },
   });
 

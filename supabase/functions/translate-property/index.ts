@@ -16,8 +16,27 @@ serve(async (req) => {
   try {
     const { title_pt, description_pt } = await req.json();
 
+    // Input validation
     if (!title_pt || !description_pt) {
       return new Response(JSON.stringify({ error: 'Missing title_pt or description_pt' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Sanitize and validate input lengths
+    const sanitizedTitle = title_pt.trim().slice(0, 500);
+    const sanitizedDescription = description_pt.trim().slice(0, 10000);
+
+    if (sanitizedTitle.length < 3) {
+      return new Response(JSON.stringify({ error: 'Title too short (minimum 3 characters)' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (sanitizedDescription.length < 10) {
+      return new Response(JSON.stringify({ error: 'Description too short (minimum 10 characters)' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -30,15 +49,15 @@ Formato exato: {"title_fr": "...", "title_en": "...", "title_de": "...", "descri
 
     const userPrompt = `Traduz este anúncio imobiliário:
 
-Título (PT): ${title_pt}
-Descrição (PT): ${description_pt}
+Título (PT): ${sanitizedTitle}
+Descrição (PT): ${sanitizedDescription}
 
 Traduz para:
 - Francês (França)
 - Inglês (Reino Unido)
 - Alemão (Alemanha)`;
 
-    console.log('Translating property:', { title_pt });
+    console.log('Translating property:', { title_length: sanitizedTitle.length, description_length: sanitizedDescription.length });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
