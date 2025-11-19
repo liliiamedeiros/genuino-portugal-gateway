@@ -92,23 +92,11 @@ export default function ProjectDetail() {
         gallery: imagesData?.map(img => img.image_url) || [],
       };
     },
-    },
   });
 
   const { data: galleryImages } = useQuery({
     queryKey: ['project-images', id],
     queryFn: async () => {
-      // If it's a static project, use its gallery array
-      if (project?.isStatic && project?.gallery) {
-        return project.gallery.map((url: string, index: number) => ({
-          id: `static-${index}`,
-          image_url: url,
-          order_index: index,
-          project_id: id
-        }));
-      }
-      
-      // Otherwise fetch from database
       const { data, error } = await supabase
         .from('project_images')
         .select('*')
