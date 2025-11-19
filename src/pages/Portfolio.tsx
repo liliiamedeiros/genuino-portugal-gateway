@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { projects as staticProjects } from '@/data/projects';
+import { AdvancedFilters } from '@/components/AdvancedFilters';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
@@ -21,15 +22,20 @@ export default function Portfolio() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [bedroomsFilter, setBedroomsFilter] = useState<number>(0);
+  const [areaRange, setAreaRange] = useState<[number, number]>([0, 1000]);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const PROJECTS_PER_PAGE = 12;
 
   const { data: queryResult, isLoading } = useQuery({
-    queryKey: ['projects-paginated', currentPage, regionFilter, propertyTypeFilter, priceRange, sortBy],
+    queryKey: ['projects-paginated', currentPage, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, sortBy],
     queryFn: async () => {
       let query = supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'active');
       if (regionFilter !== 'all') query = query.eq('region', regionFilter);
       if (propertyTypeFilter !== 'all') query = query.eq('property_type', propertyTypeFilter);
       if (priceRange[0] > 0 || priceRange[1] < 2000000) query = query.gte('price', priceRange[0]).lte('price', priceRange[1]);
+      if (bedroomsFilter > 0) query = query.gte('bedrooms', bedroomsFilter);
+      if (areaRange[0] > 0 || areaRange[1] < 1000) query = query.gte('area_sqm', areaRange[0]).lte('area_sqm', areaRange[1]);
       
       switch (sortBy) {
         case 'price-asc': query = query.order('price', { ascending: true, nullsFirst: false }); break;
@@ -85,9 +91,19 @@ export default function Portfolio() {
       if (regionFilter !== 'all' && p.region !== regionFilter) return false;
       if (propertyTypeFilter !== 'all' && p.property_type !== propertyTypeFilter) return false;
       if (p.price !== null && (p.price < priceRange[0] || p.price > priceRange[1])) return false;
+      
+      // Advanced filters
+      const dbProject = dbProjects.find(db => db.id === p.id);
+      if (bedroomsFilter > 0 && dbProject) {
+        if (dbProject.bedrooms === null || dbProject.bedrooms < bedroomsFilter) return false;
+      }
+      if ((areaRange[0] > 0 || areaRange[1] < 1000) && dbProject) {
+        if (dbProject.area_sqm === null || dbProject.area_sqm < areaRange[0] || dbProject.area_sqm > areaRange[1]) return false;
+      }
+      
       return true;
     });
-  }, [allProjects, regionFilter, propertyTypeFilter, priceRange]);
+  }, [allProjects, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, dbProjects]);
 
   // Apply sorting
   const sortedProjects = useMemo(() => {
@@ -143,13 +159,15 @@ export default function Portfolio() {
     setRegionFilter('all');
     setPropertyTypeFilter('all');
     setPriceRange([0, 2000000]);
+    setBedroomsFilter(0);
+    setAreaRange([0, 1000]);
     setSortBy('date-desc');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = regionFilter !== 'all' || propertyTypeFilter !== 'all' || priceRange[0] !== 0 || priceRange[1] !== 2000000;
+  const hasActiveFilters = regionFilter !== 'all' || propertyTypeFilter !== 'all' || priceRange[0] !== 0 || priceRange[1] !== 2000000 || bedroomsFilter > 0 || areaRange[0] !== 0 || areaRange[1] !== 1000;
 
-  useEffect(() => { setCurrentPage(1); }, [regionFilter, propertyTypeFilter, priceRange, sortBy]);
+  useEffect(() => { setCurrentPage(1); }, [regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, sortBy]);
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentPage]);
 
   return (<>
@@ -215,6 +233,28 @@ export default function Portfolio() {
             </Select>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        <div className="mb-6">
+          <AdvancedFilters
+            bedroomsFilter={bedroomsFilter}
+            onBedroomsChange={setBedroomsFilter}
+            areaRange={areaRange}
+            onAreaRangeChange={setAreaRange}
+            isOpen={advancedFiltersOpen}
+            onOpenChange={setAdvancedFiltersOpen}
+            translations={{
+              title: t('filters.advancedFilters'),
+              bedrooms: t('filters.bedrooms'),
+              bedroomsAll: t('filters.bedroomsAll'),
+              area: t('filters.area'),
+              areaMin: t('filters.areaMin'),
+              areaMax: t('filters.areaMax'),
+              clearAdvanced: t('filters.clearAdvanced')
+            }}
+          />
+        </div>
+
         {hasActiveFilters && <Button onClick={clearFilters} variant="outline" className="mb-4">{t('filters.clearFilters')}</Button>}
         <div className="text-sm text-muted-foreground mb-8">
           {t('pagination.showing')} {displayProjects.length > 0 ? (currentPage - 1) * PROJECTS_PER_PAGE + 1 : 0}-{Math.min(currentPage * PROJECTS_PER_PAGE, totalCount)} {t('pagination.of')} {totalCount} {t('pagination.properties')}
