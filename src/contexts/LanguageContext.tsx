@@ -127,6 +127,13 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.villa': 'Villa',
     'filters.land': 'Terrain',
     'filters.commercial': 'Commercial',
+    'filters.advancedFilters': 'Filtres Avancés',
+    'filters.bedrooms': 'Nombre de Chambres',
+    'filters.bedroomsAll': 'Toutes',
+    'filters.area': 'Superficie (m²)',
+    'filters.areaMin': 'Minimum',
+    'filters.areaMax': 'Maximum',
+    'filters.clearAdvanced': 'Effacer Filtres Avancés',
   },
   en: {
     // Navigation
@@ -232,6 +239,13 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.villa': 'Villa',
     'filters.land': 'Land',
     'filters.commercial': 'Commercial',
+    'filters.advancedFilters': 'Advanced Filters',
+    'filters.bedrooms': 'Number of Bedrooms',
+    'filters.bedroomsAll': 'All',
+    'filters.area': 'Area (m²)',
+    'filters.areaMin': 'Minimum',
+    'filters.areaMax': 'Maximum',
+    'filters.clearAdvanced': 'Clear Advanced Filters',
     // Pagination
     'pagination.previous': 'Previous',
     'pagination.next': 'Next',
@@ -351,6 +365,13 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.villa': 'Villa',
     'filters.land': 'Grundstück',
     'filters.commercial': 'Gewerbe',
+    'filters.advancedFilters': 'Erweiterte Filter',
+    'filters.bedrooms': 'Anzahl der Schlafzimmer',
+    'filters.bedroomsAll': 'Alle',
+    'filters.area': 'Fläche (m²)',
+    'filters.areaMin': 'Minimum',
+    'filters.areaMax': 'Maximum',
+    'filters.clearAdvanced': 'Erweiterte Filter löschen',
   },
   pt: {
     // Navigation
@@ -456,6 +477,13 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.villa': 'Villa',
     'filters.land': 'Terreno',
     'filters.commercial': 'Comercial',
+    'filters.advancedFilters': 'Filtros Avançados',
+    'filters.bedrooms': 'Número de Quartos',
+    'filters.bedroomsAll': 'Todos',
+    'filters.area': 'Área (m²)',
+    'filters.areaMin': 'Mínimo',
+    'filters.areaMax': 'Máximo',
+    'filters.clearAdvanced': 'Limpar Filtros Avançados',
   },
 };
 

@@ -460,6 +460,7 @@ export type Database = {
           property_type: string | null
           region: string
           status: string | null
+          tags: string[] | null
           title_de: string
           title_en: string
           title_fr: string
@@ -494,6 +495,7 @@ export type Database = {
           property_type?: string | null
           region: string
           status?: string | null
+          tags?: string[] | null
           title_de: string
           title_en: string
           title_fr: string
@@ -528,6 +530,7 @@ export type Database = {
           property_type?: string | null
           region?: string
           status?: string | null
+          tags?: string[] | null
           title_de?: string
           title_en?: string
           title_fr?: string
