@@ -134,6 +134,15 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.areaMin': 'Minimum',
     'filters.areaMax': 'Maximum',
     'filters.clearAdvanced': 'Effacer Filtres Avancés',
+    'filters.tags': 'Tags',
+    'filters.tagsPlaceholder': 'Sélectionnez des tags',
+    'filters.activeFilters': 'Filtres actifs',
+    
+    // Search
+    'search.placeholder': 'Rechercher par titre, description ou localisation...',
+    'search.searching': 'Recherche...',
+    'search.searchFor': 'Recherche pour',
+    'search.noResults': 'Aucun résultat pour "{{query}}"',
   },
   en: {
     // Navigation
@@ -246,6 +255,15 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.areaMin': 'Minimum',
     'filters.areaMax': 'Maximum',
     'filters.clearAdvanced': 'Clear Advanced Filters',
+    'filters.tags': 'Tags',
+    'filters.tagsPlaceholder': 'Select tags',
+    'filters.activeFilters': 'Active filters',
+    
+    // Search
+    'search.placeholder': 'Search by title, description or location...',
+    'search.searching': 'Searching...',
+    'search.searchFor': 'Search for',
+    'search.noResults': 'No results for "{{query}}"',
     // Pagination
     'pagination.previous': 'Previous',
     'pagination.next': 'Next',
@@ -372,6 +390,15 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.areaMin': 'Minimum',
     'filters.areaMax': 'Maximum',
     'filters.clearAdvanced': 'Erweiterte Filter löschen',
+    'filters.tags': 'Tags',
+    'filters.tagsPlaceholder': 'Tags auswählen',
+    'filters.activeFilters': 'Aktive Filter',
+    
+    // Search
+    'search.placeholder': 'Nach Titel, Beschreibung oder Standort suchen...',
+    'search.searching': 'Suche...',
+    'search.searchFor': 'Suchen nach',
+    'search.noResults': 'Keine Ergebnisse für "{{query}}"',
   },
   pt: {
     // Navigation
@@ -484,6 +511,15 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.areaMin': 'Mínimo',
     'filters.areaMax': 'Máximo',
     'filters.clearAdvanced': 'Limpar Filtros Avançados',
+    'filters.tags': 'Tags',
+    'filters.tagsPlaceholder': 'Selecione tags',
+    'filters.activeFilters': 'Filtros ativos',
+    
+    // Search
+    'search.placeholder': 'Pesquisar por título, descrição ou localização...',
+    'search.searching': 'A pesquisar...',
+    'search.searchFor': 'Pesquisar por',
+    'search.noResults': 'Nenhum resultado para "{{query}}"',
   },
 };
 
