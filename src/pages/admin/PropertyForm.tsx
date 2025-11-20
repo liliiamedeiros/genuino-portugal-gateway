@@ -11,7 +11,8 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, X, AlertCircle, Languages } from 'lucide-react';
+import { Upload, X, AlertCircle, Languages, Tag } from 'lucide-react';
+import { TagsInput } from '@/components/admin/TagsInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
 import type { WatermarkConfig } from '@/utils/watermarkUtils';
@@ -67,6 +68,8 @@ export default function PropertyForm() {
     map_latitude: '',
     map_longitude: '',
   });
+
+  const [tags, setTags] = useState<string[]>([]);
 
   const [features, setFeatures] = useState({
     ar_condicionado: false,
@@ -176,6 +179,10 @@ export default function PropertyForm() {
 
       if (existingProject.main_image) {
         setMainImagePreview(existingProject.main_image);
+      }
+
+      if (existingProject.tags && Array.isArray(existingProject.tags)) {
+        setTags(existingProject.tags);
       }
     }
   }, [existingProject]);
@@ -411,6 +418,7 @@ export default function PropertyForm() {
         main_image: mainImageUrl,
         json_ld: jsonLd,
         features: features,
+        tags: tags,
         map_embed_url: currentFormData.map_embed_url || null,
         map_latitude: currentFormData.map_latitude ? parseFloat(currentFormData.map_latitude) : null,
         map_longitude: currentFormData.map_longitude ? parseFloat(currentFormData.map_longitude) : null,
@@ -915,6 +923,28 @@ export default function PropertyForm() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Tag className="w-5 h-5 text-primary" />
+              <Label className="text-lg font-semibold">Tags / Categorias</Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Adicione tags para facilitar a pesquisa (ex: piscina, garagem, vista-mar, etc.)
+            </p>
+            <TagsInput
+              value={tags}
+              onChange={setTags}
+              suggestions={[
+                'piscina', 'garagem', 'vista-mar', 'jardim', 'terraço', 
+                'ar-condicionado', 'varanda', 'arrecadação', 'elevador',
+                'condomínio-fechado', 'mobilado', 'recente', 'renovado',
+                'praia', 'campo', 'cidade', 'montanha', 'luxo'
+              ]}
+              placeholder="Digite uma tag e pressione Enter"
+            />
           </div>
 
           <div className="space-y-4">

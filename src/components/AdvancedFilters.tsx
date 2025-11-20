@@ -2,13 +2,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { Home, Maximize2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Home, Maximize2, Tag as TagIcon } from 'lucide-react';
 
 interface AdvancedFiltersProps {
   bedroomsFilter: number;
   onBedroomsChange: (value: number) => void;
   areaRange: [number, number];
   onAreaRangeChange: (value: [number, number]) => void;
+  selectedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
+  availableTags?: string[];
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   translations: {
@@ -18,6 +22,8 @@ interface AdvancedFiltersProps {
     area: string;
     areaMin: string;
     areaMax: string;
+    tags?: string;
+    tagsPlaceholder?: string;
     clearAdvanced: string;
   };
 }
@@ -27,15 +33,28 @@ export function AdvancedFilters({
   onBedroomsChange,
   areaRange,
   onAreaRangeChange,
+  selectedTags = [],
+  onTagsChange,
+  availableTags = [],
   isOpen,
   onOpenChange,
   translations
 }: AdvancedFiltersProps) {
-  const hasActiveFilters = bedroomsFilter > 0 || areaRange[0] !== 0 || areaRange[1] !== 1000;
+  const hasActiveFilters = bedroomsFilter > 0 || areaRange[0] !== 0 || areaRange[1] !== 1000 || selectedTags.length > 0;
 
   const clearAdvancedFilters = () => {
     onBedroomsChange(0);
     onAreaRangeChange([0, 1000]);
+    if (onTagsChange) onTagsChange([]);
+  };
+
+  const toggleTag = (tag: string) => {
+    if (!onTagsChange) return;
+    onTagsChange(
+      selectedTags.includes(tag) 
+        ? selectedTags.filter(t => t !== tag) 
+        : [...selectedTags, tag]
+    );
   };
 
   return (
@@ -52,7 +71,7 @@ export function AdvancedFilters({
             <span className="text-base font-semibold">{translations.title}</span>
             {hasActiveFilters && (
               <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary text-primary-foreground">
-                {[bedroomsFilter > 0, areaRange[0] !== 0 || areaRange[1] !== 1000].filter(Boolean).length}
+                {[bedroomsFilter > 0, areaRange[0] !== 0 || areaRange[1] !== 1000, selectedTags.length > 0].filter(Boolean).length}
               </span>
             )}
           </div>
@@ -116,6 +135,28 @@ export function AdvancedFilters({
                 </div>
               </div>
             </div>
+
+            {/* Tags Filter */}
+            {availableTags.length > 0 && translations.tags && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <TagIcon className="w-4 h-4 text-muted-foreground" />
+                  <label className="text-sm font-medium">{translations.tags}</label>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                      className="cursor-pointer hover:bg-accent transition-colors"
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Clear Filters Button */}
             {hasActiveFilters && (
