@@ -250,6 +250,56 @@ export type Database = {
         }
         Relationships: []
       }
+      navigation_menus: {
+        Row: {
+          created_at: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          label: Json
+          menu_type: string
+          order_index: number | null
+          parent_id: string | null
+          path: string
+          target: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          label: Json
+          menu_type: string
+          order_index?: number | null
+          parent_id?: string | null
+          path: string
+          target?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: Json
+          menu_type?: string
+          order_index?: number | null
+          parent_id?: string | null
+          path?: string
+          target?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "navigation_menus_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "navigation_menus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
           clicked_count: number | null

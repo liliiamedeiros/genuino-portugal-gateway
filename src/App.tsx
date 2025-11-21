@@ -40,6 +40,7 @@ import JsonLdValidator from "./pages/admin/JsonLdValidator";
 import JsonLdSystem from "./pages/admin/JsonLdSystem";
 import ImageConverter from "./pages/admin/ImageConverter";
 import MigrateProjects from "./pages/admin/MigrateProjects";
+import MenuManager from "./pages/admin/MenuManager";
 
 const queryClient = new QueryClient();
 
@@ -232,6 +233,11 @@ const App = () => (
             <Route path="/admin/migrate-projects" element={
               <ProtectedRoute requiredRole="admin">
                 <MigrateProjects />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/menus" element={
+              <ProtectedRoute requiredRole="admin">
+                <MenuManager />
               </ProtectedRoute>
             } />
 

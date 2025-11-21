@@ -303,7 +303,7 @@ export default function Portfolio() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('filters.region')}</label>
             <Select value={regionFilter} onValueChange={setRegionFilter}>
@@ -329,14 +329,6 @@ export default function Portfolio() {
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">{t('filters.price')}</label>
-            <Slider value={priceRange} onValueChange={(v) => setPriceRange(v as [number, number])} min={0} max={2000000} step={50000} />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{priceRange[0].toLocaleString()}€</span>
-              <span>{priceRange[1].toLocaleString()}€</span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('sorting.label')}</label>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -359,6 +351,8 @@ export default function Portfolio() {
             onBedroomsChange={setBedroomsFilter}
             areaRange={areaRange}
             onAreaRangeChange={setAreaRange}
+            priceRange={priceRange}
+            onPriceRangeChange={setPriceRange}
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
             availableTags={availableTags || []}
@@ -371,6 +365,9 @@ export default function Portfolio() {
               area: t('filters.area'),
               areaMin: t('filters.areaMin'),
               areaMax: t('filters.areaMax'),
+              price: t('filters.price'),
+              priceMin: t('filters.priceMin'),
+              priceMax: t('filters.priceMax'),
               tags: t('filters.tags'),
               tagsPlaceholder: t('filters.tagsPlaceholder'),
               clearAdvanced: t('filters.clearAdvanced')

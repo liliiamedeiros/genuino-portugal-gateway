@@ -10,6 +10,8 @@ interface AdvancedFiltersProps {
   onBedroomsChange: (value: number) => void;
   areaRange: [number, number];
   onAreaRangeChange: (value: [number, number]) => void;
+  priceRange: [number, number];
+  onPriceRangeChange: (value: [number, number]) => void;
   selectedTags?: string[];
   onTagsChange?: (tags: string[]) => void;
   availableTags?: string[];
@@ -22,6 +24,9 @@ interface AdvancedFiltersProps {
     area: string;
     areaMin: string;
     areaMax: string;
+    price: string;
+    priceMin: string;
+    priceMax: string;
     tags?: string;
     tagsPlaceholder?: string;
     clearAdvanced: string;
@@ -33,6 +38,8 @@ export function AdvancedFilters({
   onBedroomsChange,
   areaRange,
   onAreaRangeChange,
+  priceRange,
+  onPriceRangeChange,
   selectedTags = [],
   onTagsChange,
   availableTags = [],
@@ -40,11 +47,12 @@ export function AdvancedFilters({
   onOpenChange,
   translations
 }: AdvancedFiltersProps) {
-  const hasActiveFilters = bedroomsFilter > 0 || areaRange[0] !== 0 || areaRange[1] !== 1000 || selectedTags.length > 0;
+  const hasActiveFilters = bedroomsFilter > 0 || areaRange[0] !== 0 || areaRange[1] !== 1000 || priceRange[0] !== 0 || priceRange[1] !== 2000000 || selectedTags.length > 0;
 
   const clearAdvancedFilters = () => {
     onBedroomsChange(0);
     onAreaRangeChange([0, 1000]);
+    onPriceRangeChange([0, 2000000]);
     if (onTagsChange) onTagsChange([]);
   };
 
@@ -71,7 +79,7 @@ export function AdvancedFilters({
             <span className="text-base font-semibold">{translations.title}</span>
             {hasActiveFilters && (
               <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary text-primary-foreground">
-                {[bedroomsFilter > 0, areaRange[0] !== 0 || areaRange[1] !== 1000, selectedTags.length > 0].filter(Boolean).length}
+                {[bedroomsFilter > 0, areaRange[0] !== 0 || areaRange[1] !== 1000, priceRange[0] !== 0 || priceRange[1] !== 2000000, selectedTags.length > 0].filter(Boolean).length}
               </span>
             )}
           </div>
@@ -131,6 +139,34 @@ export function AdvancedFilters({
                   <div className="flex items-center gap-1">
                     <span className="text-muted-foreground">{translations.areaMax}:</span>
                     <span className="font-medium">{areaRange[1]}m²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Price Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <TagIcon className="w-4 h-4 text-muted-foreground" />
+                <label className="text-sm font-medium">{translations.price}</label>
+              </div>
+              <div className="px-2">
+                <Slider
+                  value={priceRange}
+                  onValueChange={(value) => onPriceRangeChange(value as [number, number])}
+                  min={0}
+                  max={2000000}
+                  step={50000}
+                  className="mb-4"
+                />
+                <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">{translations.priceMin}:</span>
+                    <span className="font-medium">€{priceRange[0].toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">{translations.priceMax}:</span>
+                    <span className="font-medium">€{priceRange[1].toLocaleString()}</span>
                   </div>
                 </div>
               </div>

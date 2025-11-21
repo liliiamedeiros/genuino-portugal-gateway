@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
@@ -8,7 +10,7 @@ import logo from '@/assets/logo-switzerland.png';
 import logoWhite from '@/assets/logo-white.png';
 
 export const Navbar = () => {
-  const { t } = useLanguage();
+  const { language } = useLanguage();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,16 +23,22 @@ export const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { to: '/', label: t('nav.home') },
-    { to: '/about', label: t('nav.about') },
-    { to: '/services', label: t('nav.services') },
-    { to: '/portfolio', label: t('nav.portfolio') },
-    { to: '/properties', label: t('nav.properties') },
-    { to: '/vision', label: t('nav.vision') },
-    { to: '/investors', label: t('nav.investors') },
-    { to: '/contact', label: t('nav.contact') },
-  ];
+  const { data: navLinks } = useQuery({
+    queryKey: ['navigation-menus', 'main', language],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('navigation_menus')
+        .select('*')
+        .eq('menu_type', 'main')
+        .eq('is_active', true)
+        .order('order_index');
+      
+      return data?.map(item => ({
+        to: item.path,
+        label: (item.label as Record<string, string>)?.[language] || (item.label as Record<string, string>)?.['pt'] || ''
+      })) || [];
+    }
+  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -54,7 +62,7 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => (
+            {navLinks?.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
@@ -114,7 +122,7 @@ export const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-4">
-              {navLinks.map(link => (
+              {navLinks?.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
