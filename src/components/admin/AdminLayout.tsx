@@ -33,6 +33,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter' },
+    { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },
