@@ -14,6 +14,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useLanguage } from '@/contexts/LanguageContext';
 import { projects as staticProjects } from '@/data/projects';
 import { AdvancedFilters } from '@/components/AdvancedFilters';
+import { CompareBar } from '@/components/CompareBar';
 import { Search, X, Loader2 } from 'lucide-react';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
@@ -422,6 +423,7 @@ export default function Portfolio() {
         )}
       </div>
     </div>
+    <CompareBar />
     <Footer />
   </>);
 }

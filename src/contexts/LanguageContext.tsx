@@ -140,6 +140,16 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.tagsPlaceholder': 'Sélectionnez des tags',
     'filters.activeFilters': 'Filtres actifs',
     
+    // Compare
+    'compare.title': 'Comparer les Propriétés',
+    'compare.addToCompare': 'Ajouter à la comparaison',
+    'compare.removeFromCompare': 'Retirer de la comparaison',
+    'compare.clearAll': 'Effacer la comparaison',
+    'compare.compareNow': 'Comparer maintenant',
+    'compare.maxReached': 'Maximum de 3 propriétés atteint',
+    'compare.selectMore': 'Sélectionnez plus de propriétés à comparer',
+    'compare.comparing': 'Comparaison de {count} sur 3 propriétés',
+    
     // Search
     'search.placeholder': 'Rechercher par titre, description ou localisation...',
     'search.searching': 'Recherche...',
@@ -262,6 +272,16 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.tags': 'Tags',
     'filters.tagsPlaceholder': 'Select tags',
     'filters.activeFilters': 'Active filters',
+    
+    // Compare
+    'compare.title': 'Compare Properties',
+    'compare.addToCompare': 'Add to comparison',
+    'compare.removeFromCompare': 'Remove from comparison',
+    'compare.clearAll': 'Clear comparison',
+    'compare.compareNow': 'Compare now',
+    'compare.maxReached': 'Maximum of 3 properties reached',
+    'compare.selectMore': 'Select more properties to compare',
+    'compare.comparing': 'Comparing {count} of 3 properties',
     
     // Search
     'search.placeholder': 'Search by title, description or location...',
@@ -400,6 +420,16 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.tagsPlaceholder': 'Tags auswählen',
     'filters.activeFilters': 'Aktive Filter',
     
+    // Compare
+    'compare.title': 'Immobilien Vergleichen',
+    'compare.addToCompare': 'Zum Vergleich hinzufügen',
+    'compare.removeFromCompare': 'Aus Vergleich entfernen',
+    'compare.clearAll': 'Vergleich löschen',
+    'compare.compareNow': 'Jetzt vergleichen',
+    'compare.maxReached': 'Maximum von 3 Immobilien erreicht',
+    'compare.selectMore': 'Weitere Immobilien zum Vergleich auswählen',
+    'compare.comparing': 'Vergleich von {count} von 3 Immobilien',
+    
     // Search
     'search.placeholder': 'Nach Titel, Beschreibung oder Standort suchen...',
     'search.searching': 'Suche...',
@@ -522,6 +552,16 @@ const translations: Record<Language, Record<string, string>> = {
     'filters.tags': 'Tags',
     'filters.tagsPlaceholder': 'Selecione tags',
     'filters.activeFilters': 'Filtros ativos',
+    
+    // Compare
+    'compare.title': 'Comparar Imóveis',
+    'compare.addToCompare': 'Adicionar à comparação',
+    'compare.removeFromCompare': 'Remover da comparação',
+    'compare.clearAll': 'Limpar comparação',
+    'compare.compareNow': 'Comparar agora',
+    'compare.maxReached': 'Máximo de 3 imóveis atingido',
+    'compare.selectMore': 'Selecione mais imóveis para comparar',
+    'compare.comparing': 'Comparando {count} de 3 imóveis',
     
     // Search
     'search.placeholder': 'Pesquisar por título, descrição ou localização...',

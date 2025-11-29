@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CompareProvider } from "@/contexts/CompareContext";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -49,12 +50,13 @@ const App = () => (
     <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <OrganizationSchema />
-            <PWAInstallPrompt />
-            <Toaster />
-            <Sonner />
-            <Routes>
+          <CompareProvider>
+            <TooltipProvider>
+              <OrganizationSchema />
+              <PWAInstallPrompt />
+              <Toaster />
+              <Sonner />
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={
                 <>
@@ -211,7 +213,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin/settings" element={
-              <ProtectedRoute requiredRole="editor">
+              <ProtectedRoute requiredRole="admin">
                 <Settings />
               </ProtectedRoute>
             } />
@@ -250,10 +252,11 @@ const App = () => (
               } />
             </Routes>
           </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+        </CompareProvider>
+      </AuthProvider>
+    </LanguageProvider>
+  </BrowserRouter>
+</QueryClientProvider>
 );
 
 export default App;

@@ -1,37 +1,79 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowRight, ArrowLeftRight } from 'lucide-react';
+import { useCompare } from '@/contexts/CompareContext';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 interface ProjectCardProps {
   id: string;
   title: string;
   location: string;
   image: string;
 }
+
 export const ProjectCard = ({
   id,
   title,
   location,
   image
 }: ProjectCardProps) => {
-  return <Link to={`/project/${id}`} className="block group overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-500 bg-card">
-      <div className="relative overflow-hidden h-[220px] md:h-[240px] lg:h-[280px] w-full">
-        <img src={image} alt={`${title} – Luxury real estate project in ${location} – Premium Portuguese property investment opportunity`} className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-          <Button variant="outline" className="w-full border-0 hover:bg-[#877350] hover:text-white uppercase tracking-wider text-[#887350] bg-white/10">
-            Voir le projet
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+  const { isInCompare, addToCompare, removeFromCompare, canAddMore } = useCompare();
+  const { t } = useLanguage();
+  const inCompare = isInCompare(id);
+
+  const handleCompareToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCompare) {
+      removeFromCompare(id);
+    } else if (canAddMore) {
+      addToCompare(id);
+    }
+  };
+
+  return (
+    <div className="block group overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-500 bg-card relative">
+      {/* Compare Checkbox */}
+      <div 
+        className="absolute top-3 right-3 z-20 bg-background/90 rounded-md p-2 shadow-lg"
+        onClick={handleCompareToggle}
+      >
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            checked={inCompare}
+            disabled={!canAddMore && !inCompare}
+            className="cursor-pointer"
+          />
+          <ArrowLeftRight className="h-4 w-4" />
         </div>
       </div>
-      <div className="p-6">
-        <h3 className="text-2xl font-serif font-bold mb-2 group-hover:text-primary transition-colors uppercase">
-          {title}
-        </h3>
-        <p className="text-muted-foreground flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          {location}
-        </p>
-      </div>
-    </Link>;
+
+      <Link to={`/project/${id}`}>
+        <div className="relative overflow-hidden h-[220px] md:h-[240px] lg:h-[280px] w-full">
+          <img 
+            src={image} 
+            alt={`${title} – Luxury real estate project in ${location} – Premium Portuguese property investment opportunity`} 
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+            <Button variant="outline" className="w-full border-0 hover:bg-[#877350] hover:text-white uppercase tracking-wider text-[#887350] bg-white/10">
+              Voir le projet
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="p-6">
+          <h3 className="text-2xl font-serif font-bold mb-2 group-hover:text-primary transition-colors uppercase">
+            {title}
+          </h3>
+          <p className="text-muted-foreground flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            {location}
+          </p>
+        </div>
+      </Link>
+    </div>
+  );
 };
