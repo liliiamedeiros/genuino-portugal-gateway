@@ -39,10 +39,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },
     { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system' },
     { icon: CheckCircle, label: 'Validador-JSON_LD', path: '/admin/json-ld-validator' },
-    { icon: Settings, label: 'Configurações', path: '/admin/settings' },
+    { icon: Settings, label: 'Configurações', path: '/admin/settings', adminOnly: true },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
     { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
   ];
+
+  // Filter menus for editors - completely hide admin-only items
+  const visibleMenuItems = menuItems.filter(item => {
+    if (item.adminOnly && userRole === 'editor') {
+      return false;
+    }
+    return true;
+  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -69,22 +77,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Menu */}
         <nav className="flex-1 p-4 space-y-1">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
-            const disabled = item.adminOnly && userRole !== 'admin' && userRole !== 'super_admin';
-            
-            if (disabled) {
-              return (
-                <div
-                  key={item.path}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground opacity-50 cursor-not-allowed"
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {sidebarOpen && <span className="text-sm">{item.label}</span>}
-                </div>
-              );
-            }
-
             return (
               <Link
                 key={item.path}
@@ -108,7 +102,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="mb-2 text-sm">
               <p className="font-medium truncate">{user?.email}</p>
               <p className="text-muted-foreground capitalize">
-                {userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Administrador' : 'Editor'}
+                {userRole === 'editor' ? 'Editor' : 'Administrador'}
               </p>
             </div>
           )}
