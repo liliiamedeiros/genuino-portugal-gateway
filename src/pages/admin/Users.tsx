@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash, Shield, ShieldAlert, User2 } from 'lucide-react';
+import { Plus, Trash, Shield, ShieldAlert, User2, Edit } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -35,6 +35,8 @@ export default function Users() {
   const queryClient = useQueryClient();
   const { userRole: currentUserRole } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -66,27 +68,20 @@ export default function Users() {
 
   const createUserMutation = useMutation({
     mutationFn: async () => {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          }
+      const { data, error } = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'create',
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
+          role: formData.role,
         }
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Erro ao criar usuário');
-
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([{
-          user_id: authData.user.id,
-          role: formData.role,
-        }]);
-
-      if (roleError) throw roleError;
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -103,6 +98,7 @@ export default function Users() {
       });
     },
     onError: (error: any) => {
+      console.error('Create user error:', error);
       toast({
         title: 'Erro',
         description: error.message || 'Não foi possível criar o usuário',
@@ -111,10 +107,63 @@ export default function Users() {
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingUser) throw new Error('No user selected');
+      
+      const { data, error } = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'update',
+          userId: editingUser.id,
+          email: formData.email,
+          fullName: formData.fullName,
+          role: formData.role,
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: 'Usuário atualizado',
+        description: 'O usuário foi atualizado com sucesso',
+      });
+      setEditDialogOpen(false);
+      setEditingUser(null);
+      setFormData({
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'editor',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Update user error:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível atualizar o usuário',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { data, error } = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'delete',
+          userId,
+        }
+      });
+
       if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -123,10 +172,11 @@ export default function Users() {
         description: 'O usuário foi removido com sucesso',
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Delete user error:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível remover o usuário',
+        description: error.message || 'Não foi possível remover o usuário',
         variant: 'destructive',
       });
     },
@@ -135,6 +185,22 @@ export default function Users() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createUserMutation.mutate();
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateUserMutation.mutate();
+  };
+
+  const handleEditClick = (user: any) => {
+    setEditingUser(user);
+    setFormData({
+      email: user.email || '',
+      password: '',
+      fullName: user.full_name || '',
+      role: user.role || 'editor',
+    });
+    setEditDialogOpen(true);
   };
 
   return (
@@ -214,6 +280,61 @@ export default function Users() {
           </Dialog>
         </div>
 
+        {/* Edit User Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Usuário</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="editFullName">Nome Completo</Label>
+                <Input
+                  id="editFullName"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editEmail">Email</Label>
+                <Input
+                  id="editEmail"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editRole">Função</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value: 'super_admin' | 'admin' | 'editor') =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    {(currentUserRole === 'super_admin' || currentUserRole === 'admin') && (
+                      <SelectItem value="admin">Administrador</SelectItem>
+                    )}
+                    {currentUserRole === 'super_admin' && (
+                      <SelectItem value="super_admin">Super Administrador</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full" disabled={updateUserMutation.isPending}>
+                {updateUserMutation.isPending ? 'Atualizando...' : 'Atualizar Usuário'}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {isLoading ? (
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -264,17 +385,26 @@ export default function Users() {
                         {new Date(user.created_at).toLocaleDateString('pt-PT')}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm('Tem certeza que deseja remover este usuário?')) {
-                              deleteUserMutation.mutate(user.id);
-                            }
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(user)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (confirm('Tem certeza que deseja remover este usuário?')) {
+                                deleteUserMutation.mutate(user.id);
+                              }
+                            }}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -31,6 +31,9 @@ export const propertySchema = z.object({
   map_latitude: z.string().optional(),
   map_longitude: z.string().optional(),
   
+  video_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  virtual_tour_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  
   featured: z.boolean(),
 });
 
