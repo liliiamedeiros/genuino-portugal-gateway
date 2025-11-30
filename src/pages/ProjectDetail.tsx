@@ -407,6 +407,63 @@ export default function ProjectDetail() {
               </div>
             )}
 
+            {/* Vídeo e Tour Virtual */}
+            {(project.video_url || project.virtual_tour_url) && (
+              <div className="mb-12">
+                <h3 className="text-2xl font-semibold mb-4">
+                  {language === 'pt' && 'Vídeo e Tour Virtual'}
+                  {language === 'fr' && 'Vidéo et Visite Virtuelle'}
+                  {language === 'en' && 'Video and Virtual Tour'}
+                  {language === 'de' && 'Video und virtueller Rundgang'}
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {project.video_url && (
+                    <div className="space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        🎥 {language === 'pt' && 'Vídeo do Imóvel'}
+                        {language === 'fr' && 'Vidéo du bien'}
+                        {language === 'en' && 'Property Video'}
+                        {language === 'de' && 'Immobilienvideo'}
+                      </h4>
+                      <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
+                        <iframe
+                          src={project.video_url.includes('youtube') 
+                            ? project.video_url.replace('watch?v=', 'embed/') 
+                            : project.video_url}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title="Property Video"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {project.virtual_tour_url && (
+                    <div className="space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        🌐 {language === 'pt' && 'Tour Virtual 360°'}
+                        {language === 'fr' && 'Visite Virtuelle 360°'}
+                        {language === 'en' && 'Virtual Tour 360°'}
+                        {language === 'de' && 'Virtueller Rundgang 360°'}
+                      </h4>
+                      <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
+                        <iframe
+                          src={project.virtual_tour_url}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen
+                          title="Virtual Tour"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Mapa de Localização */}
             {project.city && (
               <div className="mb-12">

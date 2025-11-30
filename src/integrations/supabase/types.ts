@@ -516,6 +516,8 @@ export type Database = {
           title_fr: string
           title_pt: string
           updated_at: string | null
+          video_url: string | null
+          virtual_tour_url: string | null
         }
         Insert: {
           address?: string | null
@@ -551,6 +553,8 @@ export type Database = {
           title_fr: string
           title_pt: string
           updated_at?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
         }
         Update: {
           address?: string | null
@@ -586,6 +590,8 @@ export type Database = {
           title_fr?: string
           title_pt?: string
           updated_at?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
         }
         Relationships: []
       }

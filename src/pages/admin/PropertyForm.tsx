@@ -67,6 +67,8 @@ export default function PropertyForm() {
     map_embed_url: '',
     map_latitude: '',
     map_longitude: '',
+    video_url: '',
+    virtual_tour_url: '',
   });
 
   const [tags, setTags] = useState<string[]>([]);
@@ -156,6 +158,8 @@ export default function PropertyForm() {
         map_embed_url: existingProject.map_embed_url || '',
         map_latitude: existingProject.map_latitude?.toString() || '',
         map_longitude: existingProject.map_longitude?.toString() || '',
+        video_url: existingProject.video_url || '',
+        virtual_tour_url: existingProject.virtual_tour_url || '',
       });
 
       if (existingProject.features && typeof existingProject.features === 'object') {
@@ -422,6 +426,8 @@ export default function PropertyForm() {
         map_embed_url: currentFormData.map_embed_url || null,
         map_latitude: currentFormData.map_latitude ? parseFloat(currentFormData.map_latitude) : null,
         map_longitude: currentFormData.map_longitude ? parseFloat(currentFormData.map_longitude) : null,
+        video_url: currentFormData.video_url || null,
+        virtual_tour_url: currentFormData.virtual_tour_url || null,
       };
 
       const { error: projectError } = await supabase
@@ -985,6 +991,36 @@ export default function PropertyForm() {
                   onChange={(e) => setFormData({ ...formData, map_longitude: e.target.value })}
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold">Multimédia</Label>
+            <div>
+              <Label htmlFor="video_url">URL do Vídeo (YouTube, Vimeo, etc.)</Label>
+              <Input
+                id="video_url"
+                type="url"
+                placeholder="https://youtube.com/watch?v=..."
+                value={formData.video_url}
+                onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Cole o URL do vídeo do imóvel (YouTube, Vimeo, etc.)
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="virtual_tour_url">URL do Tour Virtual 360°</Label>
+              <Input
+                id="virtual_tour_url"
+                type="url"
+                placeholder="https://my.matterport.com/..."
+                value={formData.virtual_tour_url}
+                onChange={(e) => setFormData({ ...formData, virtual_tour_url: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Cole o URL do tour virtual 360° (Matterport, Kuula, etc.)
+              </p>
             </div>
           </div>
 

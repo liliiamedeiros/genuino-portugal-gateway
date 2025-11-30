@@ -283,6 +283,14 @@ const translations: Record<Language, Record<string, string>> = {
     'compare.selectMore': 'Select more properties to compare',
     'compare.comparing': 'Comparing {count} of 3 properties',
     
+    // Property Media
+    'property.videoUrl': 'Video URL',
+    'property.videoUrlPlaceholder': 'https://youtube.com/watch?v=...',
+    'property.virtualTourUrl': 'Virtual Tour 360° URL',
+    'property.virtualTourUrlPlaceholder': 'https://matterport.com/...',
+    'property.viewVideo': 'View Video',
+    'property.viewVirtualTour': 'Virtual Tour 360°',
+    
     // Search
     'search.placeholder': 'Search by title, description or location...',
     'search.searching': 'Searching...',
@@ -430,6 +438,14 @@ const translations: Record<Language, Record<string, string>> = {
     'compare.selectMore': 'Weitere Immobilien zum Vergleich auswählen',
     'compare.comparing': 'Vergleich von {count} von 3 Immobilien',
     
+    // Property Media
+    'property.videoUrl': 'Video-URL',
+    'property.videoUrlPlaceholder': 'https://youtube.com/watch?v=...',
+    'property.virtualTourUrl': 'URL der virtuellen Tour 360°',
+    'property.virtualTourUrlPlaceholder': 'https://matterport.com/...',
+    'property.viewVideo': 'Video ansehen',
+    'property.viewVirtualTour': 'Virtuelle Tour 360°',
+    
     // Search
     'search.placeholder': 'Nach Titel, Beschreibung oder Standort suchen...',
     'search.searching': 'Suche...',
@@ -562,6 +578,14 @@ const translations: Record<Language, Record<string, string>> = {
     'compare.maxReached': 'Máximo de 3 imóveis atingido',
     'compare.selectMore': 'Selecione mais imóveis para comparar',
     'compare.comparing': 'Comparando {count} de 3 imóveis',
+    
+    // Property Media
+    'property.videoUrl': 'URL do Vídeo',
+    'property.videoUrlPlaceholder': 'https://youtube.com/watch?v=...',
+    'property.virtualTourUrl': 'URL do Tour Virtual 360°',
+    'property.virtualTourUrlPlaceholder': 'https://matterport.com/...',
+    'property.viewVideo': 'Ver Vídeo',
+    'property.viewVirtualTour': 'Tour Virtual 360°',
     
     // Search
     'search.placeholder': 'Pesquisar por título, descrição ou localização...',
