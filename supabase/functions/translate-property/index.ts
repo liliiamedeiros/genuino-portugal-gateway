@@ -57,12 +57,12 @@ Traduz para:
 
     console.log('Translating property:', { title_length: sanitizedTitle.length, description_length: sanitizedDescription.length });
 
-    // Get auth header from request for authenticated edge function calls
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      console.error('Missing authorization header');
-      return new Response(JSON.stringify({ error: 'Unauthorized - missing auth header' }), {
-        status: 401,
+    // Get Lovable API key from environment
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not configured');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -70,7 +70,7 @@ Traduz para:
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': authHeader,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

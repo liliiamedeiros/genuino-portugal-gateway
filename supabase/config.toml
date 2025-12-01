@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.migrate-project-images]
 verify_jwt = true
+
+[functions.manage-users]
+verify_jwt = true
+
+[functions.property-chatbot]
+verify_jwt = false
