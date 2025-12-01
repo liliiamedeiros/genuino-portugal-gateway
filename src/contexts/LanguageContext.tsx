@@ -155,6 +155,17 @@ const translations: Record<Language, Record<string, string>> = {
     'search.searching': 'Recherche...',
     'search.searchFor': 'Recherche pour',
     'search.noResults': 'Aucun résultat pour "{{query}}"',
+    
+    // Chatbot
+    'chat.title': 'Assistant Immobilier',
+    'chat.placeholder': 'Écrivez votre question...',
+    'chat.send': 'Envoyer',
+    'chat.greeting': 'Bonjour! Comment puis-je vous aider à trouver votre propriété idéale?',
+    'chat.thinking': 'Réflexion...',
+    'chat.error': 'Désolé, une erreur s\'est produite. Veuillez réessayer.',
+    'chat.suggestions.pool': 'Propriétés avec piscine',
+    'chat.suggestions.price': 'Prix en Algarve',
+    'chat.suggestions.rooms': 'Appartements T3',
   },
   en: {
     // Navigation
@@ -296,6 +307,17 @@ const translations: Record<Language, Record<string, string>> = {
     'search.searching': 'Searching...',
     'search.searchFor': 'Search for',
     'search.noResults': 'No results for "{{query}}"',
+    
+    // Chatbot
+    'chat.title': 'Real Estate Assistant',
+    'chat.placeholder': 'Write your question...',
+    'chat.send': 'Send',
+    'chat.greeting': 'Hello! How can I help you find your ideal property?',
+    'chat.thinking': 'Thinking...',
+    'chat.error': 'Sorry, an error occurred. Please try again.',
+    'chat.suggestions.pool': 'Properties with pool',
+    'chat.suggestions.price': 'Prices in Algarve',
+    'chat.suggestions.rooms': 'T3 Apartments',
     // Pagination
     'pagination.previous': 'Previous',
     'pagination.next': 'Next',
@@ -451,6 +473,17 @@ const translations: Record<Language, Record<string, string>> = {
     'search.searching': 'Suche...',
     'search.searchFor': 'Suchen nach',
     'search.noResults': 'Keine Ergebnisse für "{{query}}"',
+    
+    // Chatbot
+    'chat.title': 'Immobilien-Assistent',
+    'chat.placeholder': 'Schreiben Sie Ihre Frage...',
+    'chat.send': 'Senden',
+    'chat.greeting': 'Hallo! Wie kann ich Ihnen helfen, Ihre ideale Immobilie zu finden?',
+    'chat.thinking': 'Nachdenken...',
+    'chat.error': 'Entschuldigung, ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+    'chat.suggestions.pool': 'Immobilien mit Pool',
+    'chat.suggestions.price': 'Preise in der Algarve',
+    'chat.suggestions.rooms': 'T3 Wohnungen',
   },
   pt: {
     // Navigation
@@ -592,6 +625,17 @@ const translations: Record<Language, Record<string, string>> = {
     'search.searching': 'A pesquisar...',
     'search.searchFor': 'Pesquisar por',
     'search.noResults': 'Nenhum resultado para "{{query}}"',
+    
+    // Chatbot
+    'chat.title': 'Assistente Imobiliário',
+    'chat.placeholder': 'Escreva a sua pergunta...',
+    'chat.send': 'Enviar',
+    'chat.greeting': 'Olá! Como posso ajudar a encontrar o seu imóvel ideal?',
+    'chat.thinking': 'A pensar...',
+    'chat.error': 'Desculpe, ocorreu um erro. Por favor, tente novamente.',
+    'chat.suggestions.pool': 'Imóveis com piscina',
+    'chat.suggestions.price': 'Preços no Algarve',
+    'chat.suggestions.rooms': 'Apartamentos T3',
   },
 };
 

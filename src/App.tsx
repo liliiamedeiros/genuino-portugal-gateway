@@ -11,6 +11,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ChatWidget } from "@/components/ChatWidget";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -45,18 +46,20 @@ import MenuManager from "./pages/admin/MenuManager";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <LanguageProvider>
-        <AuthProvider>
-          <CompareProvider>
-            <TooltipProvider>
-              <OrganizationSchema />
-              <PWAInstallPrompt />
-              <Toaster />
-              <Sonner />
-              <Routes>
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <LanguageProvider>
+          <AuthProvider>
+            <CompareProvider>
+              <TooltipProvider>
+                <OrganizationSchema />
+                <PWAInstallPrompt />
+                <Toaster />
+                <Sonner />
+                <ChatWidget />
+                <Routes>
               {/* Public Routes */}
               <Route path="/" element={
                 <>
@@ -257,6 +260,7 @@ const App = () => (
     </LanguageProvider>
   </BrowserRouter>
 </QueryClientProvider>
-);
+  );
+};
 
 export default App;
