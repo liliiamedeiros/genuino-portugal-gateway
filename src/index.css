@@ -237,4 +237,23 @@ All colors MUST be HSL.
       height: 220px;
     }
   }
+
+  /* Chat Widget Styles */
+  .chat-bubble-user {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] shadow-sm;
+  }
+
+  .chat-bubble-assistant {
+    @apply bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%] shadow-sm;
+  }
+
+  .chat-suggestion-button {
+    @apply border border-primary/30 hover:bg-primary/5 hover:border-primary/50 
+           transition-all duration-200 rounded-xl px-4 py-2.5 text-sm font-medium;
+  }
+
+  .chat-input-field {
+    @apply border-primary/20 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 
+           rounded-xl transition-all duration-200;
+  }
 }

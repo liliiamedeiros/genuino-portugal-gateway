@@ -94,8 +94,21 @@ Pergunta do cliente: ${message}`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      throw new Error('Server configuration error');
+      console.warn('LOVABLE_API_KEY not configured - returning helpful fallback message');
+      
+      const fallbackMessages: Record<string, string> = {
+        pt: 'Obrigado pela sua mensagem! Para mais informações sobre os nossos imóveis, por favor contacte-nos através do formulário de contacto ou envie-nos um email.',
+        en: 'Thank you for your message! For more information about our properties, please contact us through our contact form or send us an email.',
+        fr: 'Merci pour votre message! Pour plus d\'informations sur nos propriétés, veuillez nous contacter via notre formulaire de contact ou nous envoyer un email.',
+        de: 'Vielen Dank für Ihre Nachricht! Für weitere Informationen über unsere Immobilien kontaktieren Sie uns bitte über unser Kontaktformular oder senden Sie uns eine E-Mail.',
+      };
+      
+      return new Response(JSON.stringify({ 
+        reply: fallbackMessages[language] || fallbackMessages.pt
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
