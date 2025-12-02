@@ -60,9 +60,17 @@ Traduz para:
     // Get Lovable API key from environment
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
+      console.warn('LOVABLE_API_KEY not configured - using Portuguese as fallback for all languages');
+      return new Response(JSON.stringify({
+        title_fr: sanitizedTitle,
+        title_en: sanitizedTitle,
+        title_de: sanitizedTitle,
+        description_fr: sanitizedDescription,
+        description_en: sanitizedDescription,
+        description_de: sanitizedDescription,
+        warning: 'Auto-translation unavailable - using Portuguese as fallback'
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

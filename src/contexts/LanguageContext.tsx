@@ -166,6 +166,7 @@ const translations: Record<Language, Record<string, string>> = {
     'chat.suggestions.pool': 'Propriétés avec piscine',
     'chat.suggestions.price': 'Prix en Algarve',
     'chat.suggestions.rooms': 'Appartements T3',
+    'chat.fallback': 'Merci pour votre message! Pour plus d\'informations, veuillez nous contacter via le formulaire.',
   },
   en: {
     // Navigation
@@ -318,6 +319,7 @@ const translations: Record<Language, Record<string, string>> = {
     'chat.suggestions.pool': 'Properties with pool',
     'chat.suggestions.price': 'Prices in Algarve',
     'chat.suggestions.rooms': 'T3 Apartments',
+    'chat.fallback': 'Thank you for your message! For more information, please contact us through the form.',
     // Pagination
     'pagination.previous': 'Previous',
     'pagination.next': 'Next',
@@ -484,6 +486,7 @@ const translations: Record<Language, Record<string, string>> = {
     'chat.suggestions.pool': 'Immobilien mit Pool',
     'chat.suggestions.price': 'Preise in der Algarve',
     'chat.suggestions.rooms': 'T3 Wohnungen',
+    'chat.fallback': 'Vielen Dank für Ihre Nachricht! Für weitere Informationen kontaktieren Sie uns bitte über das Formular.',
   },
   pt: {
     // Navigation
@@ -636,6 +639,7 @@ const translations: Record<Language, Record<string, string>> = {
     'chat.suggestions.pool': 'Imóveis com piscina',
     'chat.suggestions.price': 'Preços no Algarve',
     'chat.suggestions.rooms': 'Apartamentos T3',
+    'chat.fallback': 'Obrigado pela sua mensagem! Para mais informações, contacte-nos através do formulário.',
   },
 };
 

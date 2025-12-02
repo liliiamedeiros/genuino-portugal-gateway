@@ -304,18 +304,41 @@ export default function PropertyForm() {
             }
           });
 
-          if (error) throw error;
-
-          currentFormData = {
-            ...currentFormData,
-            title_fr: data.title_fr,
-            title_en: data.title_en,
-            title_de: data.title_de,
-            description_fr: data.description_fr,
-            description_en: data.description_en,
-            description_de: data.description_de,
-          };
-
+          if (error) {
+            console.error('Translation error:', error);
+            toast({
+              title: "⚠️ Aviso",
+              description: "Tradução automática falhou. A usar texto português como base.",
+            });
+            // Use Portuguese as fallback
+            currentFormData = {
+              ...currentFormData,
+              title_fr: currentFormData.title_fr || currentFormData.title_pt,
+              title_en: currentFormData.title_en || currentFormData.title_pt,
+              title_de: currentFormData.title_de || currentFormData.title_pt,
+              description_fr: currentFormData.description_fr || currentFormData.description_pt,
+              description_en: currentFormData.description_en || currentFormData.description_pt,
+              description_de: currentFormData.description_de || currentFormData.description_pt,
+            };
+          } else if (data) {
+            currentFormData = {
+              ...currentFormData,
+              title_fr: data.title_fr,
+              title_en: data.title_en,
+              title_de: data.title_de,
+              description_fr: data.description_fr,
+              description_en: data.description_en,
+              description_de: data.description_de,
+            };
+            
+            if (data.warning) {
+              toast({
+                title: "⚠️ Aviso",
+                description: data.warning,
+              });
+            }
+          }
+          
           setFormData(currentFormData);
         } catch (error) {
           console.error('Translation error:', error);
