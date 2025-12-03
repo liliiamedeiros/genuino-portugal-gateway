@@ -12,6 +12,16 @@ export default {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'xs': '320px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+      '4xl': '2560px',
+    },
     extend: {
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
@@ -66,6 +76,16 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontSize: {
+        '3xl-tv': ['2rem', { lineHeight: '2.5rem' }],
+        '4xl-tv': ['2.5rem', { lineHeight: '3rem' }],
+        '5xl-tv': ['3rem', { lineHeight: '3.5rem' }],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+        '26': '6.5rem',
       },
       keyframes: {
         "accordion-down": {

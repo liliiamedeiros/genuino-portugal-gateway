@@ -15,7 +15,8 @@ import {
   X,
   FileJson,
   CheckCircle,
-  ImageIcon
+  ImageIcon,
+  FolderOpen
 } from 'lucide-react';
 import { useState } from 'react';
 import logo from '@/assets/logo.png';
@@ -32,6 +33,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
+    { icon: FolderOpen, label: 'Portfolio', path: '/admin/portfolio' },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter' },
     { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
@@ -76,7 +78,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             return (
