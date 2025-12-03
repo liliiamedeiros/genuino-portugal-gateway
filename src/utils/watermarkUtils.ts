@@ -9,7 +9,7 @@ export interface WatermarkConfig {
 
 const DEFAULT_CONFIG: WatermarkConfig = {
   enabled: true,
-  text: '© Capital Estate Group',
+  text: '© Genuíno Investments',
   position: 'bottom-right',
   opacity: 0.7,
   fontSize: 24

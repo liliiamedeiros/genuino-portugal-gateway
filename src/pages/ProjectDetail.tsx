@@ -350,6 +350,124 @@ export default function ProjectDetail() {
               <p className="text-lg leading-relaxed">{project[`description_${language}`]}</p>
             </div>
 
+            {/* Características do Imóvel */}
+            {project.features && typeof project.features === 'object' && Object.values(project.features as Record<string, boolean>).some(v => v === true) && (
+              <div className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg p-6 mb-12 border border-primary/10">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  ✨ {language === 'pt' && 'Características do Imóvel'}
+                  {language === 'fr' && 'Caractéristiques du Bien'}
+                  {language === 'en' && 'Property Features'}
+                  {language === 'de' && 'Immobilienmerkmale'}
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {(project.features as Record<string, boolean>).piscina && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🏊</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Piscina' : language === 'fr' ? 'Piscine' : language === 'de' ? 'Pool' : 'Pool'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).ar_condicionado && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">❄️</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Ar Condicionado' : language === 'fr' ? 'Climatisation' : language === 'de' ? 'Klimaanlage' : 'Air Conditioning'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).varanda && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🌇</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Varanda' : language === 'fr' ? 'Balcon' : language === 'de' ? 'Balkon' : 'Balcony'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).terraco && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">☀️</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Terraço' : language === 'fr' ? 'Terrasse' : language === 'de' ? 'Terrasse' : 'Terrace'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).lugar_garagem && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🚗</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Garagem' : language === 'fr' ? 'Garage' : language === 'de' ? 'Garage' : 'Garage'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).jardim && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🌿</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Jardim' : language === 'fr' ? 'Jardin' : language === 'de' ? 'Garten' : 'Garden'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).arrecadacao && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">📦</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Arrecadação' : language === 'fr' ? 'Cellier' : language === 'de' ? 'Abstellraum' : 'Storage'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).casa_adaptada && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">♿</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Acessibilidade' : language === 'fr' ? 'Accessibilité' : language === 'de' ? 'Barrierefreiheit' : 'Accessibility'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).ultimo_andar && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🏢</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Último Andar' : language === 'fr' ? 'Dernier étage' : language === 'de' ? 'Obergeschoss' : 'Top Floor'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).andares_intermedios && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🏬</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Andar Intermédio' : language === 'fr' ? 'Étage intermédiaire' : language === 'de' ? 'Zwischengeschoss' : 'Middle Floor'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).res_do_chao && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">🏠</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Rés-do-chão' : language === 'fr' ? 'Rez-de-chaussée' : language === 'de' ? 'Erdgeschoss' : 'Ground Floor'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).multimedia && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">📺</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Multimédia' : language === 'fr' ? 'Multimédia' : language === 'de' ? 'Multimedia' : 'Multimedia'}
+                      </span>
+                    </div>
+                  )}
+                  {(project.features as Record<string, boolean>).com_planta && (
+                    <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
+                      <span className="text-xl">📐</span>
+                      <span className="font-medium">
+                        {language === 'pt' ? 'Com Planta' : language === 'fr' ? 'Avec plan' : language === 'de' ? 'Mit Grundriss' : 'With Floor Plan'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Localização Detalhada */}
             {(project.city || project.address || project.postal_code) && (
               <div className="bg-secondary/10 rounded-lg p-6 mb-12">
