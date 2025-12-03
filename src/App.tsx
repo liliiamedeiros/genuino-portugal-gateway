@@ -43,6 +43,7 @@ import JsonLdSystem from "./pages/admin/JsonLdSystem";
 import ImageConverter from "./pages/admin/ImageConverter";
 import MigrateProjects from "./pages/admin/MigrateProjects";
 import MenuManager from "./pages/admin/MenuManager";
+import PortfolioManager from "./pages/admin/PortfolioManager";
 
 const queryClient = new QueryClient();
 
@@ -243,6 +244,11 @@ const App = () => {
             <Route path="/admin/menus" element={
               <ProtectedRoute requiredRole="admin">
                 <MenuManager />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/portfolio" element={
+              <ProtectedRoute requiredRole="editor">
+                <PortfolioManager />
               </ProtectedRoute>
             } />
 
