@@ -5,9 +5,12 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { 
@@ -20,12 +23,79 @@ import {
   Building2,
   TrendingUp,
   CheckCircle,
-  Clock
+  Clock,
+  Settings,
+  Save,
+  RefreshCw
 } from 'lucide-react';
+
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
+
+interface PortfolioSettings {
+  projects_per_page: number;
+  default_sort: SortOption;
+  show_filters: boolean;
+  show_search: boolean;
+  show_advanced_filters: boolean;
+}
 
 export default function PortfolioManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
+
+  // Settings state
+  const [localSettings, setLocalSettings] = useState<PortfolioSettings>({
+    projects_per_page: 12,
+    default_sort: 'date-desc',
+    show_filters: true,
+    show_search: true,
+    show_advanced_filters: true,
+  });
+
+  // Fetch portfolio settings
+  const { data: savedSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['admin-portfolio-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value, id')
+        .eq('category', 'portfolio');
+      
+      if (error) throw error;
+      
+      const settings: PortfolioSettings = {
+        projects_per_page: 12,
+        default_sort: 'date-desc',
+        show_filters: true,
+        show_search: true,
+        show_advanced_filters: true,
+      };
+      
+      if (data) {
+        data.forEach((setting) => {
+          const value = (setting.value as { value: any })?.value;
+          if (setting.key === 'projects_per_page' && typeof value === 'number') {
+            settings.projects_per_page = value;
+          }
+          if (setting.key === 'default_sort' && typeof value === 'string') {
+            settings.default_sort = value as SortOption;
+          }
+          if (setting.key === 'show_filters' && typeof value === 'boolean') {
+            settings.show_filters = value;
+          }
+          if (setting.key === 'show_search' && typeof value === 'boolean') {
+            settings.show_search = value;
+          }
+          if (setting.key === 'show_advanced_filters' && typeof value === 'boolean') {
+            settings.show_advanced_filters = value;
+          }
+        });
+      }
+      
+      setLocalSettings(settings);
+      return { settings, rawData: data };
+    }
+  });
 
   // Fetch all projects
   const { data: projects, isLoading } = useQuery({
@@ -41,6 +111,37 @@ export default function PortfolioManager() {
     },
   });
 
+  // Save settings mutation
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (settings: PortfolioSettings) => {
+      const updates = [
+        { key: 'projects_per_page', value: { value: settings.projects_per_page } },
+        { key: 'default_sort', value: { value: settings.default_sort } },
+        { key: 'show_filters', value: { value: settings.show_filters } },
+        { key: 'show_search', value: { value: settings.show_search } },
+        { key: 'show_advanced_filters', value: { value: settings.show_advanced_filters } },
+      ];
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('site_settings')
+          .update({ value: update.value })
+          .eq('key', update.key)
+          .eq('category', 'portfolio');
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-portfolio-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-settings'] });
+      toast.success('Configurações guardadas! As alterações já estão visíveis no site público.');
+    },
+    onError: () => {
+      toast.error('Erro ao guardar configurações');
+    },
+  });
+
   // Toggle project status mutation
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, newStatus }: { id: string; newStatus: string }) => {
@@ -53,7 +154,8 @@ export default function PortfolioManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-portfolio'] });
-      toast.success('Estado do projeto atualizado');
+      queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+      toast.success('Estado atualizado! Alteração visível no site público.');
     },
     onError: () => {
       toast.error('Erro ao atualizar estado');
@@ -72,7 +174,8 @@ export default function PortfolioManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-portfolio'] });
-      toast.success('Destaque atualizado');
+      queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+      toast.success('Destaque atualizado!');
     },
     onError: () => {
       toast.error('Erro ao atualizar destaque');
@@ -107,6 +210,14 @@ export default function PortfolioManager() {
     }
   };
 
+  const hasSettingsChanged = savedSettings && (
+    localSettings.projects_per_page !== savedSettings.settings.projects_per_page ||
+    localSettings.default_sort !== savedSettings.settings.default_sort ||
+    localSettings.show_filters !== savedSettings.settings.show_filters ||
+    localSettings.show_search !== savedSettings.settings.show_search ||
+    localSettings.show_advanced_filters !== savedSettings.settings.show_advanced_filters
+  );
+
   return (
     <AdminLayout>
       <div className="p-4 sm:p-6 lg:p-8">
@@ -115,7 +226,7 @@ export default function PortfolioManager() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Gestão do Portfolio</h1>
             <p className="text-muted-foreground mt-1">
-              Gerir projetos visíveis no portfolio público
+              Gerir projetos e configurações do portfolio público
             </p>
           </div>
           <div className="flex gap-2">
@@ -133,6 +244,117 @@ export default function PortfolioManager() {
             </Button>
           </div>
         </div>
+
+        {/* Settings Card */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Configurações de Exibição
+            </CardTitle>
+            <CardDescription>
+              Estas configurações afetam diretamente como o portfolio é exibido no site público
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {settingsLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                A carregar configurações...
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="projects_per_page">Projetos por página</Label>
+                    <Select 
+                      value={String(localSettings.projects_per_page)} 
+                      onValueChange={(v) => setLocalSettings(prev => ({ ...prev, projects_per_page: Number(v) }))}
+                    >
+                      <SelectTrigger id="projects_per_page">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6">6 projetos</SelectItem>
+                        <SelectItem value="9">9 projetos</SelectItem>
+                        <SelectItem value="12">12 projetos</SelectItem>
+                        <SelectItem value="15">15 projetos</SelectItem>
+                        <SelectItem value="18">18 projetos</SelectItem>
+                        <SelectItem value="24">24 projetos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="default_sort">Ordenação padrão</Label>
+                    <Select 
+                      value={localSettings.default_sort} 
+                      onValueChange={(v) => setLocalSettings(prev => ({ ...prev, default_sort: v as SortOption }))}
+                    >
+                      <SelectTrigger id="default_sort">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date-desc">Mais recentes</SelectItem>
+                        <SelectItem value="date-asc">Mais antigos</SelectItem>
+                        <SelectItem value="name-asc">Nome (A-Z)</SelectItem>
+                        <SelectItem value="name-desc">Nome (Z-A)</SelectItem>
+                        <SelectItem value="price-asc">Preço (menor)</SelectItem>
+                        <SelectItem value="price-desc">Preço (maior)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h4 className="font-medium">Visibilidade de elementos</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <Label htmlFor="show_search" className="cursor-pointer">Mostrar pesquisa</Label>
+                      <Switch
+                        id="show_search"
+                        checked={localSettings.show_search}
+                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_search: checked }))}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <Label htmlFor="show_filters" className="cursor-pointer">Mostrar filtros</Label>
+                      <Switch
+                        id="show_filters"
+                        checked={localSettings.show_filters}
+                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_filters: checked }))}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <Label htmlFor="show_advanced_filters" className="cursor-pointer">Filtros avançados</Label>
+                      <Switch
+                        id="show_advanced_filters"
+                        checked={localSettings.show_advanced_filters}
+                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_advanced_filters: checked }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => saveSettingsMutation.mutate(localSettings)}
+                    disabled={!hasSettingsChanged || saveSettingsMutation.isPending}
+                  >
+                    {saveSettingsMutation.isPending ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    Guardar Configurações
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -152,6 +374,7 @@ export default function PortfolioManager() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+              <p className="text-xs text-muted-foreground mt-1">Visíveis no site</p>
             </CardContent>
           </Card>
           <Card>
@@ -161,6 +384,7 @@ export default function PortfolioManager() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{stats.draft}</p>
+              <p className="text-xs text-muted-foreground mt-1">Não visíveis</p>
             </CardContent>
           </Card>
           <Card>
@@ -172,6 +396,13 @@ export default function PortfolioManager() {
               <p className="text-2xl font-bold text-primary">{stats.featured}</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Info Banner */}
+        <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+          <p className="text-sm text-primary">
+            <strong>Sincronização automática:</strong> Todas as alterações feitas aqui (ativar/desativar projetos, alterar destaques, configurações) são refletidas <strong>imediatamente</strong> no Portfolio do site público.
+          </p>
         </div>
 
         {/* Search */}
@@ -189,6 +420,12 @@ export default function PortfolioManager() {
 
         {/* Projects Table */}
         <Card>
+          <CardHeader>
+            <CardTitle>Projetos no Portfolio</CardTitle>
+            <CardDescription>
+              Ative ou desative projetos para controlar o que aparece no site público
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-8 text-center text-muted-foreground">
@@ -205,7 +442,7 @@ export default function PortfolioManager() {
                       <TableHead>Tipo</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-center">Destaque</TableHead>
-                      <TableHead className="text-center">Visível</TableHead>
+                      <TableHead className="text-center">Visível no Site</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -255,6 +492,7 @@ export default function PortfolioManager() {
                               id: project.id,
                               newStatus: project.status === 'active' ? 'draft' : 'active'
                             })}
+                            title={project.status === 'active' ? 'Clique para ocultar do site' : 'Clique para mostrar no site'}
                           >
                             {project.status === 'active' ? (
                               <Eye className="h-4 w-4 text-green-500" />
@@ -265,7 +503,7 @@ export default function PortfolioManager() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button asChild variant="ghost" size="icon">
+                            <Button asChild variant="ghost" size="icon" title="Ver no site">
                               <a 
                                 href={`/project/${project.id}`} 
                                 target="_blank" 
@@ -274,7 +512,7 @@ export default function PortfolioManager() {
                                 <ExternalLink className="h-4 w-4" />
                               </a>
                             </Button>
-                            <Button asChild variant="ghost" size="icon">
+                            <Button asChild variant="ghost" size="icon" title="Editar">
                               <Link to={`/admin/properties/edit/${project.id}`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
@@ -288,7 +526,21 @@ export default function PortfolioManager() {
               </div>
             ) : (
               <div className="p-8 text-center text-muted-foreground">
-                Nenhum projeto encontrado
+                <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="mb-2">Nenhum projeto encontrado</p>
+                <p className="text-sm">
+                  {projects?.length === 0 
+                    ? 'Adicione projetos para que apareçam no portfolio público.'
+                    : 'Tente ajustar os termos de pesquisa.'}
+                </p>
+                {projects?.length === 0 && (
+                  <Button asChild className="mt-4">
+                    <Link to="/admin/properties/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeiro Projeto
+                    </Link>
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
