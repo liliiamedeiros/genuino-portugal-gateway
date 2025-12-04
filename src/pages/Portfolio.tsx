@@ -6,18 +6,24 @@ import { Footer } from '@/components/Footer';
 import { ProjectCard } from '@/components/ProjectCard';
 import { SEOHead } from '@/components/SEOHead';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { projects as staticProjects } from '@/data/projects';
 import { AdvancedFilters } from '@/components/AdvancedFilters';
 import { CompareBar } from '@/components/CompareBar';
 import { Search, X, Loader2 } from 'lucide-react';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
+
+interface PortfolioSettings {
+  projects_per_page: number;
+  default_sort: SortOption;
+  show_filters: boolean;
+  show_search: boolean;
+  show_advanced_filters: boolean;
+}
 
 export default function Portfolio() {
   const { t, language } = useLanguage();
@@ -32,7 +38,59 @@ export default function Portfolio() {
   const [searchText, setSearchText] = useState<string>('');
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const PROJECTS_PER_PAGE = 12;
+
+  // Fetch portfolio settings from site_settings
+  const { data: settings } = useQuery({
+    queryKey: ['portfolio-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .eq('category', 'portfolio');
+      
+      if (error) throw error;
+      
+      const defaultSettings: PortfolioSettings = {
+        projects_per_page: 12,
+        default_sort: 'date-desc',
+        show_filters: true,
+        show_search: true,
+        show_advanced_filters: true,
+      };
+      
+      if (data) {
+        data.forEach((setting) => {
+          const value = (setting.value as { value: any })?.value;
+          if (setting.key === 'projects_per_page' && typeof value === 'number') {
+            defaultSettings.projects_per_page = value;
+          }
+          if (setting.key === 'default_sort' && typeof value === 'string') {
+            defaultSettings.default_sort = value as SortOption;
+          }
+          if (setting.key === 'show_filters' && typeof value === 'boolean') {
+            defaultSettings.show_filters = value;
+          }
+          if (setting.key === 'show_search' && typeof value === 'boolean') {
+            defaultSettings.show_search = value;
+          }
+          if (setting.key === 'show_advanced_filters' && typeof value === 'boolean') {
+            defaultSettings.show_advanced_filters = value;
+          }
+        });
+      }
+      
+      return defaultSettings;
+    }
+  });
+
+  const PROJECTS_PER_PAGE = settings?.projects_per_page || 12;
+
+  // Set default sort from settings
+  useEffect(() => {
+    if (settings?.default_sort && sortBy === 'date-desc') {
+      setSortBy(settings.default_sort);
+    }
+  }, [settings?.default_sort]);
 
   // Debounce search text
   useEffect(() => {
@@ -42,8 +100,9 @@ export default function Portfolio() {
     return () => clearTimeout(timer);
   }, [searchText]);
 
+  // Fetch projects from database only (no static projects)
   const { data: queryResult, isLoading } = useQuery({
-    queryKey: ['projects-paginated', currentPage, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, sortBy, debouncedSearchText, selectedTags],
+    queryKey: ['portfolio-projects', currentPage, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, sortBy, debouncedSearchText, selectedTags, PROJECTS_PER_PAGE],
     queryFn: async () => {
       let query = supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'active');
       
@@ -73,10 +132,13 @@ export default function Portfolio() {
       const { data, count, error } = await query;
       if (error) throw error;
       return { projects: data || [], total: count || 0 };
-    }
+    },
+    enabled: !!settings, // Only run after settings are loaded
   });
 
-  const dbProjects = queryResult?.projects || [];
+  const projects = queryResult?.projects || [];
+  const totalCount = queryResult?.total || 0;
+  const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
 
   // Fetch available tags
   const { data: availableTags } = useQuery({
@@ -92,119 +154,24 @@ export default function Portfolio() {
       return Array.from(allTags).sort();
     }
   });
-  
-  // Combine static projects with database projects
-  const allProjects = useMemo(() => {
-    const staticMapped = staticProjects.map(p => ({
-      id: p.id,
-      displayTitle: p.title[language],
-      location: p.location,
-      image: p.mainImage,
-      region: p.region,
-      source: 'static' as const,
-      price: null,
-      property_type: null,
-      created_at: null,
-    }));
-    
-    const dbMapped = dbProjects.map(p => ({
+
+  // Map projects to display format
+  const displayProjects = useMemo(() => {
+    return projects.map(p => ({
       id: p.id,
       displayTitle: String(p[`title_${language}` as keyof typeof p] || p.title_pt),
       location: p.location,
       image: p.main_image || '',
-      region: p.region,
-      source: 'database' as const,
-      price: p.price,
-      property_type: p.property_type,
-      created_at: p.created_at,
     }));
-    
-    return [...staticMapped, ...dbMapped];
-  }, [dbProjects, language]);
+  }, [projects, language]);
 
-  // Apply filters to all projects
-  const filteredProjects = useMemo(() => {
-    return allProjects.filter(p => {
-      // Search filter
-      if (debouncedSearchText && p.source === 'static') {
-        const searchLower = debouncedSearchText.toLowerCase();
-        if (!p.displayTitle.toLowerCase().includes(searchLower) && 
-            !p.location.toLowerCase().includes(searchLower)) {
-          return false;
-        }
-      }
-      
-      if (regionFilter !== 'all' && p.region !== regionFilter) return false;
-      if (propertyTypeFilter !== 'all' && p.property_type !== propertyTypeFilter) return false;
-      if (p.price !== null && (p.price < priceRange[0] || p.price > priceRange[1])) return false;
-      
-      // Advanced filters
-      const dbProject = dbProjects.find(db => db.id === p.id);
-      if (bedroomsFilter > 0 && dbProject) {
-        if (dbProject.bedrooms === null || dbProject.bedrooms < bedroomsFilter) return false;
-      }
-      if ((areaRange[0] > 0 || areaRange[1] < 1000) && dbProject) {
-        if (dbProject.area_sqm === null || dbProject.area_sqm < areaRange[0] || dbProject.area_sqm > areaRange[1]) return false;
-      }
-      
-      // Tags filter
-      if (selectedTags.length > 0 && dbProject) {
-        if (!dbProject.tags || !Array.isArray(dbProject.tags)) return false;
-        const hasAllTags = selectedTags.every(tag => dbProject.tags.includes(tag));
-        if (!hasAllTags) return false;
-      }
-      
-      return true;
-    });
-  }, [allProjects, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, debouncedSearchText, selectedTags, dbProjects]);
-
-  // Apply sorting
-  const sortedProjects = useMemo(() => {
-    const sorted = [...filteredProjects];
-    switch (sortBy) {
-      case 'price-asc':
-        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
-      case 'price-desc':
-        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
-      case 'date-desc':
-        return sorted.sort((a, b) => {
-          if (a.source === 'static' && b.source === 'static') return 0;
-          if (a.source === 'static') return -1;
-          if (b.source === 'static') return 1;
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        });
-      case 'date-asc':
-        return sorted.sort((a, b) => {
-          if (a.source === 'static' && b.source === 'static') return 0;
-          if (a.source === 'static') return 1;
-          if (b.source === 'static') return -1;
-          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        });
-      case 'name-asc':
-        return sorted.sort((a, b) => a.displayTitle.localeCompare(b.displayTitle));
-      case 'name-desc':
-        return sorted.sort((a, b) => b.displayTitle.localeCompare(a.displayTitle));
-      default:
-        return sorted;
-    }
-  }, [filteredProjects, sortBy]);
-
-  // Paginate sorted projects
-  const totalCount = sortedProjects.length;
-  const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
-  const displayProjects = useMemo(() => {
-    const start = (currentPage - 1) * PROJECTS_PER_PAGE;
-    const end = start + PROJECTS_PER_PAGE;
-    return sortedProjects.slice(start, end);
-  }, [sortedProjects, currentPage]);
-
+  // Fetch available regions
   const { data: allRegions } = useQuery({
     queryKey: ['all-regions'],
     queryFn: async () => {
       const { data } = await supabase.from('projects').select('region').eq('status', 'active');
-      const dbRegions = data?.map(p => p.region) || [];
-      const staticRegions = staticProjects.map(p => p.region);
-      return Array.from(new Set([...dbRegions, ...staticRegions])).sort();
+      const regions = data?.map(p => p.region) || [];
+      return Array.from(new Set(regions)).sort();
     }
   });
 
@@ -216,7 +183,7 @@ export default function Portfolio() {
     setAreaRange([0, 1000]);
     setSearchText('');
     setSelectedTags([]);
-    setSortBy('date-desc');
+    setSortBy(settings?.default_sort || 'date-desc');
     setCurrentPage(1);
   };
 
@@ -247,31 +214,33 @@ export default function Portfolio() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={t('search.placeholder')}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="pl-10 pr-20"
-            />
-            {searchText && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSearchText('')}
-                  className="h-7 px-2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+        {settings?.show_search && (
+          <div className="mb-6">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('search.placeholder')}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-10 pr-20"
+              />
+              {searchText && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchText('')}
+                    className="h-7 px-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Active Filters Badges */}
         {hasActiveFilters && (
@@ -304,77 +273,82 @@ export default function Portfolio() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">{t('filters.region')}</label>
-            <Select value={regionFilter} onValueChange={setRegionFilter}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('filters.all')}</SelectItem>
-                {allRegions?.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-              </SelectContent>
-            </Select>
+        {/* Filters */}
+        {settings?.show_filters && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">{t('filters.region')}</label>
+              <Select value={regionFilter} onValueChange={setRegionFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filters.all')}</SelectItem>
+                  {allRegions?.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">{t('filters.propertyType')}</label>
+              <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filters.all')}</SelectItem>
+                  <SelectItem value="apartment">{t('filters.apartment')}</SelectItem>
+                  <SelectItem value="house">{t('filters.house')}</SelectItem>
+                  <SelectItem value="villa">{t('filters.villa')}</SelectItem>
+                  <SelectItem value="land">{t('filters.land')}</SelectItem>
+                  <SelectItem value="commercial">{t('filters.commercial')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">{t('sorting.label')}</label>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-desc">{t('sorting.dateDesc')}</SelectItem>
+                  <SelectItem value="date-asc">{t('sorting.dateAsc')}</SelectItem>
+                  <SelectItem value="name-asc">{t('sorting.nameAsc')}</SelectItem>
+                  <SelectItem value="name-desc">{t('sorting.nameDesc')}</SelectItem>
+                  <SelectItem value="price-asc">{t('sorting.priceAsc')}</SelectItem>
+                  <SelectItem value="price-desc">{t('sorting.priceDesc')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">{t('filters.propertyType')}</label>
-            <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('filters.all')}</SelectItem>
-                <SelectItem value="apartment">{t('filters.apartment')}</SelectItem>
-                <SelectItem value="house">{t('filters.house')}</SelectItem>
-                <SelectItem value="villa">{t('filters.villa')}</SelectItem>
-                <SelectItem value="land">{t('filters.land')}</SelectItem>
-                <SelectItem value="commercial">{t('filters.commercial')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">{t('sorting.label')}</label>
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">{t('sorting.dateDesc')}</SelectItem>
-                <SelectItem value="date-asc">{t('sorting.dateAsc')}</SelectItem>
-                <SelectItem value="name-asc">{t('sorting.nameAsc')}</SelectItem>
-                <SelectItem value="name-desc">{t('sorting.nameDesc')}</SelectItem>
-                <SelectItem value="price-asc">{t('sorting.priceAsc')}</SelectItem>
-                <SelectItem value="price-desc">{t('sorting.priceDesc')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        )}
 
         {/* Advanced Filters */}
-        <div className="mb-6">
-          <AdvancedFilters
-            bedroomsFilter={bedroomsFilter}
-            onBedroomsChange={setBedroomsFilter}
-            areaRange={areaRange}
-            onAreaRangeChange={setAreaRange}
-            priceRange={priceRange}
-            onPriceRangeChange={setPriceRange}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            availableTags={availableTags || []}
-            isOpen={advancedFiltersOpen}
-            onOpenChange={setAdvancedFiltersOpen}
-            translations={{
-              title: t('filters.advancedFilters'),
-              bedrooms: t('filters.bedrooms'),
-              bedroomsAll: t('filters.bedroomsAll'),
-              area: t('filters.area'),
-              areaMin: t('filters.areaMin'),
-              areaMax: t('filters.areaMax'),
-              price: t('filters.price'),
-              priceMin: t('filters.priceMin'),
-              priceMax: t('filters.priceMax'),
-              tags: t('filters.tags'),
-              tagsPlaceholder: t('filters.tagsPlaceholder'),
-              clearAdvanced: t('filters.clearAdvanced')
-            }}
-          />
-        </div>
+        {settings?.show_advanced_filters && (
+          <div className="mb-6">
+            <AdvancedFilters
+              bedroomsFilter={bedroomsFilter}
+              onBedroomsChange={setBedroomsFilter}
+              areaRange={areaRange}
+              onAreaRangeChange={setAreaRange}
+              priceRange={priceRange}
+              onPriceRangeChange={setPriceRange}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              availableTags={availableTags || []}
+              isOpen={advancedFiltersOpen}
+              onOpenChange={setAdvancedFiltersOpen}
+              translations={{
+                title: t('filters.advancedFilters'),
+                bedrooms: t('filters.bedrooms'),
+                bedroomsAll: t('filters.bedroomsAll'),
+                area: t('filters.area'),
+                areaMin: t('filters.areaMin'),
+                areaMax: t('filters.areaMax'),
+                price: t('filters.price'),
+                priceMin: t('filters.priceMin'),
+                priceMax: t('filters.priceMax'),
+                tags: t('filters.tags'),
+                tagsPlaceholder: t('filters.tagsPlaceholder'),
+                clearAdvanced: t('filters.clearAdvanced')
+              }}
+            />
+          </div>
+        )}
 
         {hasActiveFilters && <Button onClick={clearFilters} variant="outline" className="mb-4">{t('filters.clearFilters')}</Button>}
         <div className="text-sm text-muted-foreground mb-8">
@@ -387,7 +361,11 @@ export default function Portfolio() {
       </div>
 
       <div className="container mx-auto px-4 pb-16">
-        {displayProjects.length > 0 ? (<>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : displayProjects.length > 0 ? (<>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} />)}
           </div>
