@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { 
@@ -26,8 +27,12 @@ import {
   Clock,
   Settings,
   Save,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Upload,
+  Database
 } from 'lucide-react';
+import { projects as staticProjects, Project as StaticProject } from '@/data/projects';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
@@ -39,9 +44,21 @@ interface PortfolioSettings {
   show_advanced_filters: boolean;
 }
 
+interface MigrationLog {
+  projectId: string;
+  projectTitle: string;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  message: string;
+}
+
 export default function PortfolioManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
+  
+  // Migration state
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState(0);
+  const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
 
   // Settings state
   const [localSettings, setLocalSettings] = useState<PortfolioSettings>({
@@ -110,6 +127,175 @@ export default function PortfolioManager() {
       return data;
     },
   });
+
+  // Calculate unmigrated projects
+  const unmigratedProjects = useMemo(() => {
+    if (!projects) return staticProjects;
+    const dbProjectIds = new Set(projects.map(p => p.id));
+    return staticProjects.filter(sp => !dbProjectIds.has(sp.id));
+  }, [projects]);
+
+  // Upload image to storage
+  const uploadImageToStorage = async (imageUrl: string, projectId: string, imageName: string): Promise<string | null> => {
+    try {
+      // Fetch the image
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Generate a unique file name
+      const extension = imageUrl.split('.').pop()?.split('?')[0] || 'jpg';
+      const fileName = `${projectId}/${imageName}.${extension}`;
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('project-images')
+        .upload(fileName, blob, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (error) {
+        console.error('Upload error:', error);
+        return null;
+      }
+      
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('project-images')
+        .getPublicUrl(fileName);
+      
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+  };
+
+  // Migrate a single project
+  const migrateProject = async (staticProject: StaticProject): Promise<boolean> => {
+    try {
+      // Upload main image
+      const mainImageUrl = await uploadImageToStorage(
+        staticProject.mainImage, 
+        staticProject.id, 
+        'main'
+      );
+      
+      if (!mainImageUrl) {
+        throw new Error('Failed to upload main image');
+      }
+
+      // Insert project into database
+      const { error: projectError } = await supabase
+        .from('projects')
+        .insert({
+          id: staticProject.id,
+          title_pt: staticProject.title.pt,
+          title_fr: staticProject.title.fr,
+          title_en: staticProject.title.en,
+          title_de: staticProject.title.de,
+          description_pt: staticProject.description.pt,
+          description_fr: staticProject.description.fr,
+          description_en: staticProject.description.en,
+          description_de: staticProject.description.de,
+          location: staticProject.location,
+          region: staticProject.region,
+          main_image: mainImageUrl,
+          status: 'active',
+          featured: false,
+        });
+
+      if (projectError) {
+        throw projectError;
+      }
+
+      // Upload gallery images and insert into project_images
+      for (let i = 0; i < staticProject.gallery.length; i++) {
+        const galleryImageUrl = await uploadImageToStorage(
+          staticProject.gallery[i],
+          staticProject.id,
+          `gallery-${i + 1}`
+        );
+        
+        if (galleryImageUrl) {
+          await supabase
+            .from('project_images')
+            .insert({
+              project_id: staticProject.id,
+              image_url: galleryImageUrl,
+              order_index: i
+            });
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Migration error for project:', staticProject.id, error);
+      return false;
+    }
+  };
+
+  // Start migration process
+  const startMigration = async () => {
+    if (unmigratedProjects.length === 0) {
+      toast.info('Todos os projetos já foram migrados!');
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationProgress(0);
+    setMigrationLogs([]);
+
+    const totalProjects = unmigratedProjects.length;
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let i = 0; i < unmigratedProjects.length; i++) {
+      const project = unmigratedProjects[i];
+      
+      // Update log to uploading
+      setMigrationLogs(prev => [...prev, {
+        projectId: project.id,
+        projectTitle: project.title.pt,
+        status: 'uploading',
+        message: 'A fazer upload das imagens...'
+      }]);
+
+      const success = await migrateProject(project);
+      
+      // Update log with result
+      setMigrationLogs(prev => prev.map(log => 
+        log.projectId === project.id 
+          ? { 
+              ...log, 
+              status: success ? 'success' : 'error',
+              message: success ? 'Migrado com sucesso!' : 'Erro na migração'
+            }
+          : log
+      ));
+
+      if (success) {
+        successCount++;
+      } else {
+        errorCount++;
+      }
+
+      // Update progress
+      setMigrationProgress(Math.round(((i + 1) / totalProjects) * 100));
+    }
+
+    setIsMigrating(false);
+    
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['admin-portfolio'] });
+    queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+
+    if (errorCount === 0) {
+      toast.success(`${successCount} projetos migrados com sucesso!`);
+    } else {
+      toast.warning(`${successCount} projetos migrados, ${errorCount} com erro.`);
+    }
+  };
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
@@ -244,6 +430,69 @@ export default function PortfolioManager() {
             </Button>
           </div>
         </div>
+
+        {/* Migration Alert Card */}
+        {unmigratedProjects.length > 0 && (
+          <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-600">
+                <AlertTriangle className="h-5 w-5" />
+                Migração Pendente
+              </CardTitle>
+              <CardDescription>
+                {unmigratedProjects.length} projetos estáticos precisam ser migrados para a base de dados para aparecerem no Portfolio público.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isMigrating ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm font-medium">A migrar projetos... {migrationProgress}%</span>
+                  </div>
+                  <Progress value={migrationProgress} className="h-2" />
+                  
+                  {/* Migration Logs */}
+                  <div className="mt-4 max-h-48 overflow-y-auto space-y-2 rounded-lg border p-3 bg-background">
+                    {migrationLogs.map((log, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        {log.status === 'uploading' && <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />}
+                        {log.status === 'success' && <CheckCircle className="h-3 w-3 text-green-500" />}
+                        {log.status === 'error' && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                        <span className={
+                          log.status === 'success' ? 'text-green-600' : 
+                          log.status === 'error' ? 'text-red-600' : 
+                          'text-muted-foreground'
+                        }>
+                          {log.projectTitle}: {log.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {unmigratedProjects.slice(0, 5).map(project => (
+                      <Badge key={project.id} variant="outline" className="text-xs">
+                        {project.title.pt}
+                      </Badge>
+                    ))}
+                    {unmigratedProjects.length > 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{unmigratedProjects.length - 5} mais
+                      </Badge>
+                    )}
+                  </div>
+                  <Button onClick={startMigration} className="gap-2">
+                    <Database className="h-4 w-4" />
+                    Migrar {unmigratedProjects.length} Projetos Agora
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Settings Card */}
         <Card className="mb-8">
@@ -436,13 +685,10 @@ export default function PortfolioManager() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Foto</TableHead>
-                      <TableHead>Título</TableHead>
+                      <TableHead className="w-[300px]">Projeto</TableHead>
                       <TableHead>Localização</TableHead>
-                      <TableHead>Tipo</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead className="text-center">Destaque</TableHead>
-                      <TableHead className="text-center">Visível no Site</TableHead>
+                      <TableHead>Destaque</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -450,72 +696,65 @@ export default function PortfolioManager() {
                     {filteredProjects.map((project) => (
                       <TableRow key={project.id}>
                         <TableCell>
-                          {project.main_image ? (
-                            <img 
-                              src={project.main_image} 
-                              alt={project.title_pt}
-                              className="w-12 h-12 object-cover rounded-md"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                              <Building2 className="h-5 w-5 text-muted-foreground" />
+                          <div className="flex items-center gap-3">
+                            {project.main_image && (
+                              <img 
+                                src={project.main_image} 
+                                alt={project.title_pt}
+                                className="w-12 h-12 rounded object-cover"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium">{project.title_pt}</p>
+                              <p className="text-xs text-muted-foreground">ID: {project.id}</p>
                             </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[200px] truncate">
-                          {project.title_pt}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {project.location}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {project.property_type || 'N/A'}
-                          </Badge>
+                          <div>
+                            <p className="text-sm">{project.location}</p>
+                            <p className="text-xs text-muted-foreground">{project.region}</p>
+                          </div>
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(project.status)}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell>
                           <Switch
                             checked={project.featured || false}
                             onCheckedChange={(checked) => 
                               toggleFeaturedMutation.mutate({ id: project.id, featured: checked })
                             }
+                            disabled={toggleFeaturedMutation.isPending}
                           />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleStatusMutation.mutate({
-                              id: project.id,
-                              newStatus: project.status === 'active' ? 'draft' : 'active'
-                            })}
-                            title={project.status === 'active' ? 'Clique para ocultar do site' : 'Clique para mostrar no site'}
-                          >
-                            {project.status === 'active' ? (
-                              <Eye className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button asChild variant="ghost" size="icon" title="Ver no site">
-                              <a 
-                                href={`/project/${project.id}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                const newStatus = project.status === 'active' ? 'draft' : 'active';
+                                toggleStatusMutation.mutate({ id: project.id, newStatus });
+                              }}
+                              disabled={toggleStatusMutation.isPending}
+                              title={project.status === 'active' ? 'Desativar' : 'Ativar'}
+                            >
+                              {project.status === 'active' ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
                             </Button>
-                            <Button asChild variant="ghost" size="icon" title="Editar">
-                              <Link to={`/admin/properties/edit/${project.id}`}>
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link to={`/admin/properties/${project.id}`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
+                            </Button>
+                            <Button variant="ghost" size="icon" asChild>
+                              <a href={`/projetos/${project.id}`} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
                             </Button>
                           </div>
                         </TableCell>
@@ -525,21 +764,13 @@ export default function PortfolioManager() {
                 </Table>
               </div>
             ) : (
-              <div className="p-8 text-center text-muted-foreground">
-                <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="mb-2">Nenhum projeto encontrado</p>
-                <p className="text-sm">
-                  {projects?.length === 0 
-                    ? 'Adicione projetos para que apareçam no portfolio público.'
-                    : 'Tente ajustar os termos de pesquisa.'}
-                </p>
-                {projects?.length === 0 && (
-                  <Button asChild className="mt-4">
-                    <Link to="/admin/properties/new">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeiro Projeto
-                    </Link>
-                  </Button>
+              <div className="p-8 text-center">
+                <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">Nenhum projeto encontrado na base de dados</p>
+                {unmigratedProjects.length > 0 && (
+                  <p className="text-sm text-amber-600">
+                    Migre os {unmigratedProjects.length} projetos estáticos acima para começar!
+                  </p>
                 )}
               </div>
             )}
