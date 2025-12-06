@@ -425,6 +425,155 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string
+          order_index: number | null
+          portfolio_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url: string
+          order_index?: number | null
+          portfolio_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          order_index?: number | null
+          portfolio_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_images_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_projects: {
+        Row: {
+          address: string | null
+          area_sqm: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          created_at: string | null
+          created_by: string | null
+          description_de: string
+          description_en: string
+          description_fr: string
+          description_pt: string
+          featured: boolean | null
+          features: Json | null
+          id: string
+          json_ld: Json | null
+          location: string
+          main_image: string | null
+          map_embed_url: string | null
+          map_latitude: number | null
+          map_longitude: number | null
+          operation_type: string | null
+          order_index: number | null
+          parking_spaces: number | null
+          postal_code: string | null
+          price: number | null
+          property_type: string | null
+          region: string
+          status: string | null
+          tags: string[] | null
+          title_de: string
+          title_en: string
+          title_fr: string
+          title_pt: string
+          updated_at: string | null
+          video_url: string | null
+          virtual_tour_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          area_sqm?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description_de?: string
+          description_en?: string
+          description_fr?: string
+          description_pt: string
+          featured?: boolean | null
+          features?: Json | null
+          id?: string
+          json_ld?: Json | null
+          location: string
+          main_image?: string | null
+          map_embed_url?: string | null
+          map_latitude?: number | null
+          map_longitude?: number | null
+          operation_type?: string | null
+          order_index?: number | null
+          parking_spaces?: number | null
+          postal_code?: string | null
+          price?: number | null
+          property_type?: string | null
+          region: string
+          status?: string | null
+          tags?: string[] | null
+          title_de?: string
+          title_en?: string
+          title_fr?: string
+          title_pt: string
+          updated_at?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          area_sqm?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description_de?: string
+          description_en?: string
+          description_fr?: string
+          description_pt?: string
+          featured?: boolean | null
+          features?: Json | null
+          id?: string
+          json_ld?: Json | null
+          location?: string
+          main_image?: string | null
+          map_embed_url?: string | null
+          map_latitude?: number | null
+          map_longitude?: number | null
+          operation_type?: string | null
+          order_index?: number | null
+          parking_spaces?: number | null
+          postal_code?: string | null
+          price?: number | null
+          property_type?: string | null
+          region?: string
+          status?: string | null
+          tags?: string[] | null
+          title_de?: string
+          title_en?: string
+          title_fr?: string
+          title_pt?: string
+          updated_at?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
