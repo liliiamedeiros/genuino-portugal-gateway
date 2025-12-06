@@ -100,11 +100,11 @@ export default function Portfolio() {
     return () => clearTimeout(timer);
   }, [searchText]);
 
-  // Fetch projects from database only (no static projects)
+  // Fetch projects from portfolio_projects table (separate from properties/projects)
   const { data: queryResult, isLoading } = useQuery({
     queryKey: ['portfolio-projects', currentPage, regionFilter, propertyTypeFilter, priceRange, bedroomsFilter, areaRange, sortBy, debouncedSearchText, selectedTags, PROJECTS_PER_PAGE],
     queryFn: async () => {
-      let query = supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'active');
+      let query = supabase.from('portfolio_projects').select('*', { count: 'exact' }).eq('status', 'active');
       
       // Text search across multiple fields
       if (debouncedSearchText) {
@@ -140,11 +140,11 @@ export default function Portfolio() {
   const totalCount = queryResult?.total || 0;
   const totalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
 
-  // Fetch available tags
+  // Fetch available tags from portfolio_projects
   const { data: availableTags } = useQuery({
-    queryKey: ['available-tags'],
+    queryKey: ['portfolio-available-tags'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('tags').eq('status', 'active');
+      const { data } = await supabase.from('portfolio_projects').select('tags').eq('status', 'active');
       const allTags = new Set<string>();
       data?.forEach(p => {
         if (p.tags && Array.isArray(p.tags)) {
@@ -165,11 +165,11 @@ export default function Portfolio() {
     }));
   }, [projects, language]);
 
-  // Fetch available regions
+  // Fetch available regions from portfolio_projects
   const { data: allRegions } = useQuery({
-    queryKey: ['all-regions'],
+    queryKey: ['portfolio-all-regions'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('region').eq('status', 'active');
+      const { data } = await supabase.from('portfolio_projects').select('region').eq('status', 'active');
       const regions = data?.map(p => p.region) || [];
       return Array.from(new Set(regions)).sort();
     }

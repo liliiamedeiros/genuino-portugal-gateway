@@ -43,7 +43,8 @@ import JsonLdSystem from "./pages/admin/JsonLdSystem";
 import ImageConverter from "./pages/admin/ImageConverter";
 import MigrateProjects from "./pages/admin/MigrateProjects";
 import MenuManager from "./pages/admin/MenuManager";
-import PortfolioManager from "./pages/admin/PortfolioManager";
+import PortfolioList from "./pages/admin/PortfolioList";
+import PortfolioForm from "./pages/admin/PortfolioForm";
 
 const queryClient = new QueryClient();
 
@@ -248,7 +249,17 @@ const App = () => {
             } />
             <Route path="/admin/portfolio" element={
               <ProtectedRoute requiredRole="editor">
-                <PortfolioManager />
+                <PortfolioList />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/portfolio/new" element={
+              <ProtectedRoute requiredRole="editor">
+                <PortfolioForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/portfolio/edit/:id" element={
+              <ProtectedRoute requiredRole="editor">
+                <PortfolioForm />
               </ProtectedRoute>
             } />
 
