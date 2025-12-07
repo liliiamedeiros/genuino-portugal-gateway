@@ -39,6 +39,7 @@ export default function PortfolioList() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isMigratingFromProjects, setIsMigratingFromProjects] = useState(false);
   const [migrationProgress, setMigrationProgress] = useState(0);
   const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
   const [settings, setSettings] = useState<PortfolioSettings>({
@@ -102,10 +103,29 @@ export default function PortfolioList() {
     }
   });
 
-  // Calculate unmigrated projects
+  // Fetch projects from the projects table (Imóveis) to migrate
+  const { data: projectsToMigrate } = useQuery({
+    queryKey: ['projects-for-migration'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Calculate unmigrated projects from static data
   const unmigratedProjects = staticProjects.filter(
     staticProject => !portfolioProjects?.some(dbProject => dbProject.id === staticProject.id)
   );
+
+  // Calculate projects from 'projects' table not yet in portfolio_projects
+  const unmigratedFromProjectsTable = projectsToMigrate?.filter(
+    proj => !portfolioProjects?.some(pp => pp.id === proj.id)
+  ) || [];
 
   // Upload image to storage
   const uploadImageToStorage = async (imageUrl: string, projectId: string, index: number): Promise<string> => {
@@ -208,6 +228,104 @@ export default function PortfolioList() {
     
     queryClient.invalidateQueries({ queryKey: ['admin-portfolio-projects'] });
     queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+  };
+
+  // Migrate projects from 'projects' table to 'portfolio_projects'
+  const migrateFromProjectsTable = async () => {
+    if (unmigratedFromProjectsTable.length === 0) return;
+
+    setIsMigratingFromProjects(true);
+    setMigrationProgress(0);
+    setMigrationLogs(unmigratedFromProjectsTable.map(p => ({
+      id: p.id,
+      title: p.title_pt,
+      status: 'pending' as const
+    })));
+
+    for (let i = 0; i < unmigratedFromProjectsTable.length; i++) {
+      const proj = unmigratedFromProjectsTable[i];
+      setMigrationLogs(prev => prev.map(log => 
+        log.id === proj.id ? { ...log, status: 'uploading' as const, message: 'Migrando...' } : log
+      ));
+
+      try {
+        // Insert into portfolio_projects
+        const { error: projectError } = await supabase.from('portfolio_projects').insert([{
+          id: proj.id,
+          title_pt: proj.title_pt,
+          title_fr: proj.title_fr || '',
+          title_en: proj.title_en || '',
+          title_de: proj.title_de || '',
+          description_pt: proj.description_pt,
+          description_fr: proj.description_fr || '',
+          description_en: proj.description_en || '',
+          description_de: proj.description_de || '',
+          location: proj.location,
+          region: proj.region,
+          city: proj.city,
+          address: proj.address,
+          postal_code: proj.postal_code,
+          property_type: proj.property_type,
+          operation_type: proj.operation_type,
+          price: proj.price,
+          bedrooms: proj.bedrooms,
+          bathrooms: proj.bathrooms,
+          area_sqm: proj.area_sqm,
+          parking_spaces: proj.parking_spaces,
+          main_image: proj.main_image,
+          features: proj.features,
+          tags: proj.tags,
+          video_url: proj.video_url,
+          virtual_tour_url: proj.virtual_tour_url,
+          map_embed_url: proj.map_embed_url,
+          map_latitude: proj.map_latitude,
+          map_longitude: proj.map_longitude,
+          json_ld: proj.json_ld,
+          status: proj.status || 'active',
+          featured: proj.featured || false,
+        }]);
+
+        if (projectError) throw projectError;
+
+        // Migrate images from project_images to portfolio_images
+        const { data: existingImages } = await supabase
+          .from('project_images')
+          .select('*')
+          .eq('project_id', proj.id)
+          .order('order_index');
+
+        if (existingImages && existingImages.length > 0) {
+          for (const img of existingImages) {
+            await supabase.from('portfolio_images').insert([{
+              portfolio_id: proj.id,
+              image_url: img.image_url,
+              order_index: img.order_index,
+            }]);
+          }
+        }
+
+        setMigrationLogs(prev => prev.map(log => 
+          log.id === proj.id ? { ...log, status: 'success' as const, message: 'Migrado com sucesso!' } : log
+        ));
+      } catch (error: any) {
+        console.error('Error migrating project:', proj.id, error);
+        setMigrationLogs(prev => prev.map(log => 
+          log.id === proj.id ? { ...log, status: 'error' as const, message: error.message } : log
+        ));
+      }
+
+      setMigrationProgress(((i + 1) / unmigratedFromProjectsTable.length) * 100);
+    }
+
+    setIsMigratingFromProjects(false);
+    toast({
+      title: 'Migração de Imóveis concluída!',
+      description: `${unmigratedFromProjectsTable.length} projetos foram migrados para o Portfolio.`,
+    });
+    
+    queryClient.invalidateQueries({ queryKey: ['admin-portfolio-projects'] });
+    queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+    queryClient.invalidateQueries({ queryKey: ['projects-for-migration'] });
   };
 
   // Save settings mutation
@@ -348,6 +466,42 @@ export default function PortfolioList() {
                 <Button onClick={startMigration} className="gap-2">
                   <Upload className="h-4 w-4" />
                   Migrar {unmigratedProjects.length} Projetos Agora
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Migration from Projects Table Alert */}
+        {unmigratedFromProjectsTable.length > 0 && (
+          <Alert className="border-blue-500 bg-blue-500/10">
+            <Upload className="h-4 w-4 text-blue-500" />
+            <AlertTitle className="text-blue-600">Migrar Imóveis para Portfolio</AlertTitle>
+            <AlertDescription className="space-y-4">
+              <p>
+                Foram encontrados <strong>{unmigratedFromProjectsTable.length}</strong> imóveis na tabela <code className="bg-muted px-1 rounded">projects</code> que podem ser migrados para o Portfolio.
+              </p>
+              
+              {isMigratingFromProjects ? (
+                <div className="space-y-2">
+                  <Progress value={migrationProgress} className="h-2" />
+                  <div className="text-sm max-h-40 overflow-y-auto">
+                    {migrationLogs.map(log => (
+                      <div key={log.id} className="flex items-center gap-2">
+                        {log.status === 'pending' && <span className="text-muted-foreground">⏳</span>}
+                        {log.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin" />}
+                        {log.status === 'success' && <span className="text-green-500">✓</span>}
+                        {log.status === 'error' && <span className="text-red-500">✗</span>}
+                        <span>{log.title}</span>
+                        {log.message && <span className="text-muted-foreground text-xs">({log.message})</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Button onClick={migrateFromProjectsTable} className="gap-2" variant="outline">
+                  <Upload className="h-4 w-4" />
+                  Migrar {unmigratedFromProjectsTable.length} Imóveis para Portfolio
                 </Button>
               )}
             </AlertDescription>
