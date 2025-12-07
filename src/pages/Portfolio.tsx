@@ -367,7 +367,7 @@ export default function Portfolio() {
           </div>
         ) : displayProjects.length > 0 ? (<>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} />)}
+            {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} linkPrefix="/portfolio" />)}
           </div>
           {totalPages > 1 && (
             <div className="mt-12 flex justify-center">

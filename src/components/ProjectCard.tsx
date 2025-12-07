@@ -27,6 +27,7 @@ interface ProjectCardProps {
   price?: number;
   bedrooms?: number;
   area_sqm?: number;
+  linkPrefix?: string; // Optional: defaults to '/project'
 }
 
 export const ProjectCard = ({
@@ -38,6 +39,7 @@ export const ProjectCard = ({
   price,
   bedrooms,
   area_sqm,
+  linkPrefix = '/project',
 }: ProjectCardProps) => {
   const { isInCompare, addToCompare, removeFromCompare, canAddMore } = useCompare();
   const { language } = useLanguage();
@@ -102,7 +104,7 @@ export const ProjectCard = ({
         </div>
       )}
 
-      <Link to={`/project/${id}`}>
+      <Link to={`${linkPrefix}/${id}`}>
         <div className="relative overflow-hidden h-[200px] sm:h-[220px] md:h-[240px] lg:h-[280px] 3xl:h-[320px] 4xl:h-[360px] w-full">
           <img 
             src={image} 

@@ -16,6 +16,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Portfolio from "./pages/Portfolio";
+import PortfolioDetail from "./pages/PortfolioDetail";
 import Properties from "./pages/Properties";
 import ProjectDetail from "./pages/ProjectDetail";
 import Vision from "./pages/Vision";
@@ -84,13 +85,8 @@ const App = () => {
                   <Footer />
                 </>
               } />
-              <Route path="/portfolio" element={
-                <>
-                  <Navbar />
-                  <Portfolio />
-                  <Footer />
-                </>
-              } />
+              <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/portfolio/:id" element={<PortfolioDetail />} />
               <Route path="/properties" element={
                 <>
                   <Navbar />
