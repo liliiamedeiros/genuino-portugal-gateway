@@ -11,11 +11,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, Eye, Pencil, Trash2, Save, ExternalLink, Star, Loader2, AlertTriangle, Upload } from 'lucide-react';
+import { Plus, Search, Eye, EyeOff, Pencil, Trash2, Save, ExternalLink, Star, Loader2, AlertTriangle, Upload, Play, Pause } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { projects as staticProjects } from '@/data/projects';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
@@ -363,10 +375,20 @@ export default function PortfolioList() {
         .update({ status: newStatus })
         .eq('id', id);
       if (error) throw error;
+      return newStatus;
     },
-    onSuccess: () => {
+    onSuccess: (newStatus) => {
       queryClient.invalidateQueries({ queryKey: ['admin-portfolio-projects'] });
-      toast({ title: 'Estado atualizado!' });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+      toast({ 
+        title: newStatus === 'active' ? 'Projeto ativado!' : 'Projeto pausado!',
+        description: newStatus === 'active' 
+          ? 'O projeto agora está visível no site público.' 
+          : 'O projeto foi ocultado do site público.'
+      });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro ao alterar estado', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -378,16 +400,37 @@ export default function PortfolioList() {
         .update({ featured })
         .eq('id', id);
       if (error) throw error;
+      return featured;
     },
-    onSuccess: () => {
+    onSuccess: (featured) => {
       queryClient.invalidateQueries({ queryKey: ['admin-portfolio-projects'] });
-      toast({ title: 'Destaque atualizado!' });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+      toast({ 
+        title: featured ? 'Projeto em destaque!' : 'Destaque removido!',
+        description: featured 
+          ? 'Este projeto aparecerá na seção de destaques.' 
+          : 'O projeto foi removido da seção de destaques.'
+      });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro ao atualizar destaque', description: error.message, variant: 'destructive' });
     }
   });
 
-  // Delete mutation
+  // Delete mutation with proper cleanup
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // First delete associated images from portfolio_images
+      const { error: imagesError } = await supabase
+        .from('portfolio_images')
+        .delete()
+        .eq('portfolio_id', id);
+      
+      if (imagesError) {
+        console.error('Error deleting portfolio images:', imagesError);
+      }
+
+      // Then delete the project
       const { error } = await supabase
         .from('portfolio_projects')
         .delete()
@@ -396,7 +439,11 @@ export default function PortfolioList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-portfolio-projects'] });
-      toast({ title: 'Projeto eliminado!' });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-projects'] });
+      toast({ 
+        title: 'Projeto eliminado com sucesso!', 
+        description: 'O projeto e todas as suas imagens foram removidos.' 
+      });
     },
     onError: (error: any) => {
       toast({ title: 'Erro ao eliminar', description: error.message, variant: 'destructive' });
@@ -695,37 +742,97 @@ export default function PortfolioList() {
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleStatusMutation.mutate({
-                            id: project.id,
-                            newStatus: project.status === 'active' ? 'draft' : 'active'
-                          })}
-                          title={project.status === 'active' ? 'Desativar' : 'Ativar'}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/admin/portfolio/edit/${project.id}`)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm('Tem certeza que deseja eliminar este projeto?')) {
-                              deleteMutation.mutate(project.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <TooltipProvider>
+                        <div className="flex justify-end gap-1">
+                          {/* Pausar/Ativar */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={project.status === 'active' ? 'ghost' : 'outline'}
+                                size="icon"
+                                className={project.status === 'active' ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}
+                                onClick={() => toggleStatusMutation.mutate({
+                                  id: project.id,
+                                  newStatus: project.status === 'active' ? 'draft' : 'active'
+                                })}
+                              >
+                                {project.status === 'active' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {project.status === 'active' ? 'Pausar projeto' : 'Ativar projeto'}
+                            </TooltipContent>
+                          </Tooltip>
+
+                          {/* Editar */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                                onClick={() => navigate(`/admin/portfolio/edit/${project.id}`)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar projeto</TooltipContent>
+                          </Tooltip>
+
+                          {/* Ver no site */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-foreground"
+                                asChild
+                              >
+                                <Link to={`/portfolio/${project.id}`} target="_blank">
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Ver no site</TooltipContent>
+                          </Tooltip>
+
+                          {/* Apagar */}
+                          <AlertDialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>Eliminar projeto</TooltipContent>
+                            </Tooltip>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Eliminar Projeto</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja eliminar permanentemente o projeto <strong>"{project.title_pt}"</strong>? 
+                                  Esta ação não pode ser desfeita e todas as imagens serão removidas.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  className="bg-red-500 hover:bg-red-600"
+                                  onClick={() => deleteMutation.mutate(project.id)}
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 ))}
