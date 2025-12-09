@@ -129,14 +129,14 @@ export default function PortfolioList() {
     }
   });
 
-  // Calculate unmigrated projects from static data
+  // Calculate unmigrated projects from static data - check by title since IDs are different types
   const unmigratedProjects = staticProjects.filter(
-    staticProject => !portfolioProjects?.some(dbProject => dbProject.id === staticProject.id)
+    staticProject => !portfolioProjects?.some(dbProject => dbProject.title_pt === staticProject.title.pt)
   );
 
-  // Calculate projects from 'projects' table not yet in portfolio_projects
+  // Calculate projects from 'projects' table not yet in portfolio_projects - check by title
   const unmigratedFromProjectsTable = projectsToMigrate?.filter(
-    proj => !portfolioProjects?.some(pp => pp.id === proj.id)
+    proj => !portfolioProjects?.some(pp => pp.title_pt === proj.title_pt)
   ) || [];
 
   // Upload image to storage
@@ -173,10 +173,27 @@ export default function PortfolioList() {
     ));
 
     try {
-      const mainImageUrl = project.mainImage ? await uploadImageToStorage(project.mainImage, project.id, 0) : null;
+      // First check if already exists by title
+      const { data: existing } = await supabase
+        .from('portfolio_projects')
+        .select('id')
+        .eq('title_pt', project.title.pt)
+        .maybeSingle();
+
+      if (existing) {
+        setMigrationLogs(prev => prev.map(log => 
+          log.id === project.id ? { ...log, status: 'success' as const, message: 'Já existe na base de dados' } : log
+        ));
+        return;
+      }
+
+      // Generate a temp ID for uploads before we have the real UUID
+      const tempId = `temp_${Date.now()}`;
+      const mainImageUrl = project.mainImage ? await uploadImageToStorage(project.mainImage, tempId, 0) : null;
       
-      const { error: projectError } = await supabase.from('portfolio_projects').insert([{
-        id: project.id,
+      // Insert WITHOUT id - let Supabase generate UUID automatically
+      const { data: insertedProject, error: projectError } = await supabase.from('portfolio_projects').insert([{
+        // id NOT included - Supabase will auto-generate UUID
         title_pt: project.title.pt,
         title_fr: project.title.fr,
         title_en: project.title.en,
@@ -190,15 +207,17 @@ export default function PortfolioList() {
         main_image: mainImageUrl,
         status: 'active',
         featured: false,
-      }]);
+      }]).select('id').single();
 
       if (projectError) throw projectError;
 
-      // Upload gallery images
+      const newProjectId = insertedProject.id;
+
+      // Upload gallery images using the new UUID
       for (let i = 1; i < project.gallery.length; i++) {
-        const imageUrl = await uploadImageToStorage(project.gallery[i], project.id, i);
+        const imageUrl = await uploadImageToStorage(project.gallery[i], newProjectId, i);
         await supabase.from('portfolio_images').insert([{
-          portfolio_id: project.id,
+          portfolio_id: newProjectId,
           image_url: imageUrl,
           order_index: i,
         }]);
@@ -261,17 +280,32 @@ export default function PortfolioList() {
       ));
 
       try {
-        // Insert into portfolio_projects
-        const { error: projectError } = await supabase.from('portfolio_projects').insert([{
-          id: proj.id,
+        // Check if already exists by title
+        const { data: existing } = await supabase
+          .from('portfolio_projects')
+          .select('id')
+          .eq('title_pt', proj.title_pt)
+          .maybeSingle();
+
+        if (existing) {
+          setMigrationLogs(prev => prev.map(log => 
+            log.id === proj.id ? { ...log, status: 'success' as const, message: 'Já existe no Portfolio' } : log
+          ));
+          setMigrationProgress(((i + 1) / unmigratedFromProjectsTable.length) * 100);
+          continue;
+        }
+
+        // Insert into portfolio_projects WITHOUT id - let Supabase generate UUID
+        const { data: insertedProject, error: projectError } = await supabase.from('portfolio_projects').insert([{
+          // id NOT included - Supabase auto-generates UUID (projects.id is TEXT, portfolio_projects.id is UUID)
           title_pt: proj.title_pt,
-          title_fr: proj.title_fr || '',
-          title_en: proj.title_en || '',
-          title_de: proj.title_de || '',
+          title_fr: proj.title_fr || proj.title_pt,
+          title_en: proj.title_en || proj.title_pt,
+          title_de: proj.title_de || proj.title_pt,
           description_pt: proj.description_pt,
-          description_fr: proj.description_fr || '',
-          description_en: proj.description_en || '',
-          description_de: proj.description_de || '',
+          description_fr: proj.description_fr || proj.description_pt,
+          description_en: proj.description_en || proj.description_pt,
+          description_de: proj.description_de || proj.description_pt,
           location: proj.location,
           region: proj.region,
           city: proj.city,
@@ -295,11 +329,13 @@ export default function PortfolioList() {
           json_ld: proj.json_ld,
           status: proj.status || 'active',
           featured: proj.featured || false,
-        }]);
+        }]).select('id').single();
 
         if (projectError) throw projectError;
 
-        // Migrate images from project_images to portfolio_images
+        const newPortfolioId = insertedProject.id;
+
+        // Migrate images from project_images to portfolio_images using new UUID
         const { data: existingImages } = await supabase
           .from('project_images')
           .select('*')
@@ -309,7 +345,7 @@ export default function PortfolioList() {
         if (existingImages && existingImages.length > 0) {
           for (const img of existingImages) {
             await supabase.from('portfolio_images').insert([{
-              portfolio_id: proj.id,
+              portfolio_id: newPortfolioId,
               image_url: img.image_url,
               order_index: img.order_index,
             }]);
@@ -340,7 +376,7 @@ export default function PortfolioList() {
     queryClient.invalidateQueries({ queryKey: ['projects-for-migration'] });
   };
 
-  // Save settings mutation
+  // Save settings mutation - FIXED: check if exists then update or insert
   const saveSettingsMutation = useMutation({
     mutationFn: async (newSettings: PortfolioSettings) => {
       const settingsToSave = [
@@ -352,17 +388,38 @@ export default function PortfolioList() {
       ];
 
       for (const setting of settingsToSave) {
-        const { error } = await supabase
+        // First check if setting exists
+        const { data: existing } = await supabase
           .from('site_settings')
-          .upsert(setting, { onConflict: 'key' });
-        if (error) throw error;
+          .select('id')
+          .eq('key', setting.key)
+          .eq('category', 'portfolio')
+          .maybeSingle();
+
+        if (existing) {
+          // Update existing setting
+          const { error } = await supabase
+            .from('site_settings')
+            .update({ value: setting.value, updated_at: new Date().toISOString() })
+            .eq('key', setting.key)
+            .eq('category', 'portfolio');
+          if (error) throw error;
+        } else {
+          // Insert new setting
+          const { error } = await supabase
+            .from('site_settings')
+            .insert([setting]);
+          if (error) throw error;
+        }
       }
     },
     onSuccess: () => {
       toast({ title: 'Configurações guardadas com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['portfolio-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-settings-admin'] });
     },
     onError: (error: any) => {
+      console.error('Settings save error:', error);
       toast({ title: 'Erro ao guardar configurações', description: error.message, variant: 'destructive' });
     }
   });
