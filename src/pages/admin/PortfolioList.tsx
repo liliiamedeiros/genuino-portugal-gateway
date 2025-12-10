@@ -78,20 +78,22 @@ export default function PortfolioList() {
       if (data) {
         data.forEach((setting) => {
           const value = (setting.value as { value: any })?.value;
-          if (setting.key === 'projects_per_page' && typeof value === 'number') {
-            loadedSettings.projects_per_page = value;
+          if (setting.key === 'projects_per_page') {
+            const numValue = typeof value === 'number' ? value : parseInt(value, 10);
+            if (!isNaN(numValue)) loadedSettings.projects_per_page = numValue;
           }
           if (setting.key === 'default_sort' && typeof value === 'string') {
             loadedSettings.default_sort = value as SortOption;
           }
-          if (setting.key === 'show_filters' && typeof value === 'boolean') {
-            loadedSettings.show_filters = value;
+          // Aceitar tanto boolean como string "true"/"false"
+          if (setting.key === 'show_filters') {
+            loadedSettings.show_filters = value === true || value === 'true';
           }
-          if (setting.key === 'show_search' && typeof value === 'boolean') {
-            loadedSettings.show_search = value;
+          if (setting.key === 'show_search') {
+            loadedSettings.show_search = value === true || value === 'true';
           }
-          if (setting.key === 'show_advanced_filters' && typeof value === 'boolean') {
-            loadedSettings.show_advanced_filters = value;
+          if (setting.key === 'show_advanced_filters') {
+            loadedSettings.show_advanced_filters = value === true || value === 'true';
           }
         });
         setSettings(loadedSettings);
