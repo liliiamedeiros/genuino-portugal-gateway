@@ -61,20 +61,22 @@ export default function Portfolio() {
       if (data) {
         data.forEach((setting) => {
           const value = (setting.value as { value: any })?.value;
-          if (setting.key === 'projects_per_page' && typeof value === 'number') {
-            defaultSettings.projects_per_page = value;
+          if (setting.key === 'projects_per_page') {
+            const numValue = typeof value === 'number' ? value : parseInt(value, 10);
+            if (!isNaN(numValue)) defaultSettings.projects_per_page = numValue;
           }
           if (setting.key === 'default_sort' && typeof value === 'string') {
             defaultSettings.default_sort = value as SortOption;
           }
-          if (setting.key === 'show_filters' && typeof value === 'boolean') {
-            defaultSettings.show_filters = value;
+          // Aceitar tanto boolean como string "true"/"false"
+          if (setting.key === 'show_filters') {
+            defaultSettings.show_filters = value === true || value === 'true';
           }
-          if (setting.key === 'show_search' && typeof value === 'boolean') {
-            defaultSettings.show_search = value;
+          if (setting.key === 'show_search') {
+            defaultSettings.show_search = value === true || value === 'true';
           }
-          if (setting.key === 'show_advanced_filters' && typeof value === 'boolean') {
-            defaultSettings.show_advanced_filters = value;
+          if (setting.key === 'show_advanced_filters') {
+            defaultSettings.show_advanced_filters = value === true || value === 'true';
           }
         });
       }
