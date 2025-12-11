@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -39,9 +39,6 @@ type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-a
 interface PortfolioSettings {
   projects_per_page: number;
   default_sort: SortOption;
-  show_filters: boolean;
-  show_search: boolean;
-  show_advanced_filters: boolean;
 }
 
 interface MigrationLog {
@@ -64,9 +61,6 @@ export default function PortfolioManager() {
   const [localSettings, setLocalSettings] = useState<PortfolioSettings>({
     projects_per_page: 12,
     default_sort: 'date-desc',
-    show_filters: true,
-    show_search: true,
-    show_advanced_filters: true,
   });
 
   // Fetch portfolio settings
@@ -83,9 +77,6 @@ export default function PortfolioManager() {
       const settings: PortfolioSettings = {
         projects_per_page: 12,
         default_sort: 'date-desc',
-        show_filters: true,
-        show_search: true,
-        show_advanced_filters: true,
       };
       
       if (data) {
@@ -96,15 +87,6 @@ export default function PortfolioManager() {
           }
           if (setting.key === 'default_sort' && typeof value === 'string') {
             settings.default_sort = value as SortOption;
-          }
-          if (setting.key === 'show_filters' && typeof value === 'boolean') {
-            settings.show_filters = value;
-          }
-          if (setting.key === 'show_search' && typeof value === 'boolean') {
-            settings.show_search = value;
-          }
-          if (setting.key === 'show_advanced_filters' && typeof value === 'boolean') {
-            settings.show_advanced_filters = value;
           }
         });
       }
@@ -303,9 +285,6 @@ export default function PortfolioManager() {
       const updates = [
         { key: 'projects_per_page', value: { value: settings.projects_per_page } },
         { key: 'default_sort', value: { value: settings.default_sort } },
-        { key: 'show_filters', value: { value: settings.show_filters } },
-        { key: 'show_search', value: { value: settings.show_search } },
-        { key: 'show_advanced_filters', value: { value: settings.show_advanced_filters } },
       ];
 
       for (const update of updates) {
@@ -398,10 +377,7 @@ export default function PortfolioManager() {
 
   const hasSettingsChanged = savedSettings && (
     localSettings.projects_per_page !== savedSettings.settings.projects_per_page ||
-    localSettings.default_sort !== savedSettings.settings.default_sort ||
-    localSettings.show_filters !== savedSettings.settings.show_filters ||
-    localSettings.show_search !== savedSettings.settings.show_search ||
-    localSettings.show_advanced_filters !== savedSettings.settings.show_advanced_filters
+    localSettings.default_sort !== savedSettings.settings.default_sort
   );
 
   return (
@@ -552,38 +528,6 @@ export default function PortfolioManager() {
                         <SelectItem value="price-desc">Preço (maior)</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h4 className="font-medium">Visibilidade de elementos</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <Label htmlFor="show_search" className="cursor-pointer">Mostrar pesquisa</Label>
-                      <Switch
-                        id="show_search"
-                        checked={localSettings.show_search}
-                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_search: checked }))}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <Label htmlFor="show_filters" className="cursor-pointer">Mostrar filtros</Label>
-                      <Switch
-                        id="show_filters"
-                        checked={localSettings.show_filters}
-                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_filters: checked }))}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <Label htmlFor="show_advanced_filters" className="cursor-pointer">Filtros avançados</Label>
-                      <Switch
-                        id="show_advanced_filters"
-                        checked={localSettings.show_advanced_filters}
-                        onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, show_advanced_filters: checked }))}
-                      />
-                    </div>
                   </div>
                 </div>
 

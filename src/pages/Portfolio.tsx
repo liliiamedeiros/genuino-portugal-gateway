@@ -7,7 +7,6 @@ import { ProjectCard } from '@/components/ProjectCard';
 import { SEOHead } from '@/components/SEOHead';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { CompareBar } from '@/components/CompareBar';
 import { Loader2 } from 'lucide-react';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
@@ -161,6 +160,5 @@ export default function Portfolio() {
       </div>
     </div>
     <Footer />
-    <CompareBar />
   </>);
 }
