@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowRight, ArrowLeftRight, Bed, Maximize } from 'lucide-react';
-import { useCompare } from '@/contexts/CompareContext';
-import { Checkbox } from '@/components/ui/checkbox';
+import { MapPin, ArrowRight, Bed, Maximize } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Feature icons mapping
@@ -41,19 +39,7 @@ export const ProjectCard = ({
   area_sqm,
   linkPrefix = '/project',
 }: ProjectCardProps) => {
-  const { isInCompare, addToCompare, removeFromCompare, canAddMore } = useCompare();
   const { language } = useLanguage();
-  const inCompare = isInCompare(id);
-
-  const handleCompareToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (inCompare) {
-      removeFromCompare(id);
-    } else if (canAddMore) {
-      addToCompare(id);
-    }
-  };
 
   // Get active features (max 4 for display)
   const activeFeatures = features 
@@ -74,21 +60,6 @@ export const ProjectCard = ({
 
   return (
     <div className="block group overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-500 bg-card relative">
-      {/* Compare Checkbox */}
-      <div 
-        className="absolute top-3 right-3 z-20 bg-background/90 rounded-md p-2 shadow-lg"
-        onClick={handleCompareToggle}
-      >
-        <div className="flex items-center gap-2">
-          <Checkbox 
-            checked={inCompare}
-            disabled={!canAddMore && !inCompare}
-            className="cursor-pointer"
-          />
-          <ArrowLeftRight className="h-4 w-4" />
-        </div>
-      </div>
-
       {/* Feature Badges - Top Left */}
       {activeFeatures.length > 0 && (
         <div className="absolute top-3 left-3 z-20 flex flex-wrap gap-1 max-w-[60%]">

@@ -34,16 +34,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
     { icon: FolderOpen, label: 'Portfolio', path: '/admin/portfolio' },
-    { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter' },
-    { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
-    { icon: BarChart3, label: 'Relatórios', path: '/admin/reports' },
-    { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system' },
-    { icon: CheckCircle, label: 'Validador-JSON_LD', path: '/admin/json-ld-validator' },
+    { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
+    { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus', adminOnly: true },
+    { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', adminOnly: true },
+    { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system', adminOnly: true },
+    { icon: CheckCircle, label: 'Validador-JSON_LD', path: '/admin/json-ld-validator', adminOnly: true },
+    { icon: Mail, label: 'Newsletter', path: '/admin/newsletter', adminOnly: true },
     { icon: Settings, label: 'Configurações', path: '/admin/settings', adminOnly: true },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
-    { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
   ];
 
   // Filter menus for editors - completely hide admin-only items
