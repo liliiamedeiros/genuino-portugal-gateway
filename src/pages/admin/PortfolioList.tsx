@@ -34,9 +34,6 @@ type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-a
 interface PortfolioSettings {
   projects_per_page: number;
   default_sort: SortOption;
-  show_filters: boolean;
-  show_search: boolean;
-  show_advanced_filters: boolean;
 }
 
 interface MigrationLog {
@@ -57,9 +54,6 @@ export default function PortfolioList() {
   const [settings, setSettings] = useState<PortfolioSettings>({
     projects_per_page: 12,
     default_sort: 'date-desc',
-    show_filters: true,
-    show_search: true,
-    show_advanced_filters: true,
   });
 
   // Fetch portfolio settings
@@ -84,16 +78,6 @@ export default function PortfolioList() {
           }
           if (setting.key === 'default_sort' && typeof value === 'string') {
             loadedSettings.default_sort = value as SortOption;
-          }
-          // Aceitar tanto boolean como string "true"/"false"
-          if (setting.key === 'show_filters') {
-            loadedSettings.show_filters = value === true || value === 'true';
-          }
-          if (setting.key === 'show_search') {
-            loadedSettings.show_search = value === true || value === 'true';
-          }
-          if (setting.key === 'show_advanced_filters') {
-            loadedSettings.show_advanced_filters = value === true || value === 'true';
           }
         });
         setSettings(loadedSettings);
@@ -384,9 +368,6 @@ export default function PortfolioList() {
       const settingsToSave = [
         { key: 'projects_per_page', value: { value: newSettings.projects_per_page }, category: 'portfolio' },
         { key: 'default_sort', value: { value: newSettings.default_sort }, category: 'portfolio' },
-        { key: 'show_filters', value: { value: newSettings.show_filters }, category: 'portfolio' },
-        { key: 'show_search', value: { value: newSettings.show_search }, category: 'portfolio' },
-        { key: 'show_advanced_filters', value: { value: newSettings.show_advanced_filters }, category: 'portfolio' },
       ];
 
       for (const setting of settingsToSave) {
@@ -657,29 +638,6 @@ export default function PortfolioList() {
                 </Select>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Mostrar pesquisa</Label>
-                  <Switch
-                    checked={settings.show_search}
-                    onCheckedChange={(v) => setSettings(prev => ({ ...prev, show_search: v }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Mostrar filtros</Label>
-                  <Switch
-                    checked={settings.show_filters}
-                    onCheckedChange={(v) => setSettings(prev => ({ ...prev, show_filters: v }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Filtros avançados</Label>
-                  <Switch
-                    checked={settings.show_advanced_filters}
-                    onCheckedChange={(v) => setSettings(prev => ({ ...prev, show_advanced_filters: v }))}
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="mt-6 flex justify-end">
