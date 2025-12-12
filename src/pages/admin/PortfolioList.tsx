@@ -407,14 +407,24 @@ export default function PortfolioList() {
     }
   });
 
-  // Toggle status mutation
+  // Toggle status mutation with improved error handling
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, newStatus }: { id: string; newStatus: string }) => {
-      const { error } = await supabase
+      console.log('Tentando alterar status do portfolio:', { id, newStatus });
+      
+      const { data, error } = await supabase
         .from('portfolio_projects')
-        .update({ status: newStatus })
-        .eq('id', id);
-      if (error) throw error;
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Erro ao alterar status do portfolio:', error);
+        throw error;
+      }
+      
+      console.log('Status alterado com sucesso:', data);
       return newStatus;
     },
     onSuccess: (newStatus) => {
@@ -428,7 +438,12 @@ export default function PortfolioList() {
       });
     },
     onError: (error: any) => {
-      toast({ title: 'Erro ao alterar estado', description: error.message, variant: 'destructive' });
+      console.error('Erro na mutation toggleStatus:', error);
+      toast({ 
+        title: 'Erro ao alterar estado', 
+        description: error.message || 'Erro desconhecido. Verifique a consola para mais detalhes.', 
+        variant: 'destructive' 
+      });
     }
   });
 

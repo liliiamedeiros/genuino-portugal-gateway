@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageCircle, X, Send, Minimize2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,13 @@ import { useChatbot } from '@/hooks/useChatbot';
 import { Card } from '@/components/ui/card';
 
 export const ChatWidget = () => {
+  const location = useLocation();
+  
+  // Não mostrar na área de administração
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+  
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const { messages, isLoading, sendMessage, clearHistory } = useChatbot();
