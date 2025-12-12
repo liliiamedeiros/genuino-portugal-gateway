@@ -783,12 +783,19 @@ export default function PortfolioList() {
                                 variant={project.status === 'active' ? 'ghost' : 'outline'}
                                 size="icon"
                                 className={project.status === 'active' ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}
+                                disabled={toggleStatusMutation.isPending}
                                 onClick={() => toggleStatusMutation.mutate({
                                   id: project.id,
                                   newStatus: project.status === 'active' ? 'draft' : 'active'
                                 })}
                               >
-                                {project.status === 'active' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                                {toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === project.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : project.status === 'active' ? (
+                                  <Pause className="h-4 w-4" />
+                                ) : (
+                                  <Play className="h-4 w-4" />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
