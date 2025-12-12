@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CompareProvider } from "@/contexts/CompareContext";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -55,8 +54,7 @@ const App = () => {
       <BrowserRouter>
         <LanguageProvider>
           <AuthProvider>
-            <CompareProvider>
-              <TooltipProvider>
+            <TooltipProvider>
                 <OrganizationSchema />
                 <PWAInstallPrompt />
                 <Toaster />
@@ -268,8 +266,7 @@ const App = () => {
               } />
             </Routes>
           </TooltipProvider>
-        </CompareProvider>
-      </AuthProvider>
+        </AuthProvider>
     </LanguageProvider>
   </BrowserRouter>
 </QueryClientProvider>
