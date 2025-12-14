@@ -230,6 +230,8 @@ export type Database = {
           last_run_at: string | null
           max_images_per_run: number | null
           next_run_at: string | null
+          notify_on_completion: boolean | null
+          notify_on_error: boolean | null
           schedule_time: string
           stats: Json | null
           updated_at: string | null
@@ -243,6 +245,8 @@ export type Database = {
           last_run_at?: string | null
           max_images_per_run?: number | null
           next_run_at?: string | null
+          notify_on_completion?: boolean | null
+          notify_on_error?: boolean | null
           schedule_time?: string
           stats?: Json | null
           updated_at?: string | null
@@ -256,6 +260,8 @@ export type Database = {
           last_run_at?: string | null
           max_images_per_run?: number | null
           next_run_at?: string | null
+          notify_on_completion?: boolean | null
+          notify_on_error?: boolean | null
           schedule_time?: string
           stats?: Json | null
           updated_at?: string | null
@@ -966,6 +972,51 @@ export type Database = {
           order_index?: number | null
           updated_at?: string | null
           value?: number
+        }
+        Relationships: []
+      }
+      storage_metrics: {
+        Row: {
+          average_savings_percentage: number | null
+          conversions_count: number | null
+          created_at: string | null
+          id: string
+          other_images: number
+          other_storage_bytes: number | null
+          recorded_at: string
+          savings_bytes: number | null
+          total_images: number
+          total_storage_bytes: number | null
+          webp_images: number
+          webp_storage_bytes: number | null
+        }
+        Insert: {
+          average_savings_percentage?: number | null
+          conversions_count?: number | null
+          created_at?: string | null
+          id?: string
+          other_images?: number
+          other_storage_bytes?: number | null
+          recorded_at?: string
+          savings_bytes?: number | null
+          total_images?: number
+          total_storage_bytes?: number | null
+          webp_images?: number
+          webp_storage_bytes?: number | null
+        }
+        Update: {
+          average_savings_percentage?: number | null
+          conversions_count?: number | null
+          created_at?: string | null
+          id?: string
+          other_images?: number
+          other_storage_bytes?: number | null
+          recorded_at?: string
+          savings_bytes?: number | null
+          total_images?: number
+          total_storage_bytes?: number | null
+          webp_images?: number
+          webp_storage_bytes?: number | null
         }
         Relationships: []
       }

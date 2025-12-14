@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.scheduled-image-conversion]
 verify_jwt = false
+
+[functions.send-conversion-notification]
+verify_jwt = true

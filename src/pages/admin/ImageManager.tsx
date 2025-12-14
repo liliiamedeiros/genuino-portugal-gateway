@@ -34,10 +34,15 @@ import {
   Play,
   Pause,
   SplitSquareVertical,
-  Settings
+  Settings,
+  BarChart3,
+  Bell,
+  BellOff,
+  TrendingUp
 } from 'lucide-react';
 import { convertToWebP } from '@/utils/imageUtils';
 import { ImageComparisonSlider } from '@/components/admin/ImageComparisonSlider';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, Legend } from 'recharts';
 
 interface ImageRecord {
   id: string;
@@ -74,6 +79,19 @@ interface ConversionSchedule {
   last_run_at: string | null;
   next_run_at: string | null;
   stats: unknown;
+  notify_on_completion: boolean;
+  notify_on_error: boolean;
+}
+
+interface StorageMetric {
+  id: string;
+  recorded_at: string;
+  total_images: number;
+  webp_images: number;
+  other_images: number;
+  conversions_count: number;
+  savings_bytes: number;
+  average_savings_percentage: number;
 }
 
 const DAYS_OF_WEEK = [
@@ -206,6 +224,21 @@ export default function ImageManager() {
       
       if (error) throw error;
       return data as ConversionSchedule | null;
+    }
+  });
+
+  // Fetch storage metrics for analytics
+  const { data: storageMetrics } = useQuery({
+    queryKey: ['storage-metrics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('storage_metrics')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(30);
+      
+      if (error) throw error;
+      return (data as StorageMetric[])?.reverse() || [];
     }
   });
 
@@ -575,7 +608,7 @@ export default function ImageManager() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="images" className="min-h-touch">
               <FileImage className="h-4 w-4 mr-2" />
               Imagens
@@ -583,6 +616,10 @@ export default function ImageManager() {
             <TabsTrigger value="history" className="min-h-touch">
               <TrendingDown className="h-4 w-4 mr-2" />
               Histórico
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="min-h-touch">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="schedule" className="min-h-touch">
               <Clock className="h-4 w-4 mr-2" />
@@ -1026,6 +1063,207 @@ export default function ImageManager() {
             )}
           </TabsContent>
 
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            {/* Analytics Stats Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <HardDrive className="h-8 w-8 text-blue-500" />
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {conversions?.reduce((acc, c) => acc + (c.original_size || 0), 0) 
+                          ? formatBytes(conversions.reduce((acc, c) => acc + (c.original_size || 0), 0))
+                          : '0 B'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Total Processado</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-8 w-8 text-green-500" />
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {conversions?.filter(c => c.status === 'converted').reduce((acc, c) => 
+                          acc + ((c.original_size || 0) - (c.converted_size || 0)), 0)
+                          ? formatBytes(conversions.filter(c => c.status === 'converted').reduce((acc, c) => 
+                              acc + ((c.original_size || 0) - (c.converted_size || 0)), 0))
+                          : '0 B'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Poupança Total</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <TrendingDown className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {conversions?.filter(c => c.status === 'converted').length
+                          ? `${Math.round(conversions.filter(c => c.status === 'converted')
+                              .reduce((acc, c) => acc + (c.savings_percentage || 0), 0) / 
+                              conversions.filter(c => c.status === 'converted').length)}%`
+                          : '0%'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Poupança Média</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <RefreshCw className="h-8 w-8 text-purple-500" />
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {conversions?.filter(c => c.status === 'converted').length || 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Total Convertidas</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts Grid */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Conversions Over Time */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Conversões por Dia
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {storageMetrics && storageMetrics.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={storageMetrics}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="recorded_at" 
+                          tickFormatter={(v) => new Date(v).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}
+                          className="text-xs"
+                        />
+                        <YAxis className="text-xs" />
+                        <Tooltip 
+                          labelFormatter={(v) => new Date(v).toLocaleDateString('pt-PT')}
+                          formatter={(value: number) => [value, 'Conversões']}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="conversions_count" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                      <p>Sem dados suficientes para exibir gráfico</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Format Distribution Pie Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileImage className="h-5 w-5" />
+                    Distribuição de Formatos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {allImages && allImages.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'WEBP', value: allImages.filter(i => i.isWebP).length, fill: 'hsl(var(--primary))' },
+                            { name: 'JPEG', value: allImages.filter(i => i.format === 'JPEG' || i.format === 'JPG').length, fill: 'hsl(var(--muted-foreground))' },
+                            { name: 'PNG', value: allImages.filter(i => i.format === 'PNG').length, fill: 'hsl(var(--accent))' },
+                            { name: 'Outros', value: allImages.filter(i => !i.isWebP && i.format !== 'JPEG' && i.format !== 'JPG' && i.format !== 'PNG').length, fill: 'hsl(var(--secondary))' },
+                          ].filter(d => d.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        />
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                      <p>Sem imagens para analisar</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Cumulative Savings */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Poupança Acumulada (últimos 30 dias)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {storageMetrics && storageMetrics.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart data={storageMetrics.map((m, idx) => ({
+                        ...m,
+                        cumulative_savings_mb: storageMetrics
+                          .slice(0, idx + 1)
+                          .reduce((acc, curr) => acc + (curr.savings_bytes || 0), 0) / (1024 * 1024)
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="recorded_at" 
+                          tickFormatter={(v) => new Date(v).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}
+                          className="text-xs"
+                        />
+                        <YAxis 
+                          tickFormatter={(v) => `${v.toFixed(1)} MB`}
+                          className="text-xs"
+                        />
+                        <Tooltip 
+                          labelFormatter={(v) => new Date(v).toLocaleDateString('pt-PT')}
+                          formatter={(value: number) => [`${value.toFixed(2)} MB`, 'Poupança Acumulada']}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="cumulative_savings_mb" 
+                          stroke="hsl(var(--primary))" 
+                          fill="hsl(var(--primary) / 0.2)"
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                      <p>Sem dados suficientes para exibir gráfico</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* Schedule Tab */}
           <TabsContent value="schedule" className="space-y-6">
             <Card>
@@ -1168,6 +1406,60 @@ export default function ImageManager() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Notifications Section */}
+                    <Card className="border-dashed">
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
+                          Notificações Push
+                        </CardTitle>
+                        <CardDescription>
+                          Receba notificações quando as conversões automáticas terminarem
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Bell className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">Notificar quando concluir</p>
+                              <p className="text-sm text-muted-foreground">
+                                Receber notificação após conversões automáticas
+                              </p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={schedule?.notify_on_completion ?? true}
+                            onCheckedChange={(checked) => {
+                              updateScheduleMutation.mutate({
+                                notify_on_completion: checked
+                              } as never);
+                            }}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">Notificar em caso de erros</p>
+                              <p className="text-sm text-muted-foreground">
+                                Receber alerta se houver falhas na conversão
+                              </p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={schedule?.notify_on_error ?? true}
+                            onCheckedChange={(checked) => {
+                              updateScheduleMutation.mutate({
+                                notify_on_error: checked
+                              } as never);
+                            }}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Last Run Info */}
                     {schedule?.last_run_at && (
