@@ -379,17 +379,17 @@ export default function PortfolioForm() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/portfolio')}>
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate('/admin/portfolio')}>
+            <ArrowLeft className="h-5 w-5 3xl:h-6 3xl:w-6" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">
               {isEditing ? 'Editar Projeto do Portfolio' : 'Novo Projeto do Portfolio'}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground 3xl:text-lg 4xl:text-xl">
               {isEditing ? 'Atualizar informações do projeto' : 'Adicionar novo projeto ao Portfolio'}
             </p>
           </div>
@@ -399,34 +399,35 @@ export default function PortfolioForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Multilingual Content */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <CardTitle>Conteúdo Multilingue</CardTitle>
-                    <CardDescription>Título e descrição em diferentes idiomas</CardDescription>
+                    <CardTitle className="3xl:text-xl 4xl:text-2xl">Conteúdo Multilingue</CardTitle>
+                    <CardDescription className="3xl:text-base">Título e descrição em diferentes idiomas</CardDescription>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
+                    className="min-h-touch 3xl:min-h-touch-lg"
                     onClick={handleAutoTranslate}
                     disabled={isTranslating}
                   >
                     {isTranslating ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 animate-spin" />
                     ) : (
-                      <Languages className="mr-2 h-4 w-4" />
+                      <Languages className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                     )}
                     Traduzir Automaticamente
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 3xl:p-8">
                 <Tabs defaultValue="pt" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="pt">🇵🇹 Português *</TabsTrigger>
-                    <TabsTrigger value="fr">🇫🇷 Français</TabsTrigger>
-                    <TabsTrigger value="en">🇬🇧 English</TabsTrigger>
-                    <TabsTrigger value="de">🇩🇪 Deutsch</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+                    <TabsTrigger value="pt" className="min-h-touch text-xs sm:text-sm 3xl:text-base">🇵🇹 Português *</TabsTrigger>
+                    <TabsTrigger value="fr" className="min-h-touch text-xs sm:text-sm 3xl:text-base">🇫🇷 Français</TabsTrigger>
+                    <TabsTrigger value="en" className="min-h-touch text-xs sm:text-sm 3xl:text-base">🇬🇧 English</TabsTrigger>
+                    <TabsTrigger value="de" className="min-h-touch text-xs sm:text-sm 3xl:text-base">🇩🇪 Deutsch</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="pt" className="space-y-4 mt-4">
@@ -550,10 +551,10 @@ export default function PortfolioForm() {
 
             {/* Location */}
             <Card>
-              <CardHeader>
-                <CardTitle>Localização</CardTitle>
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <CardTitle className="3xl:text-xl 4xl:text-2xl">Localização</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 3xl:gap-6 p-4 sm:p-6 3xl:p-8">
                 <FormField
                   control={form.control}
                   name="location"
@@ -624,10 +625,10 @@ export default function PortfolioForm() {
 
             {/* Property Details */}
             <Card>
-              <CardHeader>
-                <CardTitle>Detalhes do Imóvel</CardTitle>
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <CardTitle className="3xl:text-xl 4xl:text-2xl">Detalhes do Imóvel</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 3xl:gap-6 p-4 sm:p-6 3xl:p-8">
                 <FormField
                   control={form.control}
                   name="property_type"
@@ -877,15 +878,15 @@ export default function PortfolioForm() {
             </Card>
 
             {/* Submit */}
-            <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => navigate('/admin/portfolio')}>
+            <div className="flex flex-col sm:flex-row justify-end gap-4">
+              <Button type="button" variant="outline" className="min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate('/admin/portfolio')}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={submitMutation.isPending}>
+              <Button type="submit" className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base 3xl:px-8" disabled={submitMutation.isPending}>
                 {submitMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 animate-spin" />
                 ) : (
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                 )}
                 {isEditing ? 'Guardar Alterações' : 'Criar Projeto'}
               </Button>

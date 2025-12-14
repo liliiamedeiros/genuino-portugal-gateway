@@ -514,24 +514,24 @@ export default function PortfolioList() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Gestão do Portfolio</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">Gestão do Portfolio</h1>
+            <p className="text-muted-foreground 3xl:text-lg 4xl:text-xl">
               Gerir projetos do Portfolio (tabela separada de Imóveis)
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
+            <Button variant="outline" className="min-h-touch 3xl:min-h-touch-lg" asChild>
               <Link to="/portfolio" target="_blank">
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                 Ver Portfolio
               </Link>
             </Button>
-            <Button onClick={() => navigate('/admin/portfolio/new')}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button className="min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate('/admin/portfolio/new')}>
+              <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
               Novo Projeto
             </Button>
           </div>
@@ -612,19 +612,19 @@ export default function PortfolioList() {
 
         {/* Settings Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Configurações de Exibição</CardTitle>
-            <CardDescription>Configure como o Portfolio é apresentado no site público</CardDescription>
+          <CardHeader className="p-4 sm:p-6 3xl:p-8">
+            <CardTitle className="text-lg 3xl:text-xl 4xl:text-2xl">Configurações de Exibição</CardTitle>
+            <CardDescription className="3xl:text-base">Configure como o Portfolio é apresentado no site público</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <CardContent className="p-4 sm:p-6 3xl:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 3xl:gap-6 4xl:gap-8">
               <div className="space-y-2">
-                <Label>Projetos por página</Label>
+                <Label className="3xl:text-base">Projetos por página</Label>
                 <Select
                   value={String(settings.projects_per_page)}
                   onValueChange={(v) => setSettings(prev => ({ ...prev, projects_per_page: Number(v) }))}
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="min-h-touch 3xl:min-h-touch-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="6">6</SelectItem>
                     <SelectItem value="9">9</SelectItem>
@@ -636,12 +636,12 @@ export default function PortfolioList() {
               </div>
               
               <div className="space-y-2">
-                <Label>Ordenação padrão</Label>
+                <Label className="3xl:text-base">Ordenação padrão</Label>
                 <Select
                   value={settings.default_sort}
                   onValueChange={(v) => setSettings(prev => ({ ...prev, default_sort: v as SortOption }))}
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="min-h-touch 3xl:min-h-touch-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="date-desc">Mais recentes</SelectItem>
                     <SelectItem value="date-asc">Mais antigos</SelectItem>
@@ -657,13 +657,14 @@ export default function PortfolioList() {
 
             <div className="mt-6 flex justify-end">
               <Button 
+                className="min-h-touch 3xl:min-h-touch-lg"
                 onClick={() => saveSettingsMutation.mutate(settings)}
                 disabled={saveSettingsMutation.isPending}
               >
                 {saveSettingsMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 animate-spin" />
                 ) : (
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                 )}
                 Guardar Configurações
               </Button>
@@ -672,61 +673,61 @@ export default function PortfolioList() {
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 3xl:gap-6 4xl:gap-8">
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold">{portfolioProjects?.length || 0}</div>
-              <p className="text-sm text-muted-foreground">Total de Projetos</p>
+            <CardContent className="pt-6 3xl:pt-8">
+              <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{portfolioProjects?.length || 0}</div>
+              <p className="text-sm 3xl:text-base text-muted-foreground">Total de Projetos</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold">{portfolioProjects?.filter(p => p.status === 'active').length || 0}</div>
-              <p className="text-sm text-muted-foreground">Ativos</p>
+            <CardContent className="pt-6 3xl:pt-8">
+              <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{portfolioProjects?.filter(p => p.status === 'active').length || 0}</div>
+              <p className="text-sm 3xl:text-base text-muted-foreground">Ativos</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold">{portfolioProjects?.filter(p => p.featured).length || 0}</div>
-              <p className="text-sm text-muted-foreground">Em Destaque</p>
+            <CardContent className="pt-6 3xl:pt-8">
+              <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{portfolioProjects?.filter(p => p.featured).length || 0}</div>
+              <p className="text-sm 3xl:text-base text-muted-foreground">Em Destaque</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-amber-500">{unmigratedProjects.length}</div>
-              <p className="text-sm text-muted-foreground">Pendentes Migração</p>
+            <CardContent className="pt-6 3xl:pt-8">
+              <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-amber-500">{unmigratedProjects.length}</div>
+              <p className="text-sm 3xl:text-base text-muted-foreground">Pendentes Migração</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Search */}
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 3xl:h-5 3xl:w-5 text-muted-foreground" />
           <Input
             placeholder="Pesquisar projetos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 min-h-touch 3xl:min-h-touch-lg 3xl:text-base"
           />
         </div>
 
         {/* Projects Table */}
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 3xl:h-12 3xl:w-12 animate-spin text-primary" />
           </div>
         ) : filteredProjects.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Nenhum projeto no Portfolio.</p>
-              <Button className="mt-4" onClick={() => navigate('/admin/portfolio/new')}>
-                <Plus className="mr-2 h-4 w-4" />
+              <p className="text-muted-foreground 3xl:text-lg">Nenhum projeto no Portfolio.</p>
+              <Button className="mt-4 min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate('/admin/portfolio/new')}>
+                <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                 Criar Primeiro Projeto
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -782,7 +783,7 @@ export default function PortfolioList() {
                               <Button
                                 variant={project.status === 'active' ? 'ghost' : 'outline'}
                                 size="icon"
-                                className={project.status === 'active' ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}
+                                className={`min-h-touch 3xl:min-h-touch-lg ${project.status === 'active' ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}`}
                                 disabled={toggleStatusMutation.isPending}
                                 onClick={() => toggleStatusMutation.mutate({
                                   id: project.id,
@@ -790,11 +791,11 @@ export default function PortfolioList() {
                                 })}
                               >
                                 {toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === project.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <Loader2 className="h-4 w-4 3xl:h-5 3xl:w-5 animate-spin" />
                                 ) : project.status === 'active' ? (
-                                  <Pause className="h-4 w-4" />
+                                  <Pause className="h-4 w-4 3xl:h-5 3xl:w-5" />
                                 ) : (
-                                  <Play className="h-4 w-4" />
+                                  <Play className="h-4 w-4 3xl:h-5 3xl:w-5" />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -809,10 +810,10 @@ export default function PortfolioList() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                                className="min-h-touch 3xl:min-h-touch-lg text-blue-500 hover:text-blue-600 hover:bg-blue-50"
                                 onClick={() => navigate(`/admin/portfolio/edit/${project.id}`)}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-4 w-4 3xl:h-5 3xl:w-5" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>Editar projeto</TooltipContent>
@@ -824,11 +825,11 @@ export default function PortfolioList() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-muted-foreground hover:text-foreground"
+                                className="min-h-touch 3xl:min-h-touch-lg text-muted-foreground hover:text-foreground"
                                 asChild
                               >
                                 <Link to={`/portfolio/${project.id}`} target="_blank">
-                                  <Eye className="h-4 w-4" />
+                                  <Eye className="h-4 w-4 3xl:h-5 3xl:w-5" />
                                 </Link>
                               </Button>
                             </TooltipTrigger>
@@ -843,9 +844,9 @@ export default function PortfolioList() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    className="min-h-touch 3xl:min-h-touch-lg text-red-500 hover:text-red-600 hover:bg-red-50"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4 3xl:h-5 3xl:w-5" />
                                   </Button>
                                 </AlertDialogTrigger>
                               </TooltipTrigger>

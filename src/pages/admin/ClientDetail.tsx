@@ -155,25 +155,25 @@ export default function ClientDetail() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/clients')}>
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate('/admin/clients')}>
+              <ArrowLeft className="h-5 w-5 3xl:h-6 3xl:w-6" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">{client.full_name}</h1>
-              <p className="text-muted-foreground">Detalhes do cliente</p>
+              <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">{client.full_name}</h1>
+              <p className="text-muted-foreground 3xl:text-lg 4xl:text-xl">Detalhes do cliente</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/admin/clients`)}>
-              <Edit className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="min-h-touch 3xl:min-h-touch-lg" onClick={() => navigate(`/admin/clients`)}>
+              <Edit className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
               Editar
             </Button>
-            <Button variant="outline">
-              <Archive className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="min-h-touch 3xl:min-h-touch-lg">
+              <Archive className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
               Arquivar
             </Button>
           </div>
@@ -181,36 +181,36 @@ export default function ClientDetail() {
 
         {/* Informações do Cliente */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <CardContent className="pt-6 3xl:pt-8 p-4 sm:p-6 3xl:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 3xl:gap-6 4xl:gap-8">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                <p className="text-sm 3xl:text-base text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4 3xl:h-5 3xl:w-5" />
                   Email
                 </p>
-                <p className="font-medium">{client.email}</p>
+                <p className="font-medium 3xl:text-lg">{client.email}</p>
               </div>
               {client.phone && (
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
+                  <p className="text-sm 3xl:text-base text-muted-foreground flex items-center gap-2">
+                    <Phone className="h-4 w-4 3xl:h-5 3xl:w-5" />
                     Telefone
                   </p>
-                  <p className="font-medium">{client.phone}</p>
+                  <p className="font-medium 3xl:text-lg">{client.phone}</p>
                 </div>
               )}
               {client.city && (
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
+                  <p className="text-sm 3xl:text-base text-muted-foreground flex items-center gap-2">
+                    <MapPin className="h-4 w-4 3xl:h-5 3xl:w-5" />
                     Cidade
                   </p>
-                  <p className="font-medium">{client.city}, {client.country}</p>
+                  <p className="font-medium 3xl:text-lg">{client.city}, {client.country}</p>
                 </div>
               )}
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Tipo</p>
-                <Badge variant="outline">
+                <p className="text-sm 3xl:text-base text-muted-foreground">Tipo</p>
+                <Badge variant="outline" className="3xl:text-sm">
                   {typeLabels[client.client_type] || client.client_type}
                 </Badge>
               </div>
@@ -218,11 +218,11 @@ export default function ClientDetail() {
 
             {client.tags && client.tags.length > 0 && (
               <>
-                <Separator className="my-4" />
+                <Separator className="my-4 3xl:my-6" />
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <Tag className="h-4 w-4 3xl:h-5 3xl:w-5 text-muted-foreground" />
                   {client.tags.map((tag: string) => (
-                    <Badge key={tag} variant="secondary">
+                    <Badge key={tag} variant="secondary" className="3xl:text-sm">
                       {tag}
                     </Badge>
                   ))}
@@ -234,73 +234,73 @@ export default function ClientDetail() {
 
         {/* Tabs de Conteúdo */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="appointments">
+          <TabsList className="flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="overview" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Visão Geral</TabsTrigger>
+            <TabsTrigger value="appointments" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
               Agendamentos ({stats.totalAppointments})
             </TabsTrigger>
-            <TabsTrigger value="properties">
-              Imóveis Interessados ({relatedProperties?.length || 0})
+            <TabsTrigger value="properties" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
+              Imóveis ({relatedProperties?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="activity">Histórico</TabsTrigger>
-            <TabsTrigger value="notes">Notas</TabsTrigger>
+            <TabsTrigger value="activity" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Histórico</TabsTrigger>
+            <TabsTrigger value="notes" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Notas</TabsTrigger>
           </TabsList>
 
           {/* Tab: Visão Geral */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 3xl:gap-6 4xl:gap-8">
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="pb-3 3xl:pb-4">
+                  <CardTitle className="text-sm 3xl:text-base font-medium text-muted-foreground">
                     Total
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalAppointments}</div>
+                  <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{stats.totalAppointments}</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="pb-3 3xl:pb-4">
+                  <CardTitle className="text-sm 3xl:text-base font-medium text-muted-foreground">
                     Agendados
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.scheduled}</div>
+                  <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-blue-600">{stats.scheduled}</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="pb-3 3xl:pb-4">
+                  <CardTitle className="text-sm 3xl:text-base font-medium text-muted-foreground">
                     Concluídos
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+                  <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-green-600">{stats.completed}</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="pb-3 3xl:pb-4">
+                  <CardTitle className="text-sm 3xl:text-base font-medium text-muted-foreground">
                     Cancelados
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
+                  <div className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-red-600">{stats.cancelled}</div>
                 </CardContent>
               </Card>
             </div>
 
             {upcomingAppointments && upcomingAppointments.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarIcon className="h-5 w-5" />
+                <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                  <CardTitle className="flex items-center gap-2 3xl:text-xl 4xl:text-2xl">
+                    <CalendarIcon className="h-5 w-5 3xl:h-6 3xl:w-6" />
                     Próximos Agendamentos
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <CardContent className="p-4 sm:p-6 3xl:p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 3xl:gap-6">
                     {upcomingAppointments.map((appointment: any) => (
                       <AppointmentCard key={appointment.id} appointment={appointment} />
                     ))}
@@ -322,16 +322,17 @@ export default function ClientDetail() {
           {/* Tab: Agendamentos */}
           <TabsContent value="appointments">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Todos os Agendamentos</CardTitle>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="3xl:text-xl 4xl:text-2xl">Todos os Agendamentos</CardTitle>
+                  <Button size="sm" className="min-h-touch 3xl:min-h-touch-lg">
+                    <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                     Novo Agendamento
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 3xl:p-8">
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -371,6 +372,7 @@ export default function ClientDetail() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -378,11 +380,11 @@ export default function ClientDetail() {
           {/* Tab: Imóveis Interessados */}
           <TabsContent value="properties">
             <Card>
-              <CardHeader>
-                <CardTitle>Imóveis Visualizados</CardTitle>
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <CardTitle className="3xl:text-xl 4xl:text-2xl">Imóveis Visualizados</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <CardContent className="p-4 sm:p-6 3xl:p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 3xl:gap-6 4xl:gap-8">
                   {relatedProperties?.map((item: any) => (
                     <PropertyInterestCard
                       key={item.projects?.id}
@@ -410,11 +412,11 @@ export default function ClientDetail() {
           {/* Tab: Notas */}
           <TabsContent value="notes">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Notas</CardTitle>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
+              <CardHeader className="p-4 sm:p-6 3xl:p-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="3xl:text-xl 4xl:text-2xl">Notas</CardTitle>
+                  <Button size="sm" className="min-h-touch 3xl:min-h-touch-lg">
+                    <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                     Adicionar Nota
                   </Button>
                 </div>
