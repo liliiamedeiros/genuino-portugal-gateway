@@ -20,7 +20,10 @@ import {
   Loader2,
   FileImage,
   HardDrive,
-  TrendingDown
+  TrendingDown,
+  Undo2,
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 import { convertToWebP } from '@/utils/imageUtils';
 
@@ -54,6 +57,7 @@ export default function ImageManager() {
   const queryClient = useQueryClient();
   const [filterTable, setFilterTable] = useState<string>('all');
   const [filterFormat, setFilterFormat] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [convertingIds, setConvertingIds] = useState<Set<string>>(new Set());
@@ -155,7 +159,7 @@ export default function ImageManager() {
     }
   });
 
-  // Convert single image
+  // Convert single image with backup
   const convertImageMutation = useMutation({
     mutationFn: async (image: ImageRecord) => {
       setConvertingIds(prev => new Set(prev).add(image.id));
@@ -165,6 +169,25 @@ export default function ImageManager() {
         const response = await fetch(image.url);
         const blob = await response.blob();
         const file = new File([blob], 'image.jpg', { type: blob.type });
+        
+        // Upload backup BEFORE conversion
+        const backupTimestamp = Date.now();
+        const backupPath = `backups/${image.sourceTable}/${image.sourceId}/${backupTimestamp}-original.${image.format.toLowerCase()}`;
+        
+        const { error: backupError } = await supabase.storage
+          .from('project-images')
+          .upload(backupPath, blob, {
+            contentType: blob.type,
+            upsert: true
+          });
+        
+        let backupUrl: string | null = null;
+        if (!backupError) {
+          const { data: backupUrlData } = supabase.storage
+            .from('project-images')
+            .getPublicUrl(backupPath);
+          backupUrl = backupUrlData.publicUrl;
+        }
         
         // Convert to WebP using existing utility
         const webpBlob = await convertToWebP(file, 1200, 900);
@@ -213,7 +236,7 @@ export default function ImageManager() {
             .eq('id', image.sourceId);
         }
         
-        // Record the conversion
+        // Record the conversion with backup URL
         const originalSize = blob.size;
         const convertedSize = webpBlob.size;
         const savings = ((originalSize - convertedSize) / originalSize) * 100;
@@ -223,6 +246,7 @@ export default function ImageManager() {
           source_id: image.sourceId,
           original_url: image.url,
           converted_url: newUrl,
+          backup_url: backupUrl,
           original_format: image.format,
           original_size: originalSize,
           converted_size: convertedSize,
@@ -232,6 +256,17 @@ export default function ImageManager() {
         });
         
         return { success: true, savings: Math.round(savings) };
+      } catch (error) {
+        // Record the failed conversion
+        await supabase.from('image_conversions').insert({
+          source_table: image.sourceTable,
+          source_id: image.sourceId,
+          original_url: image.url,
+          original_format: image.format,
+          status: 'failed',
+          error_message: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
+        throw error;
       } finally {
         setConvertingIds(prev => {
           const newSet = new Set(prev);
@@ -247,6 +282,82 @@ export default function ImageManager() {
     },
     onError: (error: Error) => {
       toast.error(`Erro na conversão: ${error.message}`);
+      queryClient.invalidateQueries({ queryKey: ['image-conversions'] });
+    }
+  });
+
+  // Retry failed conversion
+  const retryConversionMutation = useMutation({
+    mutationFn: async (conversion: ConversionRecord) => {
+      // Delete the failed record first
+      await supabase.from('image_conversions').delete().eq('id', conversion.id);
+      
+      // Create image record from conversion
+      const image: ImageRecord = {
+        id: `${conversion.source_table}-${conversion.source_id}`,
+        url: conversion.original_url,
+        sourceTable: conversion.source_table,
+        sourceId: conversion.source_id,
+        format: conversion.original_format,
+        isWebP: false
+      };
+      
+      // Retry conversion
+      return convertImageMutation.mutateAsync(image);
+    },
+    onSuccess: () => {
+      toast.success('Conversão repetida com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Retry falhou: ${error.message}`);
+    }
+  });
+
+  // Restore backup
+  const restoreBackupMutation = useMutation({
+    mutationFn: async (conversion: ConversionRecord) => {
+      if (!conversion.backup_url) {
+        throw new Error('Backup não disponível para esta conversão');
+      }
+      
+      // Update the source record with backup URL
+      if (conversion.source_table === 'projects') {
+        await supabase
+          .from('projects')
+          .update({ main_image: conversion.backup_url })
+          .eq('id', conversion.source_id);
+      } else if (conversion.source_table === 'project_images') {
+        await supabase
+          .from('project_images')
+          .update({ image_url: conversion.backup_url })
+          .eq('id', conversion.source_id);
+      } else if (conversion.source_table === 'portfolio_projects') {
+        await supabase
+          .from('portfolio_projects')
+          .update({ main_image: conversion.backup_url })
+          .eq('id', conversion.source_id);
+      } else if (conversion.source_table === 'portfolio_images') {
+        await supabase
+          .from('portfolio_images')
+          .update({ image_url: conversion.backup_url })
+          .eq('id', conversion.source_id);
+      }
+      
+      // Update conversion status
+      await supabase
+        .from('image_conversions')
+        .update({ status: 'restored' })
+        .eq('id', conversion.id);
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast.success('Imagem original restaurada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['all-images'] });
+      queryClient.invalidateQueries({ queryKey: ['image-conversions'] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao restaurar: ${error.message}`);
     }
   });
 
@@ -288,6 +399,16 @@ export default function ImageManager() {
     return true;
   });
 
+  // Filter conversions by status
+  const filteredConversions = conversions?.filter(c => {
+    if (filterStatus === 'all') return true;
+    return c.status === filterStatus;
+  });
+
+  // Get failed conversions
+  const failedConversions = conversions?.filter(c => c.status === 'failed') || [];
+  const errorCount = failedConversions.length;
+
   // Stats
   const totalImages = allImages?.length || 0;
   const webpCount = allImages?.filter(img => img.isWebP).length || 0;
@@ -298,6 +419,19 @@ export default function ImageManager() {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'converted':
+        return <Badge className="bg-green-500">Convertido</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">Falhado</Badge>;
+      case 'restored':
+        return <Badge variant="outline">Restaurado</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
   return (
@@ -323,14 +457,14 @@ export default function ImageManager() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 3xl:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 3xl:gap-6">
           <Card>
             <CardContent className="p-4 3xl:p-6">
               <div className="flex items-center gap-3">
                 <FileImage className="h-8 w-8 3xl:h-10 3xl:w-10 text-primary" />
                 <div>
                   <p className="text-2xl 3xl:text-3xl font-bold">{totalImages}</p>
-                  <p className="text-sm 3xl:text-base text-muted-foreground">Total de Imagens</p>
+                  <p className="text-sm 3xl:text-base text-muted-foreground">Total</p>
                 </div>
               </div>
             </CardContent>
@@ -342,7 +476,7 @@ export default function ImageManager() {
                 <Check className="h-8 w-8 3xl:h-10 3xl:w-10 text-green-500" />
                 <div>
                   <p className="text-2xl 3xl:text-3xl font-bold">{webpCount}</p>
-                  <p className="text-sm 3xl:text-base text-muted-foreground">Em WEBP ({webpPercentage}%)</p>
+                  <p className="text-sm 3xl:text-base text-muted-foreground">WEBP ({webpPercentage}%)</p>
                 </div>
               </div>
             </CardContent>
@@ -354,7 +488,19 @@ export default function ImageManager() {
                 <AlertCircle className="h-8 w-8 3xl:h-10 3xl:w-10 text-yellow-500" />
                 <div>
                   <p className="text-2xl 3xl:text-3xl font-bold">{pendingCount}</p>
-                  <p className="text-sm 3xl:text-base text-muted-foreground">A Converter</p>
+                  <p className="text-sm 3xl:text-base text-muted-foreground">Pendentes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={errorCount > 0 ? 'border-destructive' : ''}>
+            <CardContent className="p-4 3xl:p-6">
+              <div className="flex items-center gap-3">
+                <X className={`h-8 w-8 3xl:h-10 3xl:w-10 ${errorCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <div>
+                  <p className="text-2xl 3xl:text-3xl font-bold">{errorCount}</p>
+                  <p className="text-sm 3xl:text-base text-muted-foreground">Erros</p>
                 </div>
               </div>
             </CardContent>
@@ -366,16 +512,84 @@ export default function ImageManager() {
                 <TrendingDown className="h-8 w-8 3xl:h-10 3xl:w-10 text-blue-500" />
                 <div>
                   <p className="text-2xl 3xl:text-3xl font-bold">
-                    {conversions?.length ? 
-                      `${Math.round(conversions.reduce((acc, c) => acc + (c.savings_percentage || 0), 0) / conversions.length)}%` 
+                    {conversions?.filter(c => c.status === 'converted').length ? 
+                      `${Math.round(conversions.filter(c => c.status === 'converted').reduce((acc, c) => acc + (c.savings_percentage || 0), 0) / conversions.filter(c => c.status === 'converted').length)}%` 
                       : '0%'}
                   </p>
-                  <p className="text-sm 3xl:text-base text-muted-foreground">Poupança Média</p>
+                  <p className="text-sm 3xl:text-base text-muted-foreground">Poupança</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Error Panel */}
+        {failedConversions.length > 0 && (
+          <Card className="border-destructive bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Erros de Conversão ({failedConversions.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Origem</TableHead>
+                      <TableHead>Formato</TableHead>
+                      <TableHead>Erro</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {failedConversions.map((conversion) => (
+                      <TableRow key={conversion.id}>
+                        <TableCell>
+                          <span className="text-sm font-medium">{conversion.source_table}</span>
+                          <span className="text-xs text-muted-foreground block truncate max-w-[150px]">
+                            {conversion.source_id}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{conversion.original_format}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-destructive/10 text-destructive px-2 py-1 rounded block max-w-[300px] truncate">
+                            {conversion.error_message || 'Erro desconhecido'}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(conversion.created_at).toLocaleDateString('pt-PT')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => retryConversionMutation.mutate(conversion)}
+                            disabled={retryConversionMutation.isPending}
+                            className="min-h-touch"
+                          >
+                            {retryConversionMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <RotateCcw className="h-4 w-4 mr-1" />
+                                Retry
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card>
@@ -405,6 +619,18 @@ export default function ImageManager() {
                   <SelectItem value="all">Todos os Formatos</SelectItem>
                   <SelectItem value="webp">WEBP ✓</SelectItem>
                   <SelectItem value="other">Outros (JPEG/PNG)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[180px] min-h-touch">
+                  <SelectValue placeholder="Estado Conversão" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Estados</SelectItem>
+                  <SelectItem value="converted">✅ Convertido</SelectItem>
+                  <SelectItem value="failed">❌ Falhado</SelectItem>
+                  <SelectItem value="restored">↩️ Restaurado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -522,10 +748,12 @@ export default function ImageManager() {
         </Card>
 
         {/* Conversion History */}
-        {conversions && conversions.length > 0 && (
+        {filteredConversions && filteredConversions.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg 3xl:text-xl">Histórico de Conversões</CardTitle>
+              <CardTitle className="text-lg 3xl:text-xl">
+                Histórico de Conversões ({filteredConversions.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -534,15 +762,16 @@ export default function ImageManager() {
                     <TableRow>
                       <TableHead>Origem</TableHead>
                       <TableHead>Formato</TableHead>
-                      <TableHead>Tamanho Original</TableHead>
-                      <TableHead>Tamanho WEBP</TableHead>
+                      <TableHead>Tam. Original</TableHead>
+                      <TableHead>Tam. WEBP</TableHead>
                       <TableHead>Poupança</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Data</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {conversions.slice(0, 10).map((conversion) => (
+                    {filteredConversions.slice(0, 20).map((conversion) => (
                       <TableRow key={conversion.id}>
                         <TableCell>
                           <span className="text-sm">{conversion.source_table}</span>
@@ -564,14 +793,53 @@ export default function ImageManager() {
                           ) : '-'}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={conversion.status === 'converted' ? 'default' : 'secondary'}>
-                            {conversion.status}
-                          </Badge>
+                          {getStatusBadge(conversion.status || 'pending')}
                         </TableCell>
                         <TableCell>
                           {conversion.converted_at ? 
                             new Date(conversion.converted_at).toLocaleDateString('pt-PT') : 
-                            '-'}
+                            new Date(conversion.created_at).toLocaleDateString('pt-PT')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {conversion.status === 'converted' && conversion.backup_url && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => restoreBackupMutation.mutate(conversion)}
+                                disabled={restoreBackupMutation.isPending}
+                                className="min-h-touch"
+                                title="Restaurar imagem original"
+                              >
+                                {restoreBackupMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Undo2 className="h-4 w-4 mr-1" />
+                                    Restaurar
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            {conversion.status === 'failed' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => retryConversionMutation.mutate(conversion)}
+                                disabled={retryConversionMutation.isPending}
+                                className="min-h-touch"
+                              >
+                                {retryConversionMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Retry
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
