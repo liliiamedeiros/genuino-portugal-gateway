@@ -172,7 +172,7 @@ export default function PortfolioDetail() {
         )}
         
         {/* Hero */}
-        <section className="relative h-[70vh] overflow-hidden bg-black">
+        <section className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] 3xl:h-[75vh] overflow-hidden bg-black">
           <img
             src={project.main_image}
             alt={`${project[`title_${language}` as keyof typeof project]} – Projeto de luxo em ${project.location}, ${project.region}, Portugal`}
@@ -181,11 +181,11 @@ export default function PortfolioDetail() {
         </section>
 
         {/* Content */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
+        <section className="py-8 sm:py-12 3xl:py-16 4xl:py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
             <Link to="/portfolio">
-              <Button variant="ghost" className="mb-6">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <Button variant="ghost" className="mb-6 min-h-touch 3xl:min-h-touch-lg 3xl:text-base">
+                <ArrowLeft className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
                 {language === 'pt' && 'Voltar ao Portfólio'}
                 {language === 'fr' && 'Retour au Portfolio'}
                 {language === 'en' && 'Back to Portfolio'}
@@ -193,26 +193,26 @@ export default function PortfolioDetail() {
               </Button>
             </Link>
 
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-5xl font-serif font-bold mb-4 animate-fade-in">
+            <div className="max-w-4xl 3xl:max-w-5xl 4xl:max-w-6xl mx-auto">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl 3xl:text-6xl 4xl:text-7xl font-serif font-bold mb-4 animate-fade-in">
                 {project[`title_${language}` as keyof typeof project] as string}
               </h1>
-              <div className="flex items-center text-lg text-muted-foreground mb-8">
-                <MapPin className="h-5 w-5 mr-2" />
+              <div className="flex items-center text-base sm:text-lg 3xl:text-xl 4xl:text-2xl text-muted-foreground mb-6 sm:mb-8">
+                <MapPin className="h-5 w-5 3xl:h-6 3xl:w-6 mr-2" />
                 {project.location}, {project.region}
               </div>
 
               {/* Preço e Tipo */}
-              <div className="bg-primary/5 rounded-lg p-6 mb-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-primary/5 rounded-lg p-4 sm:p-6 3xl:p-8 mb-6 sm:mb-8">
+                <div className="flex flex-wrap items-center justify-between gap-4 3xl:gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-sm 3xl:text-base text-muted-foreground mb-1">
                       {language === 'pt' && 'Preço'}
                       {language === 'fr' && 'Prix'}
                       {language === 'en' && 'Price'}
                       {language === 'de' && 'Preis'}
                     </p>
-                    <p className="text-4xl font-bold text-primary">
+                    <p className="text-3xl sm:text-4xl 3xl:text-5xl 4xl:text-6xl font-bold text-primary">
                       {project.price ? new Intl.NumberFormat('pt-PT', { 
                         style: 'currency', 
                         currency: 'EUR',
@@ -220,27 +220,27 @@ export default function PortfolioDetail() {
                       }).format(Number(project.price)) : '-'}
                     </p>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 3xl:gap-6">
                     {project.property_type && (
                       <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm 3xl:text-base text-muted-foreground">
                           {language === 'pt' && 'Tipo'}
                           {language === 'fr' && 'Type'}
                           {language === 'en' && 'Type'}
                           {language === 'de' && 'Typ'}
                         </p>
-                        <p className="font-semibold">{translatePropertyType(project.property_type, language)}</p>
+                        <p className="font-semibold 3xl:text-lg">{translatePropertyType(project.property_type, language)}</p>
                       </div>
                     )}
                     {project.operation_type && (
                       <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm 3xl:text-base text-muted-foreground">
                           {language === 'pt' && 'Operação'}
                           {language === 'fr' && 'Opération'}
                           {language === 'en' && 'Operation'}
                           {language === 'de' && 'Betrieb'}
                         </p>
-                        <p className="font-semibold">{translateOperationType(project.operation_type, language)}</p>
+                        <p className="font-semibold 3xl:text-lg">{translateOperationType(project.operation_type, language)}</p>
                       </div>
                     )}
                   </div>
@@ -248,17 +248,17 @@ export default function PortfolioDetail() {
               </div>
 
               {/* Botões de Contacto */}
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 mb-8">
-                <h3 className="text-xl font-semibold mb-4">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 sm:p-6 3xl:p-8 mb-6 sm:mb-8">
+                <h3 className="text-lg sm:text-xl 3xl:text-2xl font-semibold mb-4">
                   {language === 'pt' && 'Entre em Contacto'}
                   {language === 'fr' && 'Nous Contacter'}
                   {language === 'en' && 'Get in Touch'}
                   {language === 'de' && 'Kontaktieren Sie uns'}
                 </h3>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-3 sm:gap-4 3xl:gap-5">
                   <Button
                     size="lg"
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white min-h-touch 3xl:min-h-touch-lg 3xl:text-base"
                     asChild
                   >
                     <a
@@ -271,26 +271,26 @@ export default function PortfolioDetail() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <MessageCircle className="mr-2 h-5 w-5" />
+                      <MessageCircle className="mr-2 h-5 w-5 3xl:h-6 3xl:w-6" />
                       WhatsApp
                     </a>
                   </Button>
                   
-                  <Button size="lg" variant="outline" asChild>
+                  <Button size="lg" variant="outline" className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base" asChild>
                     <a href={`mailto:info@genuinoinvestments.ch?subject=${encodeURIComponent(
                       language === 'pt' ? `Interesse no projeto: ${project.title_pt || project.title_fr || project.title_en}` :
                       language === 'fr' ? `Intérêt pour le projet: ${project.title_fr || project.title_pt || project.title_en}` :
                       language === 'en' ? `Interest in project: ${project.title_en || project.title_pt || project.title_fr}` :
                       `Interesse an Projekt: ${project.title_de || project.title_en || project.title_pt}`
                     )}`}>
-                      <Mail className="mr-2 h-5 w-5" />
+                      <Mail className="mr-2 h-5 w-5 3xl:h-6 3xl:w-6" />
                       Email
                     </a>
                   </Button>
                   
-                  <Button size="lg" variant="outline" asChild>
+                  <Button size="lg" variant="outline" className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base" asChild>
                     <Link to="/contact">
-                      <Phone className="mr-2 h-5 w-5" />
+                      <Phone className="mr-2 h-5 w-5 3xl:h-6 3xl:w-6" />
                       {language === 'pt' && 'Agendar Visita'}
                       {language === 'fr' && 'Planifier une visite'}
                       {language === 'en' && 'Schedule Visit'}
@@ -302,13 +302,13 @@ export default function PortfolioDetail() {
 
               {/* Características */}
               {(project.bedrooms || project.bathrooms || project.area_sqm || project.parking_spaces) && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 3xl:gap-6 mb-6 sm:mb-8">
                   {project.bedrooms && (
-                    <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
-                      <Bed className="h-6 w-6 text-primary" />
+                    <div className="flex items-center gap-3 p-3 sm:p-4 3xl:p-5 bg-secondary/10 rounded-lg">
+                      <Bed className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 text-primary" />
                       <div>
-                        <p className="text-2xl font-bold">{project.bedrooms}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{project.bedrooms}</p>
+                        <p className="text-xs sm:text-sm 3xl:text-base text-muted-foreground">
                           {language === 'pt' && 'Quartos'}
                           {language === 'fr' && 'Chambres'}
                           {language === 'en' && 'Bedrooms'}
@@ -318,11 +318,11 @@ export default function PortfolioDetail() {
                     </div>
                   )}
                   {project.bathrooms && (
-                    <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
-                      <Bath className="h-6 w-6 text-primary" />
+                    <div className="flex items-center gap-3 p-3 sm:p-4 3xl:p-5 bg-secondary/10 rounded-lg">
+                      <Bath className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 text-primary" />
                       <div>
-                        <p className="text-2xl font-bold">{project.bathrooms}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{project.bathrooms}</p>
+                        <p className="text-xs sm:text-sm 3xl:text-base text-muted-foreground">
                           {language === 'pt' && 'Casas de Banho'}
                           {language === 'fr' && 'Salles de bain'}
                           {language === 'en' && 'Bathrooms'}
@@ -332,20 +332,20 @@ export default function PortfolioDetail() {
                     </div>
                   )}
                   {project.area_sqm && (
-                    <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
-                      <Square className="h-6 w-6 text-primary" />
+                    <div className="flex items-center gap-3 p-3 sm:p-4 3xl:p-5 bg-secondary/10 rounded-lg">
+                      <Square className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 text-primary" />
                       <div>
-                        <p className="text-2xl font-bold">{project.area_sqm}</p>
-                        <p className="text-sm text-muted-foreground">m²</p>
+                        <p className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{project.area_sqm}</p>
+                        <p className="text-xs sm:text-sm 3xl:text-base text-muted-foreground">m²</p>
                       </div>
                     </div>
                   )}
                   {project.parking_spaces && (
-                    <div className="flex items-center gap-3 p-4 bg-secondary/10 rounded-lg">
-                      <Car className="h-6 w-6 text-primary" />
+                    <div className="flex items-center gap-3 p-3 sm:p-4 3xl:p-5 bg-secondary/10 rounded-lg">
+                      <Car className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 text-primary" />
                       <div>
-                        <p className="text-2xl font-bold">{project.parking_spaces}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-bold">{project.parking_spaces}</p>
+                        <p className="text-xs sm:text-sm 3xl:text-base text-muted-foreground">
                           {language === 'pt' && 'Estacionamento'}
                           {language === 'fr' && 'Parking'}
                           {language === 'en' && 'Parking'}
@@ -357,8 +357,8 @@ export default function PortfolioDetail() {
                 </div>
               )}
 
-              <div className="prose prose-lg max-w-none mb-12">
-                <p className="text-lg leading-relaxed">{project[`description_${language}` as keyof typeof project] as string}</p>
+              <div className="prose prose-lg 3xl:prose-xl max-w-none mb-8 sm:mb-12">
+                <p className="text-base sm:text-lg 3xl:text-xl 4xl:text-2xl leading-relaxed">{project[`description_${language}` as keyof typeof project] as string}</p>
               </div>
 
               {/* Características do Projeto */}

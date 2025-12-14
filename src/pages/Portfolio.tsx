@@ -107,54 +107,54 @@ export default function Portfolio() {
     <SEOHead title="Portfólio" description="Explore nosso portfólio de projetos imobiliários de luxo em Portugal" url="/portfolio" />
     <Navbar />
     <div className="min-h-screen pt-20">
-      <section className="py-16 bg-gradient-to-b from-background via-secondary/5 to-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 bg-gradient-to-r from-primary via-[#887350] to-primary bg-clip-text text-transparent">
+      <section className="py-12 sm:py-16 3xl:py-20 4xl:py-24 bg-gradient-to-b from-background via-secondary/5 to-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
+          <div className="max-w-4xl 3xl:max-w-5xl mx-auto text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl 3xl:text-6xl 4xl:text-7xl font-serif font-bold mb-6 bg-gradient-to-r from-primary via-[#887350] to-primary bg-clip-text text-transparent">
               {language === 'pt' ? 'Portfólio' : 'Portfolio'}
             </h1>
           </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16 pb-12 sm:pb-16 3xl:pb-20">
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex justify-center py-12 3xl:py-16">
+            <Loader2 className="h-8 w-8 3xl:h-12 3xl:w-12 4xl:h-16 4xl:w-16 animate-spin text-primary" />
           </div>
         ) : displayProjects.length > 0 ? (<>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 3xl:gap-10">
             {displayProjects.map(p => <ProjectCard key={p.id} id={p.id} title={p.displayTitle} location={p.location} image={p.image} linkPrefix="/portfolio" />)}
           </div>
           {totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
+            <div className="mt-8 sm:mt-12 3xl:mt-16 flex justify-center">
               <Pagination>
-                <PaginationContent>
+                <PaginationContent className="gap-1 3xl:gap-2">
                   <PaginationItem>
-                    <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                    <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={`min-h-touch 3xl:min-h-touch-lg 3xl:text-base ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`} />
                   </PaginationItem>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                     if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
                       return (
                         <PaginationItem key={page}>
-                          <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                          <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base cursor-pointer">{page}</PaginationLink>
                         </PaginationItem>
                       );
                     } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
+                      return <PaginationItem key={page}><PaginationEllipsis className="3xl:text-base" /></PaginationItem>;
                     }
                     return null;
                   })}
                   <PaginationItem>
-                    <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                    <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={`min-h-touch 3xl:min-h-touch-lg 3xl:text-base ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`} />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
             </div>
           )}
         </>) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{language === 'pt' ? 'Nenhum projeto encontrado' : 'No projects found'}</p>
+          <div className="text-center py-12 3xl:py-16">
+            <p className="text-muted-foreground 3xl:text-xl 4xl:text-2xl">{language === 'pt' ? 'Nenhum projeto encontrado' : 'No projects found'}</p>
           </div>
         )}
       </div>
