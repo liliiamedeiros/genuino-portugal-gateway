@@ -331,6 +331,10 @@ Ao criar/editar componentes, verificar:
 - ✅ PortfolioDetail.tsx
 - ✅ Properties.tsx
 - ✅ ProjectDetail.tsx
+- ✅ Vision.tsx
+- ✅ Investors.tsx
+- ✅ Legal.tsx
+- ✅ Privacy.tsx
 
 ### Componentes:
 - ✅ Navbar.tsx
