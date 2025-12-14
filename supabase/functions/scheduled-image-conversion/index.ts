@@ -121,12 +121,62 @@ serve(async (req) => {
       }
     }
 
+    // Calculate conversion stats from completed conversions today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data: todayConversions } = await supabase
+      .from('image_conversions')
+      .select('original_size, converted_size, savings_percentage')
+      .eq('status', 'completed')
+      .gte('converted_at', today.toISOString());
+
+    let totalSavingsBytes = 0;
+    let avgSavings = 0;
+    const conversionCount = todayConversions?.length || 0;
+
+    if (todayConversions && todayConversions.length > 0) {
+      totalSavingsBytes = todayConversions.reduce((acc, c) => 
+        acc + ((c.original_size || 0) - (c.converted_size || 0)), 0);
+      avgSavings = todayConversions.reduce((acc, c) => 
+        acc + (c.savings_percentage || 0), 0) / todayConversions.length;
+    }
+
+    // Get total image counts
+    const { count: webpCount } = await supabase
+      .from('image_conversions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed');
+
+    const { count: errorCount } = await supabase
+      .from('image_conversions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'failed');
+
+    // Record metrics
+    const { error: metricsError } = await supabase
+      .from('storage_metrics')
+      .insert({
+        total_images: pendingCount + newImagesQueued + (webpCount || 0),
+        webp_images: webpCount || 0,
+        other_images: pendingCount + newImagesQueued,
+        conversions_count: conversionCount,
+        savings_bytes: totalSavingsBytes,
+        average_savings_percentage: avgSavings
+      });
+
+    if (metricsError) {
+      console.error('[Scheduled Conversion] Error recording metrics:', metricsError);
+    }
+
     // Update schedule stats
     const stats = {
       last_run: new Date().toISOString(),
       pending_found: pendingCount,
       new_queued: newImagesQueued,
-      total_processed: pendingCount + newImagesQueued
+      total_processed: pendingCount + newImagesQueued,
+      conversions_today: conversionCount,
+      savings_today_bytes: totalSavingsBytes
     };
 
     const { error: updateError } = await supabase
@@ -141,6 +191,31 @@ serve(async (req) => {
       console.error('[Scheduled Conversion] Error updating schedule:', updateError);
     }
 
+    // Send notification if configured
+    if (schedule.notify_on_completion || (schedule.notify_on_error && (errorCount || 0) > 0)) {
+      try {
+        const notificationResponse = await fetch(`${supabaseUrl}/functions/v1/send-conversion-notification`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            conversions: conversionCount,
+            savings_bytes: totalSavingsBytes,
+            errors: errorCount || 0,
+            notify_completion: schedule.notify_on_completion,
+            notify_error: schedule.notify_on_error
+          })
+        });
+        
+        const notificationResult = await notificationResponse.json();
+        console.log('[Scheduled Conversion] Notification result:', notificationResult);
+      } catch (notifyError) {
+        console.error('[Scheduled Conversion] Error sending notification:', notifyError);
+      }
+    }
+
     console.log(`[Scheduled Conversion] Completed. Pending: ${pendingCount}, New queued: ${newImagesQueued}`);
 
     return new Response(
@@ -148,6 +223,8 @@ serve(async (req) => {
         success: true,
         pending_found: pendingCount,
         new_queued: newImagesQueued,
+        conversions_today: conversionCount,
+        savings_bytes: totalSavingsBytes,
         message: `Found ${pendingCount} pending, queued ${newImagesQueued} new images`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
