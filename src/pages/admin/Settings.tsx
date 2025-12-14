@@ -102,34 +102,34 @@ export default function Settings() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold text-foreground">Configurações</h1>
+          <p className="text-muted-foreground mt-1 3xl:text-lg 4xl:text-xl">
             Gerencie as configurações do sistema
           </p>
         </div>
 
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="notifications">Notificações</TabsTrigger>
-            <TabsTrigger value="system">Sistema</TabsTrigger>
-            <TabsTrigger value="security">Segurança</TabsTrigger>
-            <TabsTrigger value="integrations">Integrações</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="general" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Geral</TabsTrigger>
+            <TabsTrigger value="email" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Email</TabsTrigger>
+            <TabsTrigger value="notifications" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Notificações</TabsTrigger>
+            <TabsTrigger value="system" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Sistema</TabsTrigger>
+            <TabsTrigger value="security" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Segurança</TabsTrigger>
+            <TabsTrigger value="integrations" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Integrações</TabsTrigger>
           </TabsList>
 
           {/* General Settings */}
           <TabsContent value="general">
             <Card>
-              <CardHeader>
-                <CardTitle>Configurações Gerais</CardTitle>
-                <CardDescription>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações Gerais</CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
                   Informações básicas da empresa
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 3xl:space-y-6 3xl:p-8">
                 <div className="space-y-2">
                   <Label htmlFor="company_name">Nome da Empresa</Label>
                   <Input
@@ -182,7 +182,7 @@ export default function Settings() {
                     }
                   />
                 </div>
-                <Button onClick={handleSaveGeneral}>Salvar Alterações</Button>
+                <Button onClick={handleSaveGeneral} className="min-h-touch 3xl:min-h-touch-lg">Salvar Alterações</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -190,13 +190,13 @@ export default function Settings() {
           {/* Email Settings */}
           <TabsContent value="email">
             <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Email</CardTitle>
-                <CardDescription>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações de Email</CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
                   Configure o servidor SMTP para envio de emails
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 3xl:space-y-6 3xl:p-8">
                 <div className="space-y-2">
                   <Label htmlFor="smtp_host">Servidor SMTP</Label>
                   <Input
@@ -252,7 +252,7 @@ export default function Settings() {
                     placeholder="noreply@example.com"
                   />
                 </div>
-                <Button onClick={() => {
+                <Button className="min-h-touch 3xl:min-h-touch-lg" onClick={() => {
                   updateSettingMutation.mutate({ key: "smtp_host", value: settings.smtp_host });
                   updateSettingMutation.mutate({ key: "smtp_port", value: settings.smtp_port });
                   updateSettingMutation.mutate({ key: "smtp_user", value: settings.smtp_user });
@@ -268,13 +268,13 @@ export default function Settings() {
           {/* Notifications Settings */}
           <TabsContent value="notifications">
             <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Notificações</CardTitle>
-                <CardDescription>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações de Notificações</CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
                   Gerencie as notificações do sistema
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 3xl:space-y-8 3xl:p-8">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Notificar Novos Clientes</Label>
@@ -317,7 +317,7 @@ export default function Settings() {
                     }
                   />
                 </div>
-                <Button onClick={handleSaveNotifications}>Salvar Alterações</Button>
+                <Button onClick={handleSaveNotifications} className="min-h-touch 3xl:min-h-touch-lg">Salvar Alterações</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -325,13 +325,13 @@ export default function Settings() {
           {/* System Settings */}
           <TabsContent value="system">
             <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Sistema</CardTitle>
-                <CardDescription>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações de Sistema</CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
                   Configure preferências do sistema
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 3xl:space-y-6 3xl:p-8">
                 <div className="space-y-2">
                   <Label htmlFor="timezone">Fuso Horário</Label>
                   <Select
@@ -387,7 +387,7 @@ export default function Settings() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleSaveSystem}>Salvar Alterações</Button>
+                <Button onClick={handleSaveSystem} className="min-h-touch 3xl:min-h-touch-lg">Salvar Alterações</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -395,13 +395,13 @@ export default function Settings() {
           {/* Security Settings */}
           <TabsContent value="security">
             <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Segurança</CardTitle>
-                <CardDescription>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações de Segurança</CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
                   Gerencie a segurança e políticas de senha
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 3xl:space-y-8 3xl:p-8">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Autenticação de Dois Fatores</Label>

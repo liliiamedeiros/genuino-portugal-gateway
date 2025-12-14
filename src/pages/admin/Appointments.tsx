@@ -286,16 +286,16 @@ export default function Appointments() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Agendamentos</h1>
-            <p className="text-muted-foreground">Gerencie visitas e reuniões</p>
+            <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">Agendamentos</h1>
+            <p className="text-muted-foreground 3xl:text-lg 4xl:text-xl">Gerencie visitas e reuniões</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px] min-h-touch 3xl:min-h-touch-lg">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -308,7 +308,7 @@ export default function Appointments() {
             </Select>
 
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px] min-h-touch 3xl:min-h-touch-lg">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -334,8 +334,8 @@ export default function Appointments() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-[180px]">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full sm:w-[180px] min-h-touch 3xl:min-h-touch-lg">
+                  <CalendarIcon className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                   {dateRangeStart ? 
                     `${format(new Date(dateRangeStart), 'dd/MM')} - ${dateRangeEnd ? format(new Date(dateRangeEnd), 'dd/MM') : '...'}` 
                     : 'Período'}
@@ -363,18 +363,18 @@ export default function Appointments() {
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[200px]"
+              className="w-full sm:w-[200px] min-h-touch 3xl:min-h-touch-lg"
             />
 
             {(statusFilter !== 'all' || typeFilter !== 'all' || clientFilter || propertyFilter || dateRangeStart || searchTerm) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <X className="mr-2 h-4 w-4" />
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-touch 3xl:min-h-touch-lg">
+                <X className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                 Limpar
               </Button>
             )}
 
-            <Button variant="outline" onClick={exportToCSV}>
-              <Download className="mr-2 h-4 w-4" />
+            <Button variant="outline" onClick={exportToCSV} className="min-h-touch 3xl:min-h-touch-lg">
+              <Download className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
               Exportar
             </Button>
 
@@ -383,22 +383,24 @@ export default function Appointments() {
                 variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('calendar')}
+                className="min-h-touch 3xl:min-h-touch-lg"
               >
-                <CalendarIcon className="h-4 w-4" />
+                <CalendarIcon className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
+                className="min-h-touch 3xl:min-h-touch-lg"
               >
-                <List className="h-4 w-4" />
+                <List className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
               </Button>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button className="min-h-touch 3xl:min-h-touch-lg">
+                  <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                   Novo Agendamento
                 </Button>
               </DialogTrigger>
