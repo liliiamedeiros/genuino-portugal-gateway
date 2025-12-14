@@ -111,18 +111,18 @@ export default function Reports() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold text-foreground">Relatórios</h1>
+            <p className="text-muted-foreground mt-1 3xl:text-lg 4xl:text-xl">
               Análise e métricas do sistema
             </p>
           </div>
           <div className="flex gap-2">
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px] min-h-touch 3xl:min-h-touch-lg">
                 <SelectValue placeholder="Selecionar período" />
               </SelectTrigger>
               <SelectContent>
@@ -132,27 +132,27 @@ export default function Reports() {
                 <SelectItem value="365">Último ano</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="min-h-touch 3xl:min-h-touch-lg">
+              <Download className="h-4 w-4 mr-2 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
               Exportar
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 3xl:gap-8 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.title}>
+            <Card key={stat.title} className="3xl:p-6 4xl:p-8">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-sm font-medium 3xl:text-base 4xl:text-lg">
                   {stat.title}
                 </CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                <stat.icon className={`h-4 w-4 3xl:h-6 3xl:w-6 4xl:h-8 4xl:w-8 ${stat.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold 3xl:text-3xl 4xl:text-4xl">{stat.value}</div>
                 {stat.subtitle && (
-                  <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
+                  <p className="text-xs text-muted-foreground mt-1 3xl:text-sm 4xl:text-base">{stat.subtitle}</p>
                 )}
               </CardContent>
             </Card>
@@ -160,15 +160,15 @@ export default function Reports() {
         </div>
 
         {/* Charts */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 3xl:gap-8 md:grid-cols-2">
           {/* Clients by Status */}
-          <Card>
+          <Card className="3xl:p-6 4xl:p-8">
             <CardHeader>
-              <CardTitle>Clientes por Status</CardTitle>
-              <CardDescription>Distribuição dos clientes</CardDescription>
+              <CardTitle className="3xl:text-2xl 4xl:text-3xl">Clientes por Status</CardTitle>
+              <CardDescription className="3xl:text-base 4xl:text-lg">Distribuição dos clientes</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300} className="3xl:!h-[400px] 4xl:!h-[500px]">
                 <PieChart>
                   <Pie
                     data={clientsByStatus}
@@ -191,13 +191,13 @@ export default function Reports() {
           </Card>
 
           {/* Appointments by Status */}
-          <Card>
+          <Card className="3xl:p-6 4xl:p-8">
             <CardHeader>
-              <CardTitle>Agendamentos por Status</CardTitle>
-              <CardDescription>Status dos agendamentos</CardDescription>
+              <CardTitle className="3xl:text-2xl 4xl:text-3xl">Agendamentos por Status</CardTitle>
+              <CardDescription className="3xl:text-base 4xl:text-lg">Status dos agendamentos</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300} className="3xl:!h-[400px] 4xl:!h-[500px]">
                 <BarChart data={appointmentsByStatus}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -211,11 +211,11 @@ export default function Reports() {
         </div>
 
         {/* Detailed Tables */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+        <div className="grid gap-4 sm:gap-6 3xl:gap-8 md:grid-cols-2">
+          <Card className="3xl:p-6 4xl:p-8">
             <CardHeader>
-              <CardTitle>Imóveis Mais Visualizados</CardTitle>
-              <CardDescription>Top 5 imóveis por interesse</CardDescription>
+              <CardTitle className="3xl:text-2xl 4xl:text-3xl">Imóveis Mais Visualizados</CardTitle>
+              <CardDescription className="3xl:text-base 4xl:text-lg">Top 5 imóveis por interesse</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -239,10 +239,10 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="3xl:p-6 4xl:p-8">
             <CardHeader>
-              <CardTitle>Últimas Atividades</CardTitle>
-              <CardDescription>Atividades recentes do sistema</CardDescription>
+              <CardTitle className="3xl:text-2xl 4xl:text-3xl">Últimas Atividades</CardTitle>
+              <CardDescription className="3xl:text-base 4xl:text-lg">Atividades recentes do sistema</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

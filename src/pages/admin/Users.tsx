@@ -205,13 +205,13 @@ export default function Users() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gestão de Usuários</h1>
+      <div className="p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">Gestão de Usuários</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button className="min-h-touch 3xl:min-h-touch-lg">
+                <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                 Adicionar Usuário
               </Button>
             </DialogTrigger>
@@ -272,7 +272,7 @@ export default function Users() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full" disabled={createUserMutation.isPending}>
+                <Button type="submit" className="w-full min-h-touch 3xl:min-h-touch-lg" disabled={createUserMutation.isPending}>
                   {createUserMutation.isPending ? 'Criando...' : 'Criar Usuário'}
                 </Button>
               </form>
@@ -328,7 +328,7 @@ export default function Users() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full" disabled={updateUserMutation.isPending}>
+              <Button type="submit" className="w-full min-h-touch 3xl:min-h-touch-lg" disabled={updateUserMutation.isPending}>
                 {updateUserMutation.isPending ? 'Atualizando...' : 'Atualizar Usuário'}
               </Button>
             </form>
@@ -337,10 +337,10 @@ export default function Users() {
 
         {isLoading ? (
           <div className="flex justify-center p-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-12 w-12 3xl:h-16 3xl:w-16 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -390,8 +390,9 @@ export default function Users() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditClick(user)}
+                            className="min-h-touch min-w-[44px] 3xl:min-h-touch-lg 3xl:min-w-[56px]"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -401,8 +402,9 @@ export default function Users() {
                                 deleteUserMutation.mutate(user.id);
                               }
                             }}
+                            className="min-h-touch min-w-[44px] 3xl:min-h-touch-lg 3xl:min-w-[56px]"
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                           </Button>
                         </div>
                       </TableCell>

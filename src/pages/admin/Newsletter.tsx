@@ -204,18 +204,18 @@ export default function Newsletter() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Newsletter</h1>
-            <p className="text-muted-foreground">Gerencie subscritores e campanhas</p>
+            <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">Newsletter</h1>
+            <p className="text-muted-foreground 3xl:text-lg 4xl:text-xl">Gerencie subscritores e campanhas</p>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="subscribers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 min-h-touch 3xl:min-h-touch-lg">
             <TabsTrigger value="subscribers">
               Subscritores ({subscribers?.length || 0})
             </TabsTrigger>
@@ -241,14 +241,14 @@ export default function Newsletter() {
                         { key: 'language', label: 'Idioma' },
                       ]}
                     />
-                    <Button variant="outline" onClick={exportSubscribers}>
-                      <Download className="mr-2 h-4 w-4" />
+                    <Button variant="outline" onClick={exportSubscribers} className="min-h-touch 3xl:min-h-touch-lg">
+                      <Download className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                       Exportar
                     </Button>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="mr-2 h-4 w-4" />
+                        <Button className="min-h-touch 3xl:min-h-touch-lg">
+                          <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                           Adicionar
                         </Button>
                       </DialogTrigger>
@@ -325,20 +325,20 @@ export default function Newsletter() {
               </CardHeader>
               <CardContent>
                 {/* Filtros */}
-                <div className="flex gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <div className="flex-1">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 3xl:h-5 3xl:w-5 text-muted-foreground" />
                       <Input
                         placeholder="Pesquisar por email ou nome..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 min-h-touch 3xl:min-h-touch-lg"
                       />
                     </div>
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px] min-h-touch 3xl:min-h-touch-lg">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -349,7 +349,7 @@ export default function Newsletter() {
                     </SelectContent>
                   </Select>
                   <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px] min-h-touch 3xl:min-h-touch-lg">
                       <SelectValue placeholder="Idioma" />
                     </SelectTrigger>
                     <SelectContent>
@@ -363,6 +363,7 @@ export default function Newsletter() {
                 </div>
 
                 {/* Tabela */}
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -395,15 +396,16 @@ export default function Newsletter() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Tab: Campanhas */}
           <TabsContent value="campaigns" className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
               <Select value={campaignStatusFilter} onValueChange={setCampaignStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] min-h-touch 3xl:min-h-touch-lg">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -413,13 +415,13 @@ export default function Newsletter() {
                   <SelectItem value="sent">Enviada</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => navigate('/admin/newsletter/new')}>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button onClick={() => navigate('/admin/newsletter/new')} className="min-h-touch 3xl:min-h-touch-lg">
+                <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                 Nova Campanha
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 3xl:gap-8">
               {campaigns?.map((campaign) => (
                 <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
