@@ -61,6 +61,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
+    { icon: ImageIcon, label: 'Gestor de Imagens', path: '/admin/image-manager', superAdminOnly: true },
     { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus', adminOnly: true },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', adminOnly: true },
     { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system', adminOnly: true },
@@ -70,8 +71,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
   ];
 
-  // Filter menus for editors - completely hide admin-only items
+  // Filter menus based on role - hide admin-only and super-admin-only items
   const visibleMenuItems = menuItems.filter(item => {
+    // Hide superAdminOnly items for non-super_admins
+    if (item.superAdminOnly && userRole !== 'super_admin') {
+      return false;
+    }
+    // Hide adminOnly items for editors
     if (item.adminOnly && userRole === 'editor') {
       return false;
     }
