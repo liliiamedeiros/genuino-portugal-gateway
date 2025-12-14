@@ -14,6 +14,7 @@ export default {
     },
     screens: {
       'xs': '320px',
+      'car': '480px',
       'sm': '640px',
       'md': '768px',
       'lg': '1024px',
@@ -26,6 +27,18 @@ export default {
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
         sans: ['Inter', 'Helvetica Neue', 'sans-serif'],
+      },
+      fontSize: {
+        'tv-sm': ['1.125rem', { lineHeight: '1.75rem' }],
+        'tv-base': ['1.25rem', { lineHeight: '2rem' }],
+        'tv-lg': ['1.5rem', { lineHeight: '2.25rem' }],
+        'tv-xl': ['1.75rem', { lineHeight: '2.5rem' }],
+        'tv-2xl': ['2rem', { lineHeight: '2.75rem' }],
+        'tv-3xl': ['2.5rem', { lineHeight: '3rem' }],
+        'tv-4xl': ['3rem', { lineHeight: '3.5rem' }],
+        'tv-5xl': ['4rem', { lineHeight: '4.5rem' }],
+        'car-lg': ['1.5rem', { lineHeight: '2rem' }],
+        'car-xl': ['2rem', { lineHeight: '2.5rem' }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -86,6 +99,20 @@ export default {
         '18': '4.5rem',
         '22': '5.5rem',
         '26': '6.5rem',
+        '28': '7rem',
+        '32': '8rem',
+        '36': '9rem',
+        '40': '10rem',
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '56px',
+        'car-touch': '64px',
+      },
+      minWidth: {
+        'touch': '44px',
+        'touch-lg': '56px',
+        'car-touch': '64px',
       },
       keyframes: {
         "accordion-down": {
