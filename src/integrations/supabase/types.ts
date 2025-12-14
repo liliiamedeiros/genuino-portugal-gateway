@@ -222,6 +222,7 @@ export type Database = {
       }
       conversion_schedules: {
         Row: {
+          apply_watermark: boolean | null
           created_at: string | null
           created_by: string | null
           days_of_week: number[] | null
@@ -232,11 +233,16 @@ export type Database = {
           next_run_at: string | null
           notify_on_completion: boolean | null
           notify_on_error: boolean | null
+          quality: number | null
           schedule_time: string
           stats: Json | null
+          target_height: number | null
+          target_width: number | null
           updated_at: string | null
+          watermark_position: string | null
         }
         Insert: {
+          apply_watermark?: boolean | null
           created_at?: string | null
           created_by?: string | null
           days_of_week?: number[] | null
@@ -247,11 +253,16 @@ export type Database = {
           next_run_at?: string | null
           notify_on_completion?: boolean | null
           notify_on_error?: boolean | null
+          quality?: number | null
           schedule_time?: string
           stats?: Json | null
+          target_height?: number | null
+          target_width?: number | null
           updated_at?: string | null
+          watermark_position?: string | null
         }
         Update: {
+          apply_watermark?: boolean | null
           created_at?: string | null
           created_by?: string | null
           days_of_week?: number[] | null
@@ -262,9 +273,13 @@ export type Database = {
           next_run_at?: string | null
           notify_on_completion?: boolean | null
           notify_on_error?: boolean | null
+          quality?: number | null
           schedule_time?: string
           stats?: Json | null
+          target_height?: number | null
+          target_width?: number | null
           updated_at?: string | null
+          watermark_position?: string | null
         }
         Relationships: []
       }

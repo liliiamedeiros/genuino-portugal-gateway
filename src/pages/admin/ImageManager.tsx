@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { 
   Image as ImageIcon, 
@@ -38,11 +39,27 @@ import {
   BarChart3,
   Bell,
   BellOff,
-  TrendingUp
+  TrendingUp,
+  FileSpreadsheet,
+  FileText,
+  Droplet,
+  Zap,
+  Sparkles,
+  Palette
 } from 'lucide-react';
 import { convertToWebP } from '@/utils/imageUtils';
+import { applyWatermark } from '@/utils/watermarkUtils';
 import { ImageComparisonSlider } from '@/components/admin/ImageComparisonSlider';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { 
+  exportConversionsToCSV, 
+  exportMetricsToCSV, 
+  exportSummaryToCSV, 
+  exportToPDF, 
+  calculateSummary,
+  type ConversionData,
+  type StorageMetricData
+} from '@/utils/reportExportUtils';
 
 interface ImageRecord {
   id: string;
@@ -81,6 +98,11 @@ interface ConversionSchedule {
   stats: unknown;
   notify_on_completion: boolean;
   notify_on_error: boolean;
+  quality: number;
+  target_width: number;
+  target_height: number;
+  apply_watermark: boolean;
+  watermark_position: string;
 }
 
 interface StorageMetric {
@@ -94,6 +116,29 @@ interface StorageMetric {
   average_savings_percentage: number;
 }
 
+const QUALITY_PRESETS = [
+  { label: 'Máxima Compressão', value: 60, icon: Zap, description: 'Menor tamanho, ideal para thumbnails' },
+  { label: 'Equilibrado', value: 75, icon: Sparkles, description: 'Bom equilíbrio qualidade/tamanho' },
+  { label: 'Alta Qualidade', value: 85, icon: FileImage, description: 'Recomendado para portfólio' },
+  { label: 'Máxima Qualidade', value: 95, icon: Palette, description: 'Melhor qualidade, maior tamanho' },
+];
+
+const DIMENSION_PRESETS = [
+  { label: '800×600', width: 800, height: 600 },
+  { label: '1200×900', width: 1200, height: 900 },
+  { label: '1600×1200', width: 1600, height: 1200 },
+  { label: '1920×1080', width: 1920, height: 1080 },
+  { label: 'Original', width: 0, height: 0 },
+];
+
+const WATERMARK_POSITIONS = [
+  { label: 'Inferior Direito', value: 'bottom-right' },
+  { label: 'Inferior Esquerdo', value: 'bottom-left' },
+  { label: 'Superior Direito', value: 'top-right' },
+  { label: 'Superior Esquerdo', value: 'top-left' },
+  { label: 'Centro', value: 'center' },
+];
+
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Dom' },
   { value: 1, label: 'Seg' },
@@ -106,6 +151,7 @@ const DAYS_OF_WEEK = [
 
 export default function ImageManager() {
   const queryClient = useQueryClient();
+  const chartRef = useRef<HTMLDivElement>(null);
   const [filterTable, setFilterTable] = useState<string>('all');
   const [filterFormat, setFilterFormat] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -115,6 +161,9 @@ export default function ImageManager() {
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonData, setComparisonData] = useState<{original: string; converted: string; conversion: ConversionRecord} | null>(null);
   const [activeTab, setActiveTab] = useState('images');
+  const [isExporting, setIsExporting] = useState(false);
+  const [selectedQualityPreset, setSelectedQualityPreset] = useState<number | null>(85);
+  const [customDimensions, setCustomDimensions] = useState(false);
 
   // Fetch all images from different tables
   const { data: allImages, isLoading: loadingImages } = useQuery({
@@ -244,7 +293,19 @@ export default function ImageManager() {
 
   // Create or update schedule
   const updateScheduleMutation = useMutation({
-    mutationFn: async (scheduleData: { schedule_time?: string; days_of_week?: number[]; is_active?: boolean; max_images_per_run?: number }) => {
+    mutationFn: async (scheduleData: { 
+      schedule_time?: string; 
+      days_of_week?: number[]; 
+      is_active?: boolean; 
+      max_images_per_run?: number;
+      quality?: number;
+      target_width?: number;
+      target_height?: number;
+      apply_watermark?: boolean;
+      watermark_position?: string;
+      notify_on_completion?: boolean;
+      notify_on_error?: boolean;
+    }) => {
       if (schedule?.id) {
         const { error } = await supabase
           .from('conversion_schedules')
@@ -258,7 +319,12 @@ export default function ImageManager() {
             schedule_time: scheduleData.schedule_time || '03:00:00',
             days_of_week: scheduleData.days_of_week || [0,1,2,3,4,5,6],
             is_active: scheduleData.is_active ?? false,
-            max_images_per_run: scheduleData.max_images_per_run || 50
+            max_images_per_run: scheduleData.max_images_per_run || 50,
+            quality: scheduleData.quality || 85,
+            target_width: scheduleData.target_width || 1200,
+            target_height: scheduleData.target_height || 900,
+            apply_watermark: scheduleData.apply_watermark ?? false,
+            watermark_position: scheduleData.watermark_position || 'bottom-right'
           });
         if (error) throw error;
       }
@@ -1065,6 +1131,105 @@ export default function ImageManager() {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
+            {/* Export Buttons */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Exportar Relatórios
+                </CardTitle>
+                <CardDescription>
+                  Exporte dados de conversão em CSV ou PDF para análise detalhada
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (conversions) {
+                        exportConversionsToCSV(conversions as ConversionData[]);
+                        toast.success('CSV de conversões exportado!');
+                      }
+                    }}
+                    disabled={!conversions?.length}
+                    className="min-h-touch"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Exportar Conversões (CSV)
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (storageMetrics) {
+                        exportMetricsToCSV(storageMetrics as StorageMetricData[]);
+                        toast.success('CSV de métricas exportado!');
+                      }
+                    }}
+                    disabled={!storageMetrics?.length}
+                    className="min-h-touch"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Exportar Métricas (CSV)
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (conversions && allImages) {
+                        const summary = calculateSummary(
+                          conversions as ConversionData[], 
+                          allImages as { format: string }[]
+                        );
+                        exportSummaryToCSV(summary);
+                        toast.success('CSV de resumo exportado!');
+                      }
+                    }}
+                    disabled={!conversions?.length}
+                    className="min-h-touch"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Exportar Resumo (CSV)
+                  </Button>
+                  
+                  <Button
+                    onClick={async () => {
+                      if (conversions && allImages) {
+                        setIsExporting(true);
+                        try {
+                          const summary = calculateSummary(
+                            conversions as ConversionData[], 
+                            allImages as { format: string }[]
+                          );
+                          await exportToPDF(
+                            summary, 
+                            conversions as ConversionData[],
+                            chartRef.current
+                          );
+                          toast.success('Relatório PDF exportado!');
+                        } catch (error) {
+                          toast.error('Erro ao exportar PDF');
+                          console.error(error);
+                        } finally {
+                          setIsExporting(false);
+                        }
+                      }
+                    }}
+                    disabled={!conversions?.length || isExporting}
+                    className="min-h-touch"
+                  >
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4 mr-2" />
+                    )}
+                    Exportar Relatório Completo (PDF)
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Analytics Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
@@ -1135,7 +1300,7 @@ export default function ImageManager() {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div ref={chartRef} className="grid gap-6 lg:grid-cols-2">
               {/* Conversions Over Time */}
               <Card>
                 <CardHeader>
@@ -1406,6 +1571,192 @@ export default function ImageManager() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Quality Configuration Section */}
+                    <Card className="border-dashed">
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          Configurações de Conversão
+                        </CardTitle>
+                        <CardDescription>
+                          Ajuste a qualidade e dimensões das imagens convertidas
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Quality Presets */}
+                        <div className="space-y-3">
+                          <Label className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4" />
+                            Preset de Qualidade
+                          </Label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {QUALITY_PRESETS.map((preset) => {
+                              const PresetIcon = preset.icon;
+                              const isSelected = selectedQualityPreset === preset.value && 
+                                                 schedule?.quality === preset.value;
+                              return (
+                                <Button
+                                  key={preset.value}
+                                  variant={isSelected ? 'default' : 'outline'}
+                                  className="h-auto flex-col py-3 gap-1"
+                                  onClick={() => {
+                                    setSelectedQualityPreset(preset.value);
+                                    updateScheduleMutation.mutate({ quality: preset.value } as never);
+                                  }}
+                                >
+                                  <PresetIcon className="h-5 w-5" />
+                                  <span className="text-xs font-medium">{preset.label}</span>
+                                  <span className="text-xs text-muted-foreground">{preset.value}%</span>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Quality Slider */}
+                        <div className="space-y-3">
+                          <Label className="flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                              <Droplet className="h-4 w-4" />
+                              Qualidade Manual
+                            </span>
+                            <span className="text-sm font-bold text-primary">
+                              {schedule?.quality || 85}%
+                            </span>
+                          </Label>
+                          <Slider
+                            value={[schedule?.quality || 85]}
+                            onValueChange={(value) => {
+                              setSelectedQualityPreset(null);
+                              updateScheduleMutation.mutate({ quality: value[0] } as never);
+                            }}
+                            min={50}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>50% (menor tamanho)</span>
+                            <span>100% (máxima qualidade)</span>
+                          </div>
+                        </div>
+
+                        {/* Dimensions */}
+                        <div className="space-y-3">
+                          <Label className="flex items-center gap-2">
+                            <FileImage className="h-4 w-4" />
+                            Dimensões Máximas
+                          </Label>
+                          <div className="flex flex-wrap gap-2">
+                            {DIMENSION_PRESETS.map((dim) => {
+                              const isSelected = schedule?.target_width === dim.width && 
+                                                 schedule?.target_height === dim.height;
+                              return (
+                                <Button
+                                  key={dim.label}
+                                  variant={isSelected ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => {
+                                    setCustomDimensions(false);
+                                    updateScheduleMutation.mutate({ 
+                                      target_width: dim.width,
+                                      target_height: dim.height 
+                                    } as never);
+                                  }}
+                                >
+                                  {dim.label}
+                                </Button>
+                              );
+                            })}
+                            <Button
+                              variant={customDimensions ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setCustomDimensions(true)}
+                            >
+                              Personalizado
+                            </Button>
+                          </div>
+                          
+                          {customDimensions && (
+                            <div className="grid grid-cols-2 gap-4 mt-3">
+                              <div className="space-y-2">
+                                <Label htmlFor="custom-width">Largura (px)</Label>
+                                <Input
+                                  id="custom-width"
+                                  type="number"
+                                  min={100}
+                                  max={4000}
+                                  defaultValue={schedule?.target_width || 1200}
+                                  onChange={(e) => {
+                                    updateScheduleMutation.mutate({ 
+                                      target_width: parseInt(e.target.value) || 1200 
+                                    } as never);
+                                  }}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="custom-height">Altura (px)</Label>
+                                <Input
+                                  id="custom-height"
+                                  type="number"
+                                  min={100}
+                                  max={4000}
+                                  defaultValue={schedule?.target_height || 900}
+                                  onChange={(e) => {
+                                    updateScheduleMutation.mutate({ 
+                                      target_height: parseInt(e.target.value) || 900 
+                                    } as never);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Watermark */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="flex items-center gap-2">
+                              <Palette className="h-4 w-4" />
+                              Aplicar Marca d'Água
+                            </Label>
+                            <Switch
+                              checked={schedule?.apply_watermark ?? false}
+                              onCheckedChange={(checked) => {
+                                updateScheduleMutation.mutate({ apply_watermark: checked } as never);
+                              }}
+                            />
+                          </div>
+                          
+                          {schedule?.apply_watermark && (
+                            <div className="space-y-2">
+                              <Label>Posição da Marca d'Água</Label>
+                              <Select
+                                value={schedule?.watermark_position || 'bottom-right'}
+                                onValueChange={(value) => {
+                                  updateScheduleMutation.mutate({ watermark_position: value } as never);
+                                }}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {WATERMARK_POSITIONS.map((pos) => (
+                                    <SelectItem key={pos.value} value={pos.value}>
+                                      {pos.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                Texto: © Genuíno Investments
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Notifications Section */}
                     <Card className="border-dashed">
