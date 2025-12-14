@@ -220,6 +220,57 @@ export type Database = {
         }
         Relationships: []
       }
+      image_conversions: {
+        Row: {
+          backup_url: string | null
+          converted_at: string | null
+          converted_size: number | null
+          converted_url: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          original_format: string
+          original_size: number | null
+          original_url: string
+          savings_percentage: number | null
+          source_id: string
+          source_table: string
+          status: string | null
+        }
+        Insert: {
+          backup_url?: string | null
+          converted_at?: string | null
+          converted_size?: number | null
+          converted_url?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          original_format: string
+          original_size?: number | null
+          original_url: string
+          savings_percentage?: number | null
+          source_id: string
+          source_table: string
+          status?: string | null
+        }
+        Update: {
+          backup_url?: string | null
+          converted_at?: string | null
+          converted_size?: number | null
+          converted_url?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          original_format?: string
+          original_size?: number | null
+          original_url?: string
+          savings_percentage?: number | null
+          source_id?: string
+          source_table?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       json_ld_templates: {
         Row: {
           created_at: string | null

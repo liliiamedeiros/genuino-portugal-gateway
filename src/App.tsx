@@ -42,6 +42,7 @@ import Settings from "./pages/admin/Settings";
 import JsonLdValidator from "./pages/admin/JsonLdValidator";
 import JsonLdSystem from "./pages/admin/JsonLdSystem";
 import ImageConverter from "./pages/admin/ImageConverter";
+import ImageManager from "./pages/admin/ImageManager";
 import MigrateProjects from "./pages/admin/MigrateProjects";
 import MenuManager from "./pages/admin/MenuManager";
 import PortfolioList from "./pages/admin/PortfolioList";
@@ -231,6 +232,11 @@ const App = () => {
             <Route path="/admin/image-converter" element={
               <ProtectedRoute requiredRole="editor">
                 <ImageConverter />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/image-manager" element={
+              <ProtectedRoute requiredRole="admin">
+                <ImageManager />
               </ProtectedRoute>
             } />
             <Route path="/admin/migrate-projects" element={
