@@ -220,6 +220,48 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_schedules: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          days_of_week: number[] | null
+          id: string
+          is_active: boolean | null
+          last_run_at: string | null
+          max_images_per_run: number | null
+          next_run_at: string | null
+          schedule_time: string
+          stats: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          days_of_week?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          max_images_per_run?: number | null
+          next_run_at?: string | null
+          schedule_time?: string
+          stats?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          days_of_week?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          max_images_per_run?: number | null
+          next_run_at?: string | null
+          schedule_time?: string
+          stats?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       image_conversions: {
         Row: {
           backup_url: string | null
