@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.convert-image-webp]
 verify_jwt = true
+
+[functions.scheduled-image-conversion]
+verify_jwt = false

@@ -3,11 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { 
   Image as ImageIcon, 
@@ -23,9 +28,16 @@ import {
   TrendingDown,
   Undo2,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Clock,
+  Calendar,
+  Play,
+  Pause,
+  SplitSquareVertical,
+  Settings
 } from 'lucide-react';
 import { convertToWebP } from '@/utils/imageUtils';
+import { ImageComparisonSlider } from '@/components/admin/ImageComparisonSlider';
 
 interface ImageRecord {
   id: string;
@@ -53,6 +65,27 @@ interface ConversionRecord {
   created_at: string;
 }
 
+interface ConversionSchedule {
+  id: string;
+  schedule_time: string;
+  days_of_week: number[];
+  is_active: boolean;
+  max_images_per_run: number;
+  last_run_at: string | null;
+  next_run_at: string | null;
+  stats: unknown;
+}
+
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Dom' },
+  { value: 1, label: 'Seg' },
+  { value: 2, label: 'Ter' },
+  { value: 3, label: 'Qua' },
+  { value: 4, label: 'Qui' },
+  { value: 5, label: 'Sex' },
+  { value: 6, label: 'Sáb' },
+];
+
 export default function ImageManager() {
   const queryClient = useQueryClient();
   const [filterTable, setFilterTable] = useState<string>('all');
@@ -61,6 +94,9 @@ export default function ImageManager() {
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [convertingIds, setConvertingIds] = useState<Set<string>>(new Set());
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonData, setComparisonData] = useState<{original: string; converted: string; conversion: ConversionRecord} | null>(null);
+  const [activeTab, setActiveTab] = useState('images');
 
   // Fetch all images from different tables
   const { data: allImages, isLoading: loadingImages } = useQuery({
@@ -158,6 +194,78 @@ export default function ImageManager() {
       return data as ConversionRecord[];
     }
   });
+
+  // Fetch conversion schedule
+  const { data: schedule, isLoading: loadingSchedule } = useQuery({
+    queryKey: ['conversion-schedule'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('conversion_schedules')
+        .select('*')
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as ConversionSchedule | null;
+    }
+  });
+
+  // Create or update schedule
+  const updateScheduleMutation = useMutation({
+    mutationFn: async (scheduleData: { schedule_time?: string; days_of_week?: number[]; is_active?: boolean; max_images_per_run?: number }) => {
+      if (schedule?.id) {
+        const { error } = await supabase
+          .from('conversion_schedules')
+          .update(scheduleData)
+          .eq('id', schedule.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('conversion_schedules')
+          .insert({
+            schedule_time: scheduleData.schedule_time || '03:00:00',
+            days_of_week: scheduleData.days_of_week || [0,1,2,3,4,5,6],
+            is_active: scheduleData.is_active ?? false,
+            max_images_per_run: scheduleData.max_images_per_run || 50
+          });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Agendamento atualizado');
+      queryClient.invalidateQueries({ queryKey: ['conversion-schedule'] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar agendamento: ${error.message}`);
+    }
+  });
+
+  // Toggle schedule active status
+  const toggleScheduleActive = () => {
+    updateScheduleMutation.mutate({
+      is_active: !schedule?.is_active
+    });
+  };
+
+  // Open comparison modal
+  const openComparison = (conversion: ConversionRecord) => {
+    if (conversion.backup_url && conversion.converted_url) {
+      setComparisonData({
+        original: conversion.backup_url,
+        converted: conversion.converted_url,
+        conversion
+      });
+      setShowComparison(true);
+    } else if (conversion.original_url && conversion.converted_url) {
+      setComparisonData({
+        original: conversion.original_url,
+        converted: conversion.converted_url,
+        conversion
+      });
+      setShowComparison(true);
+    } else {
+      toast.error('Dados de comparação não disponíveis');
+    }
+  };
 
   // Convert single image with backup
   const convertImageMutation = useMutation({
@@ -442,19 +550,47 @@ export default function ImageManager() {
             <h1 className="text-2xl sm:text-3xl 3xl:text-4xl font-bold">Gestor de Imagens</h1>
             <p className="text-muted-foreground 3xl:text-lg">Gerir e converter imagens para formato WEBP</p>
           </div>
-          <Button
-            onClick={() => batchConvertMutation.mutate()}
-            disabled={batchConvertMutation.isPending || pendingCount === 0}
-            className="min-h-touch 3xl:min-h-touch-lg"
-          >
-            {batchConvertMutation.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            Converter Todas ({pendingCount})
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab('schedule')}
+              className="min-h-touch"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Agendamento
+            </Button>
+            <Button
+              onClick={() => batchConvertMutation.mutate()}
+              disabled={batchConvertMutation.isPending || pendingCount === 0}
+              className="min-h-touch 3xl:min-h-touch-lg"
+            >
+              {batchConvertMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Converter Todas ({pendingCount})
+            </Button>
+          </div>
         </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="images" className="min-h-touch">
+              <FileImage className="h-4 w-4 mr-2" />
+              Imagens
+            </TabsTrigger>
+            <TabsTrigger value="history" className="min-h-touch">
+              <TrendingDown className="h-4 w-4 mr-2" />
+              Histórico
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="min-h-touch">
+              <Clock className="h-4 w-4 mr-2" />
+              Agendamento
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="images" className="space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 3xl:gap-6">
@@ -746,109 +882,313 @@ export default function ImageManager() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
 
-        {/* Conversion History */}
-        {filteredConversions && filteredConversions.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg 3xl:text-xl">
-                Histórico de Conversões ({filteredConversions.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Origem</TableHead>
-                      <TableHead>Formato</TableHead>
-                      <TableHead>Tam. Original</TableHead>
-                      <TableHead>Tam. WEBP</TableHead>
-                      <TableHead>Poupança</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConversions.slice(0, 20).map((conversion) => (
-                      <TableRow key={conversion.id}>
-                        <TableCell>
-                          <span className="text-sm">{conversion.source_table}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{conversion.original_format}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {conversion.original_size ? formatBytes(conversion.original_size) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {conversion.converted_size ? formatBytes(conversion.converted_size) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {conversion.savings_percentage ? (
-                            <span className="text-green-600 font-medium">
-                              -{conversion.savings_percentage}%
-                            </span>
-                          ) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(conversion.status || 'pending')}
-                        </TableCell>
-                        <TableCell>
-                          {conversion.converted_at ? 
-                            new Date(conversion.converted_at).toLocaleDateString('pt-PT') : 
-                            new Date(conversion.created_at).toLocaleDateString('pt-PT')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {conversion.status === 'converted' && conversion.backup_url && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => restoreBackupMutation.mutate(conversion)}
-                                disabled={restoreBackupMutation.isPending}
-                                className="min-h-touch"
-                                title="Restaurar imagem original"
-                              >
-                                {restoreBackupMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <Undo2 className="h-4 w-4 mr-1" />
-                                    Restaurar
-                                  </>
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-6">
+            {/* Status Filter */}
+            <Card>
+              <CardContent className="p-4">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[200px] min-h-touch">
+                    <SelectValue placeholder="Filtrar por estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Estados</SelectItem>
+                    <SelectItem value="converted">✅ Convertido</SelectItem>
+                    <SelectItem value="failed">❌ Falhado</SelectItem>
+                    <SelectItem value="restored">↩️ Restaurado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Conversion History */}
+            {filteredConversions && filteredConversions.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg 3xl:text-xl">
+                    Histórico de Conversões ({filteredConversions.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Origem</TableHead>
+                          <TableHead>Formato</TableHead>
+                          <TableHead>Tam. Original</TableHead>
+                          <TableHead>Tam. WEBP</TableHead>
+                          <TableHead>Poupança</TableHead>
+                          <TableHead>Estado</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredConversions.slice(0, 50).map((conversion) => (
+                          <TableRow key={conversion.id}>
+                            <TableCell>
+                              <span className="text-sm">{conversion.source_table}</span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{conversion.original_format}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {conversion.original_size ? formatBytes(conversion.original_size) : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {conversion.converted_size ? formatBytes(conversion.converted_size) : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {conversion.savings_percentage ? (
+                                <span className="text-green-600 font-medium">
+                                  -{conversion.savings_percentage}%
+                                </span>
+                              ) : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(conversion.status || 'pending')}
+                            </TableCell>
+                            <TableCell>
+                              {conversion.converted_at ? 
+                                new Date(conversion.converted_at).toLocaleDateString('pt-PT') : 
+                                new Date(conversion.created_at).toLocaleDateString('pt-PT')}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {conversion.status === 'converted' && conversion.converted_url && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => openComparison(conversion)}
+                                    className="min-h-touch"
+                                    title="Comparar original vs WEBP"
+                                  >
+                                    <SplitSquareVertical className="h-4 w-4 mr-1" />
+                                    Comparar
+                                  </Button>
                                 )}
-                              </Button>
-                            )}
-                            {conversion.status === 'failed' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => retryConversionMutation.mutate(conversion)}
-                                disabled={retryConversionMutation.isPending}
-                                className="min-h-touch"
-                              >
-                                {retryConversionMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <RotateCcw className="h-4 w-4 mr-1" />
-                                    Retry
-                                  </>
+                                {conversion.status === 'converted' && conversion.backup_url && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => restoreBackupMutation.mutate(conversion)}
+                                    disabled={restoreBackupMutation.isPending}
+                                    className="min-h-touch"
+                                    title="Restaurar imagem original"
+                                  >
+                                    {restoreBackupMutation.isPending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Undo2 className="h-4 w-4 mr-1" />
+                                        Restaurar
+                                      </>
+                                    )}
+                                  </Button>
                                 )}
-                              </Button>
-                            )}
+                                {conversion.status === 'failed' && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => retryConversionMutation.mutate(conversion)}
+                                    disabled={retryConversionMutation.isPending}
+                                    className="min-h-touch"
+                                  >
+                                    {retryConversionMutation.isPending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <RotateCcw className="h-4 w-4 mr-1" />
+                                        Retry
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  <TrendingDown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhuma conversão encontrada</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Schedule Tab */}
+          <TabsContent value="schedule" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Agendamento Automático
+                </CardTitle>
+                <CardDescription>
+                  Configure conversões automáticas em horários de baixo tráfego
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {loadingSchedule ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Active Toggle */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {schedule?.is_active ? (
+                          <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
+                        ) : (
+                          <div className="h-3 w-3 rounded-full bg-muted" />
+                        )}
+                        <div>
+                          <p className="font-medium">
+                            Estado: {schedule?.is_active ? 'Ativo' : 'Inativo'}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {schedule?.is_active 
+                              ? 'Conversões serão executadas automaticamente'
+                              : 'Ative para iniciar conversões agendadas'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant={schedule?.is_active ? 'destructive' : 'default'}
+                        onClick={toggleScheduleActive}
+                        disabled={updateScheduleMutation.isPending}
+                        className="min-h-touch"
+                      >
+                        {updateScheduleMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : schedule?.is_active ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Desativar
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Ativar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Schedule Configuration */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="schedule-time" className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Horário de Execução
+                        </Label>
+                        <Input
+                          id="schedule-time"
+                          type="time"
+                          defaultValue={schedule?.schedule_time?.substring(0, 5) || '03:00'}
+                          onChange={(e) => {
+                            updateScheduleMutation.mutate({
+                              schedule_time: e.target.value + ':00'
+                            });
+                          }}
+                          className="min-h-touch"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Recomendado: entre 02:00 e 05:00 (baixo tráfego)
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="max-images" className="flex items-center gap-2">
+                          <FileImage className="h-4 w-4" />
+                          Máx. Imagens por Execução
+                        </Label>
+                        <Input
+                          id="max-images"
+                          type="number"
+                          min={1}
+                          max={200}
+                          defaultValue={schedule?.max_images_per_run || 50}
+                          onChange={(e) => {
+                            updateScheduleMutation.mutate({
+                              max_images_per_run: parseInt(e.target.value) || 50
+                            });
+                          }}
+                          className="min-h-touch"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Limite de imagens para processar por execução
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Days of Week */}
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Dias da Semana
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DAYS_OF_WEEK.map((day) => (
+                          <div
+                            key={day.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`day-${day.value}`}
+                              checked={schedule?.days_of_week?.includes(day.value) ?? true}
+                              onCheckedChange={(checked) => {
+                                const currentDays = schedule?.days_of_week || [0,1,2,3,4,5,6];
+                                const newDays = checked
+                                  ? [...currentDays, day.value]
+                                  : currentDays.filter(d => d !== day.value);
+                                updateScheduleMutation.mutate({
+                                  days_of_week: newDays.sort()
+                                });
+                              }}
+                            />
+                            <label
+                              htmlFor={`day-${day.value}`}
+                              className="text-sm font-medium cursor-pointer"
+                            >
+                              {day.label}
+                            </label>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Last Run Info */}
+                    {schedule?.last_run_at && (
+                      <div className="p-4 border rounded-lg bg-muted/50">
+                        <p className="text-sm">
+                          <strong>Última execução:</strong>{' '}
+                          {new Date(schedule.last_run_at).toLocaleString('pt-PT')}
+                        </p>
+                        {schedule.stats && typeof schedule.stats === 'object' && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Processadas: {String((schedule.stats as Record<string, number>).total_processed || 0)} imagens
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Preview Dialog */}
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
@@ -884,6 +1224,55 @@ export default function ImageManager() {
                     Converter para WEBP
                   </Button>
                 )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Comparison Dialog */}
+        <Dialog open={showComparison} onOpenChange={setShowComparison}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <SplitSquareVertical className="h-5 w-5" />
+                Comparação: Original vs WEBP
+              </DialogTitle>
+              <DialogDescription>
+                Arraste o slider para comparar as duas versões
+              </DialogDescription>
+            </DialogHeader>
+            {comparisonData && (
+              <div className="space-y-4">
+                <ImageComparisonSlider
+                  originalUrl={comparisonData.original}
+                  convertedUrl={comparisonData.converted}
+                  originalLabel={comparisonData.conversion.original_format}
+                  convertedLabel="WEBP"
+                />
+                <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                  <div className="p-3 rounded-lg bg-muted">
+                    <p className="font-medium">Original</p>
+                    <p className="text-muted-foreground">
+                      {comparisonData.conversion.original_size 
+                        ? formatBytes(comparisonData.conversion.original_size) 
+                        : '-'}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-green-500/10 text-green-600">
+                    <p className="font-medium">Poupança</p>
+                    <p className="text-lg font-bold">
+                      -{comparisonData.conversion.savings_percentage || 0}%
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted">
+                    <p className="font-medium">WEBP</p>
+                    <p className="text-muted-foreground">
+                      {comparisonData.conversion.converted_size 
+                        ? formatBytes(comparisonData.conversion.converted_size) 
+                        : '-'}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </DialogContent>
