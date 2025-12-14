@@ -52,6 +52,7 @@ const slides: Slide[] = [{
     pt: "Comprar casa Porto Portugal - Imobiliário de prestígio com vista mar em Vila Nova de Gaia"
   }
 }];
+
 export const HeroSlider = () => {
   const { t, language } = useLanguage();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -86,7 +87,9 @@ export const HeroSlider = () => {
     }, 3000);
     return () => clearInterval(timer);
   }, [emblaApi]);
-  return <section className="relative h-screen overflow-hidden">
+
+  return (
+    <section className="relative h-[100svh] overflow-hidden">
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
           {slides.map((slide, index) => (
@@ -100,41 +103,55 @@ export const HeroSlider = () => {
 
       {/* Content */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="font-serif font-bold mb-4 md:mb-6 animate-fade-in uppercase tracking-wide text-3xl md:text-4xl lg:text-5xl text-gray-50 px-2">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16 text-center">
+          <h1 className="font-serif font-bold mb-4 md:mb-6 3xl:mb-8 4xl:mb-10 animate-fade-in uppercase tracking-wide text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl 4xl:text-7xl text-gray-50 px-2">
             {t('home.hero.title')}
           </h1>
-          <p className="text-base md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto animate-slide-up text-gray-50 uppercase font-semibold tracking-wide px-4">
+          <p className="text-sm sm:text-base md:text-xl lg:text-2xl 3xl:text-3xl 4xl:text-4xl mb-6 md:mb-8 3xl:mb-10 4xl:mb-12 max-w-3xl 3xl:max-w-4xl 4xl:max-w-5xl mx-auto animate-slide-up text-gray-50 uppercase font-semibold tracking-wide px-4">
             {t('home.hero.subtitle')}
           </p>
           <Link to="/portfolio">
-            <Button size="lg" variant="outline" className="animate-slide-up bg-transparent border-2 border-primary hover:bg-primary text-lg px-8 py-6 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="animate-slide-up bg-transparent border-2 border-primary hover:bg-primary text-base sm:text-lg 3xl:text-xl 4xl:text-2xl px-6 sm:px-8 3xl:px-12 4xl:px-16 py-4 sm:py-6 3xl:py-8 4xl:py-10 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50 min-h-touch 3xl:min-h-touch-lg"
+            >
               {t('home.hero.cta')}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 3xl:h-6 3xl:w-6 4xl:h-8 4xl:w-8" />
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Navigation Arrows - Hidden on mobile */}
-      <button onClick={scrollPrev} className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-primary/20 hover:bg-primary/40 backdrop-blur-sm text-white p-3 rounded-full transition-all">
-        <ChevronLeft className="h-6 w-6" />
+      {/* Navigation Arrows - Hidden on mobile, larger on TV */}
+      <button 
+        onClick={scrollPrev} 
+        className="hidden md:flex absolute left-4 3xl:left-8 4xl:left-12 top-1/2 -translate-y-1/2 z-20 bg-primary/20 hover:bg-primary/40 backdrop-blur-sm text-white p-3 3xl:p-4 4xl:p-6 rounded-full transition-all items-center justify-center min-h-touch 3xl:min-h-touch-lg"
+        aria-label="Slide anterior"
+      >
+        <ChevronLeft className="h-6 w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10" />
       </button>
-      <button onClick={scrollNext} className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-primary/20 hover:bg-primary/40 backdrop-blur-sm text-white p-3 rounded-full transition-all">
-        <ChevronRight className="h-6 w-6" />
+      <button 
+        onClick={scrollNext} 
+        className="hidden md:flex absolute right-4 3xl:right-8 4xl:right-12 top-1/2 -translate-y-1/2 z-20 bg-primary/20 hover:bg-primary/40 backdrop-blur-sm text-white p-3 3xl:p-4 4xl:p-6 rounded-full transition-all items-center justify-center min-h-touch 3xl:min-h-touch-lg"
+        aria-label="Próximo slide"
+      >
+        <ChevronRight className="h-6 w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10" />
       </button>
 
       {/* Dots Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-6 sm:bottom-8 3xl:bottom-12 4xl:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-2 3xl:gap-3 4xl:gap-4">
         {slides.map((_, index) => (
           <button 
             key={index} 
             onClick={() => emblaApi?.scrollTo(index)} 
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide ? 'bg-primary w-8' : 'bg-white/50 hover:bg-white/75'
-            }`} 
+            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 3xl:w-4 3xl:h-4 4xl:w-5 4xl:h-5 rounded-full transition-all duration-300 min-h-touch min-w-0 ${
+              index === currentSlide ? 'bg-primary w-6 sm:w-8 3xl:w-10 4xl:w-12' : 'bg-white/50 hover:bg-white/75'
+            }`}
+            aria-label={`Ir para slide ${index + 1}`}
           />
         ))}
       </div>
-    </section>;
+    </section>
+  );
 };

@@ -23,6 +23,11 @@ export const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const { data: navLinks } = useQuery({
     queryKey: ['navigation-menus', 'main', language],
     queryFn: async () => {
@@ -50,30 +55,32 @@ export const Navbar = () => {
           : 'bg-background'
       }`}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+      <div className="container mx-auto px-4 3xl:px-8 4xl:px-12">
+        <div className="flex items-center justify-between h-16 sm:h-20 3xl:h-24 4xl:h-28">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
               src={isScrolled ? logoWhite : logo} 
               alt="Genuíno Investments Switzerland" 
-              className="h-16 w-auto transition-all duration-500 hover:scale-105" 
+              className="h-12 sm:h-16 3xl:h-20 4xl:h-24 w-auto transition-all duration-500 hover:scale-105" 
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6 3xl:gap-8 4xl:gap-10">
             {navLinks?.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-serif font-semibold uppercase tracking-wider transition-all duration-300 relative group ${
+                className={`text-xs xl:text-sm 3xl:text-base 4xl:text-lg font-serif font-semibold uppercase tracking-wider transition-all duration-300 relative group ${
                   isScrolled 
                     ? 'text-white hover:brightness-110' 
                     : 'text-primary hover:text-accent'
-                }`}
+                } ${isActive(link.to) ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
               >
                 {link.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full" />
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-current transition-all duration-300 ${
+                  isActive(link.to) ? 'w-full' : 'w-0 group-hover:w-full'
+                }`} />
               </Link>
             ))}
             <LanguageSwitcher />
@@ -81,29 +88,29 @@ export const Navbar = () => {
               asChild
               variant="ghost"
               size="sm"
-              className={`gap-2 ${
+              className={`gap-2 min-h-touch 3xl:min-h-touch-lg 3xl:text-base 4xl:text-lg ${
                 isScrolled 
                   ? 'text-white hover:bg-white/10' 
                   : 'text-primary hover:bg-primary/10'
               }`}
             >
               <Link to="/admin/login">
-                <LogIn className="h-4 w-4" />
+                <LogIn className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                 <span>Entrar</span>
               </Link>
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile/Tablet Menu Button */}
+          <div className="lg:hidden flex items-center gap-2">
             <Button 
               asChild
               variant="ghost"
               size="sm"
-              className={isScrolled ? 'text-white hover:text-white/80' : ''}
+              className={`min-h-touch ${isScrolled ? 'text-white hover:text-white/80' : ''}`}
             >
               <Link to="/admin/login">
-                <LogIn className="h-4 w-4" />
+                <LogIn className="h-5 w-5" />
               </Link>
             </Button>
             <LanguageSwitcher />
@@ -111,27 +118,28 @@ export const Navbar = () => {
               variant="ghost" 
               size="sm" 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={isScrolled ? 'text-white hover:text-white/80' : ''}
+              className={`min-h-touch min-w-touch ${isScrolled ? 'text-white hover:text-white/80' : ''}`}
+              aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile/Tablet Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pb-4 animate-fade-in">
-            <div className="flex flex-col gap-4">
+          <div className="lg:hidden pb-6 animate-fade-in">
+            <div className="flex flex-col gap-1">
               {navLinks?.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-sm font-serif font-semibold uppercase tracking-wider transition-colors ${
+                  className={`text-base font-serif font-semibold uppercase tracking-wider transition-colors py-3 px-4 rounded-lg min-h-touch flex items-center ${
                     isScrolled 
-                      ? 'text-white hover:brightness-110' 
-                      : 'text-primary hover:text-accent'
-                  }`}
+                      ? 'text-white hover:bg-white/10' 
+                      : 'text-primary hover:bg-primary/5'
+                  } ${isActive(link.to) ? 'bg-primary/10' : ''}`}
                 >
                   {link.label}
                 </Link>
