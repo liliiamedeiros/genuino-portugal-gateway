@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
 import { NewsletterForm } from '@/components/NewsletterForm';
+import { CarModeToggle } from '@/components/CarModeWrapper';
 
 export const Footer = () => {
   const { t } = useLanguage();
@@ -85,9 +86,12 @@ export const Footer = () => {
 
         <div className="border-t border-border pt-6 sm:pt-8 3xl:pt-10 mt-6 sm:mt-8 3xl:mt-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 3xl:gap-6">
-            <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg text-muted-foreground text-center md:text-left">
-              © 2025 Genuíno Investments. {t('footer.rights')}
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg text-muted-foreground text-center md:text-left">
+                © 2025 Genuíno Investments. {t('footer.rights')}
+              </p>
+              <CarModeToggle />
+            </div>
             <div className="flex gap-4 sm:gap-6 3xl:gap-8 text-xs sm:text-sm 3xl:text-base 4xl:text-lg">
               <Link 
                 to="/legal" 

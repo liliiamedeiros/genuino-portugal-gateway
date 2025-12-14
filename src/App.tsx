@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ChatWidget } from "@/components/ChatWidget";
+import { CarModeWrapper } from "@/components/CarModeWrapper";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -55,6 +56,7 @@ const App = () => {
         <LanguageProvider>
           <AuthProvider>
             <TooltipProvider>
+              <CarModeWrapper>
                 <OrganizationSchema />
                 <PWAInstallPrompt />
                 <Toaster />
@@ -265,6 +267,7 @@ const App = () => {
                 </>
               } />
             </Routes>
+              </CarModeWrapper>
           </TooltipProvider>
         </AuthProvider>
     </LanguageProvider>

@@ -241,10 +241,10 @@ export default function Clients() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Gestão de Clientes</h1>
-          <div className="flex gap-2">
+      <div className="space-y-6 3xl:space-y-8 p-4 sm:p-6 lg:p-8 3xl:p-12 4xl:p-16">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-bold">Gestão de Clientes</h1>
+          <div className="flex flex-wrap gap-2 3xl:gap-3">
             <CSVImporter
               onImport={async (data) => await importMutation.mutateAsync(data)}
               columns={[
@@ -254,9 +254,13 @@ export default function Clients() {
                 { key: 'client_type', label: 'Tipo' },
               ]}
             />
-            <Button variant="outline" onClick={exportToCSV}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar
+            <Button 
+              variant="outline" 
+              onClick={exportToCSV}
+              className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base 4xl:text-lg"
+            >
+              <Download className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
+              <span className="hidden sm:inline">Exportar</span>
             </Button>
             <Button
               onClick={() => {
@@ -264,25 +268,26 @@ export default function Clients() {
                 form.reset();
                 setDialogOpen(true);
               }}
+              className="min-h-touch 3xl:min-h-touch-lg 3xl:text-base 4xl:text-lg 3xl:px-6"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5" />
               Novo Cliente
             </Button>
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 3xl:gap-6">
           <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 3xl:h-5 3xl:w-5 text-muted-foreground" />
             <Input
               placeholder="Pesquisar por nome ou email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
+              className="pl-8 3xl:pl-10 min-h-touch 3xl:min-h-touch-lg 3xl:text-lg"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px] 3xl:w-[220px] min-h-touch 3xl:min-h-touch-lg 3xl:text-base">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -293,7 +298,7 @@ export default function Clients() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px] 3xl:w-[220px] min-h-touch 3xl:min-h-touch-lg 3xl:text-base">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -306,30 +311,30 @@ export default function Clients() {
           </Select>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="border rounded-lg overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+              <TableRow className="3xl:text-lg 4xl:text-xl">
+                <TableHead className="3xl:py-4 4xl:py-5">Nome</TableHead>
+                <TableHead className="3xl:py-4 4xl:py-5 hidden md:table-cell">Email</TableHead>
+                <TableHead className="3xl:py-4 4xl:py-5 hidden lg:table-cell">Telefone</TableHead>
+                <TableHead className="3xl:py-4 4xl:py-5">Tipo</TableHead>
+                <TableHead className="3xl:py-4 4xl:py-5 hidden sm:table-cell">Status</TableHead>
+                <TableHead className="3xl:py-4 4xl:py-5 hidden xl:table-cell">Criado em</TableHead>
+                <TableHead className="text-right 3xl:py-4 4xl:py-5">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={7} className="text-center py-12 3xl:py-16 3xl:text-lg">
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : clients && clients.length > 0 ? (
                 clients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={client.id} className="3xl:text-base 4xl:text-lg">
+                    <TableCell className="font-medium 3xl:py-4 4xl:py-5">
                       <Link 
                         to={`/admin/clients/${client.id}`}
                         className="text-primary hover:underline"
@@ -337,31 +342,33 @@ export default function Clients() {
                         {client.full_name}
                       </Link>
                     </TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone || '-'}</TableCell>
-                    <TableCell>
+                    <TableCell className="3xl:py-4 4xl:py-5 hidden md:table-cell">{client.email}</TableCell>
+                    <TableCell className="3xl:py-4 4xl:py-5 hidden lg:table-cell">{client.phone || '-'}</TableCell>
+                    <TableCell className="3xl:py-4 4xl:py-5">
                       {clientTypeLabels[client.client_type as keyof typeof clientTypeLabels]}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="3xl:py-4 4xl:py-5 hidden sm:table-cell">
                       <StatusBadge status={client.status} type="client" />
                     </TableCell>
-                    <TableCell>{format(new Date(client.created_at), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="3xl:py-4 4xl:py-5 hidden xl:table-cell">{format(new Date(client.created_at), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell className="text-right 3xl:py-4 4xl:py-5">
+                      <div className="flex justify-end gap-2 3xl:gap-3">
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="min-h-touch min-w-touch 3xl:min-h-touch-lg 3xl:min-w-touch-lg"
                           onClick={() => handleEdit(client)}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4 3xl:h-5 3xl:w-5" />
                         </Button>
                         {client.status !== 'archived' && (
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="min-h-touch min-w-touch 3xl:min-h-touch-lg 3xl:min-w-touch-lg"
                             onClick={() => archiveMutation.mutate(client.id)}
                           >
-                            <Archive className="h-4 w-4" />
+                            <Archive className="h-4 w-4 3xl:h-5 3xl:w-5" />
                           </Button>
                         )}
                       </div>
@@ -370,7 +377,7 @@ export default function Clients() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={7} className="text-center py-12 3xl:py-16 3xl:text-lg">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
