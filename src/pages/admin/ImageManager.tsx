@@ -185,6 +185,58 @@ export default function ImageManager() {
   const [previewImage, setPreviewImage] = useState<ImageRecord | null>(null);
   const [previewQuality, setPreviewQuality] = useState(85);
 
+  // Function to record storage metrics after each conversion
+  const recordStorageMetrics = async (originalSize: number, convertedSize: number) => {
+    try {
+      const savingsBytes = originalSize - convertedSize;
+      const savingsPercentage = Math.round((savingsBytes / originalSize) * 100);
+      
+      // Get current date for grouping
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Check if there's a metric for today
+      const { data: existingMetric } = await supabase
+        .from('storage_metrics')
+        .select('*')
+        .gte('recorded_at', `${today}T00:00:00`)
+        .lt('recorded_at', `${today}T23:59:59`)
+        .maybeSingle();
+      
+      if (existingMetric) {
+        // Update existing metric
+        await supabase
+          .from('storage_metrics')
+          .update({
+            conversions_count: (existingMetric.conversions_count || 0) + 1,
+            savings_bytes: (existingMetric.savings_bytes || 0) + savingsBytes,
+            webp_images: (existingMetric.webp_images || 0) + 1,
+            average_savings_percentage: Math.round(
+              ((existingMetric.average_savings_percentage || 0) * (existingMetric.conversions_count || 0) + savingsPercentage) / 
+              ((existingMetric.conversions_count || 0) + 1)
+            )
+          })
+          .eq('id', existingMetric.id);
+      } else {
+        // Create new metric for today
+        await supabase
+          .from('storage_metrics')
+          .insert({
+            recorded_at: new Date().toISOString(),
+            total_images: 1,
+            webp_images: 1,
+            other_images: 0,
+            conversions_count: 1,
+            savings_bytes: savingsBytes,
+            average_savings_percentage: savingsPercentage
+          });
+      }
+      
+      console.log(`[StorageMetrics] Recorded: ${savingsBytes} bytes saved (${savingsPercentage}%)`);
+    } catch (error) {
+      console.error('[StorageMetrics] Error recording metrics:', error);
+    }
+  };
+
   // Fetch all images from different tables
   const { data: allImages, isLoading: loadingImages } = useQuery({
     queryKey: ['all-images'],
@@ -440,28 +492,42 @@ export default function ImageManager() {
         
         const newUrl = urlData.publicUrl;
         
-        // Update the source record
+        // Update the source record with detailed logging
+        console.log(`[ImageConversion] Updating ${image.sourceTable} id=${image.sourceId} with new URL`);
+        
+        let updateResult;
         if (image.sourceTable === 'projects') {
-          await supabase
+          updateResult = await supabase
             .from('projects')
             .update({ main_image: newUrl })
-            .eq('id', image.sourceId);
+            .eq('id', image.sourceId)
+            .select();
         } else if (image.sourceTable === 'project_images') {
-          await supabase
+          updateResult = await supabase
             .from('project_images')
             .update({ image_url: newUrl })
-            .eq('id', image.sourceId);
+            .eq('id', image.sourceId)
+            .select();
         } else if (image.sourceTable === 'portfolio_projects') {
-          await supabase
+          updateResult = await supabase
             .from('portfolio_projects')
             .update({ main_image: newUrl })
-            .eq('id', image.sourceId);
+            .eq('id', image.sourceId)
+            .select();
         } else if (image.sourceTable === 'portfolio_images') {
-          await supabase
+          updateResult = await supabase
             .from('portfolio_images')
             .update({ image_url: newUrl })
-            .eq('id', image.sourceId);
+            .eq('id', image.sourceId)
+            .select();
         }
+        
+        // Log update result for debugging
+        if (updateResult?.error) {
+          console.error(`[ImageConversion] UPDATE ERROR for ${image.sourceTable}:`, updateResult.error);
+          throw new Error(`Falha ao atualizar URL: ${updateResult.error.message}`);
+        }
+        console.log(`[ImageConversion] UPDATE SUCCESS for ${image.sourceTable}:`, updateResult?.data);
         
         // Record the conversion with backup URL
         const originalSize = blob.size;
@@ -481,6 +547,9 @@ export default function ImageManager() {
           status: 'converted',
           converted_at: new Date().toISOString()
         });
+        
+        // Record storage metrics after successful conversion
+        await recordStorageMetrics(originalSize, convertedSize);
         
         return { success: true, savings: Math.round(savings) };
       } catch (error) {
