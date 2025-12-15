@@ -283,6 +283,54 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_templates: {
+        Row: {
+          apply_watermark: boolean | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          quality: number
+          target_height: number
+          target_width: number
+          updated_at: string | null
+          use_case: string | null
+          watermark_position: string | null
+        }
+        Insert: {
+          apply_watermark?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          quality?: number
+          target_height?: number
+          target_width?: number
+          updated_at?: string | null
+          use_case?: string | null
+          watermark_position?: string | null
+        }
+        Update: {
+          apply_watermark?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          quality?: number
+          target_height?: number
+          target_width?: number
+          updated_at?: string | null
+          use_case?: string | null
+          watermark_position?: string | null
+        }
+        Relationships: []
+      }
       image_conversions: {
         Row: {
           backup_url: string | null
