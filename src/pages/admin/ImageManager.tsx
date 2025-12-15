@@ -50,6 +50,8 @@ import {
 import { convertToWebP } from '@/utils/imageUtils';
 import { applyWatermark } from '@/utils/watermarkUtils';
 import { ImageComparisonSlider } from '@/components/admin/ImageComparisonSlider';
+import { ImageQualityPreview } from '@/components/admin/ImageQualityPreview';
+import { ConversionTemplates } from '@/components/admin/ConversionTemplates';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { 
   exportConversionsToCSV, 
@@ -60,6 +62,20 @@ import {
   type ConversionData,
   type StorageMetricData
 } from '@/utils/reportExportUtils';
+
+interface ConversionTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  quality: number;
+  target_width: number;
+  target_height: number;
+  apply_watermark: boolean;
+  watermark_position: string | null;
+  use_case: string | null;
+  is_default: boolean;
+  icon: string | null;
+}
 
 interface ImageRecord {
   id: string;
@@ -164,6 +180,10 @@ export default function ImageManager() {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedQualityPreset, setSelectedQualityPreset] = useState<number | null>(85);
   const [customDimensions, setCustomDimensions] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ConversionTemplate | null>(null);
+  const [showQualityPreview, setShowQualityPreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<ImageRecord | null>(null);
+  const [previewQuality, setPreviewQuality] = useState(85);
 
   // Fetch all images from different tables
   const { data: allImages, isLoading: loadingImages } = useQuery({
@@ -674,10 +694,14 @@ export default function ImageManager() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="images" className="min-h-touch">
               <FileImage className="h-4 w-4 mr-2" />
               Imagens
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="min-h-touch">
+              <Palette className="h-4 w-4 mr-2" />
+              Templates
             </TabsTrigger>
             <TabsTrigger value="history" className="min-h-touch">
               <TrendingDown className="h-4 w-4 mr-2" />
@@ -692,6 +716,48 @@ export default function ImageManager() {
               Agendamento
             </TabsTrigger>
           </TabsList>
+
+          {/* Templates Tab */}
+          <TabsContent value="templates" className="space-y-6">
+            <ConversionTemplates 
+              onSelectTemplate={(template) => {
+                setSelectedTemplate(template);
+                toast.success(`Template "${template.name}" selecionado`);
+              }}
+              selectedTemplateId={selectedTemplate?.id}
+            />
+            
+            {selectedTemplate && (
+              <Card className="border-primary">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary" />
+                    Template Ativo: {selectedTemplate.icon} {selectedTemplate.name}
+                  </CardTitle>
+                  <CardDescription>
+                    {selectedTemplate.description || 'Sem descrição'} — {selectedTemplate.target_width}×{selectedTemplate.target_height} @ {selectedTemplate.quality}%
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => {
+                      updateScheduleMutation.mutate({
+                        quality: selectedTemplate.quality,
+                        target_width: selectedTemplate.target_width,
+                        target_height: selectedTemplate.target_height,
+                        apply_watermark: selectedTemplate.apply_watermark,
+                        watermark_position: selectedTemplate.watermark_position || 'bottom-right'
+                      });
+                    }}
+                    disabled={updateScheduleMutation.isPending}
+                  >
+                    {updateScheduleMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Aplicar ao Agendamento Automático
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           <TabsContent value="images" className="space-y-6">
 
@@ -954,9 +1020,25 @@ export default function ImageManager() {
                                 setShowPreview(true);
                               }}
                               className="min-h-touch min-w-touch"
+                              title="Ver imagem"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
+                            {!image.isWebP && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setPreviewImage(image);
+                                  setPreviewQuality(selectedTemplate?.quality || schedule?.quality || 85);
+                                  setShowQualityPreview(true);
+                                }}
+                                className="min-h-touch min-w-touch"
+                                title="Preview de qualidade"
+                              >
+                                <SplitSquareVertical className="h-4 w-4" />
+                              </Button>
+                            )}
                             {!image.isWebP && (
                               <Button
                                 variant="outline"
@@ -1917,6 +1999,36 @@ export default function ImageManager() {
                   </div>
                 </div>
               </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Quality Preview Dialog */}
+        <Dialog open={showQualityPreview} onOpenChange={setShowQualityPreview}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <SplitSquareVertical className="h-5 w-5" />
+                Preview de Qualidade
+              </DialogTitle>
+              <DialogDescription>
+                Ajuste a qualidade e veja a comparação em tempo real antes de converter
+              </DialogDescription>
+            </DialogHeader>
+            {previewImage && (
+              <ImageQualityPreview
+                originalUrl={previewImage.url}
+                quality={previewQuality}
+                targetWidth={selectedTemplate?.target_width || schedule?.target_width || 1200}
+                targetHeight={selectedTemplate?.target_height || schedule?.target_height || 900}
+                onQualityChange={setPreviewQuality}
+                onConvert={() => {
+                  convertImageMutation.mutate(previewImage);
+                  setShowQualityPreview(false);
+                }}
+                onBack={() => setShowQualityPreview(false)}
+                isConverting={convertingIds.has(previewImage.id)}
+              />
             )}
           </DialogContent>
         </Dialog>
