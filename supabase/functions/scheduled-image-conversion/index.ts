@@ -15,6 +15,65 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    // Authentication check - require service role key OR valid admin JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('[Scheduled Conversion] Missing Authorization header');
+      return new Response(JSON.stringify({ error: 'Unauthorized - Missing authorization token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Check if it's the service role key (for cron jobs)
+    const isServiceRole = token === supabaseServiceKey;
+    
+    if (!isServiceRole) {
+      // Verify user authentication and admin role
+      const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+      
+      if (authError || !user) {
+        console.error('[Scheduled Conversion] Authentication failed:', authError?.message);
+        return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Check for admin/super_admin role
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: userRole, error: roleError } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (roleError || !userRole) {
+        console.error('[Scheduled Conversion] Role check failed:', roleError?.message || 'No role found');
+        return new Response(JSON.stringify({ error: 'Forbidden - Insufficient permissions' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const allowedRoles = ['admin', 'super_admin'];
+      if (!allowedRoles.includes(userRole.role)) {
+        console.error('[Scheduled Conversion] User role not authorized:', userRole.role);
+        return new Response(JSON.stringify({ error: 'Forbidden - Only admins can trigger scheduled conversions' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log(`[Scheduled Conversion] Authenticated user ${user.id} with role ${userRole.role}`);
+    } else {
+      console.log('[Scheduled Conversion] Authenticated via service role key (cron job)');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('[Scheduled Conversion] Starting scheduled image conversion...');
