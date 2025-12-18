@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -374,7 +375,10 @@ export default function NewCampaign() {
                       <div
                         className="prose max-w-none"
                         dangerouslySetInnerHTML={{
-                          __html: content[lang as keyof typeof content],
+                          __html: DOMPurify.sanitize(content[lang as keyof typeof content], {
+                            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'span', 'div'],
+                            ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'],
+                          }),
                         }}
                       />
                     </div>
