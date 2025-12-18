@@ -7,20 +7,84 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiting (resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+function getRateLimitKey(req: Request): string {
+  // Use IP from headers or fallback to a default
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+  return ip;
+}
+
+function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+  
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  entry.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting check
+    const rateLimitKey = getRateLimitKey(req);
+    const rateLimit = checkRateLimit(rateLimitKey);
+    
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for ${rateLimitKey}`);
+      return new Response(JSON.stringify({ 
+        error: 'Too many requests. Please wait a moment before trying again.',
+        reply: 'Por favor, aguarde um momento antes de enviar outra mensagem.'
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.ceil(RATE_LIMIT_WINDOW_MS / 1000))
+        },
+      });
+    }
+
     const { message, language = 'pt' } = await req.json();
 
-    if (!message || message.trim().length === 0) {
+    // Input validation
+    if (!message || typeof message !== 'string') {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Sanitize and limit message length
+    const sanitizedMessage = message.trim().slice(0, 1000);
+    
+    if (sanitizedMessage.length === 0) {
+      return new Response(JSON.stringify({ error: 'Message cannot be empty' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate language
+    const validLanguages = ['pt', 'en', 'fr', 'de'];
+    const safeLanguage = validLanguages.includes(language) ? language : 'pt';
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -41,8 +105,8 @@ serve(async (req) => {
 
     // Build context for AI
     const propertyContext = properties?.map(p => {
-      const titleKey = `title_${language}` as keyof typeof p;
-      const descKey = `description_${language}` as keyof typeof p;
+      const titleKey = `title_${safeLanguage}` as keyof typeof p;
+      const descKey = `description_${safeLanguage}` as keyof typeof p;
       const title = p[titleKey] || p.title_pt;
       const desc = p[descKey] || p.description_pt;
       return `
@@ -55,11 +119,11 @@ Quartos: ${p.bedrooms || 'N/A'}
 Casas de banho: ${p.bathrooms || 'N/A'}
 Área: ${p.area_sqm ? `${p.area_sqm}m²` : 'N/A'}
 Tags: ${p.tags?.join(', ') || 'N/A'}
-Descrição: ${desc.substring(0, 200)}...
+Descrição: ${String(desc).substring(0, 200)}...
       `.trim();
     }).join('\n\n---\n\n') || 'Nenhum imóvel disponível no momento.';
 
-    const systemPrompts = {
+    const systemPrompts: Record<string, string> = {
       pt: `És um assistente virtual especializado em imobiliário em Portugal. Ajudas clientes a encontrar o imóvel ideal.
 Responde sempre em português de forma profissional, amigável e concisa.
 Usa os dados dos imóveis disponíveis para responder às perguntas.
@@ -82,15 +146,15 @@ Wenn Sie nicht genügend Informationen haben, fragen Sie den Kunden nach weitere
 Konzentrieren Sie sich auf die Merkmale, die der Kunde schätzt (Standort, Preis, Größe usw.).`
     };
 
-    const systemPrompt = systemPrompts[language as keyof typeof systemPrompts] || systemPrompts.pt;
+    const systemPrompt = systemPrompts[safeLanguage] || systemPrompts.pt;
 
     const userPrompt = `Contexto dos imóveis disponíveis:
 
 ${propertyContext}
 
-Pergunta do cliente: ${message}`;
+Pergunta do cliente: ${sanitizedMessage}`;
 
-    console.log('Processing chatbot query:', { language, messageLength: message.length, propertiesCount: properties?.length });
+    console.log('Processing chatbot query:', { language: safeLanguage, messageLength: sanitizedMessage.length, propertiesCount: properties?.length, rateLimitRemaining: rateLimit.remaining });
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -104,10 +168,14 @@ Pergunta do cliente: ${message}`;
       };
       
       return new Response(JSON.stringify({ 
-        reply: fallbackMessages[language] || fallbackMessages.pt
+        reply: fallbackMessages[safeLanguage] || fallbackMessages.pt
       }), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': String(rateLimit.remaining)
+        },
       });
     }
 
@@ -138,12 +206,16 @@ Pergunta do cliente: ${message}`;
     console.log('Chatbot response generated successfully');
 
     return new Response(JSON.stringify({ reply }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'X-RateLimit-Remaining': String(rateLimit.remaining)
+      },
     });
   } catch (error) {
     console.error('Chatbot error:', error);
     
-    const fallbackMessages = {
+    const fallbackMessages: Record<string, string> = {
       pt: 'Desculpe, ocorreu um erro. Por favor, tente novamente ou contacte-nos diretamente.',
       en: 'Sorry, an error occurred. Please try again or contact us directly.',
       fr: 'Désolé, une erreur s\'est produite. Veuillez réessayer ou nous contacter directement.',
