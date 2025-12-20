@@ -221,28 +221,52 @@ export default function PortfolioForm() {
     
     setIsTranslating(true);
     try {
-      const response = await supabase.functions.invoke('translate-property', {
+      console.log('Starting translation with:', { titlePt: titlePt.substring(0, 50), descriptionPt: descriptionPt.substring(0, 50) });
+      
+      const { data, error } = await supabase.functions.invoke('translate-property', {
         body: { title_pt: titlePt, description_pt: descriptionPt }
       });
       
-      if (response.data) {
-        form.setValue('title_fr', response.data.title_fr || titlePt);
-        form.setValue('title_en', response.data.title_en || titlePt);
-        form.setValue('title_de', response.data.title_de || titlePt);
-        form.setValue('description_fr', response.data.description_fr || descriptionPt);
-        form.setValue('description_en', response.data.description_en || descriptionPt);
-        form.setValue('description_de', response.data.description_de || descriptionPt);
+      console.log('Translation response:', { data, error });
+      
+      // Check for error first
+      if (error) {
+        console.error('Translation function error:', error);
+        throw new Error(error.message || 'Erro na tradução');
+      }
+      
+      // Check if data exists and has expected properties
+      if (data && data.title_fr && data.title_en && data.title_de) {
+        form.setValue('title_fr', data.title_fr, { shouldDirty: true });
+        form.setValue('title_en', data.title_en, { shouldDirty: true });
+        form.setValue('title_de', data.title_de, { shouldDirty: true });
+        form.setValue('description_fr', data.description_fr, { shouldDirty: true });
+        form.setValue('description_en', data.description_en, { shouldDirty: true });
+        form.setValue('description_de', data.description_de, { shouldDirty: true });
+        
+        console.log('Translation applied successfully');
         toast({ title: 'Tradução automática concluída!' });
+      } else if (data?.warning) {
+        // API key not configured - use fallback
+        console.warn('Translation warning:', data.warning);
+        form.setValue('title_fr', data.title_fr || titlePt, { shouldDirty: true });
+        form.setValue('title_en', data.title_en || titlePt, { shouldDirty: true });
+        form.setValue('title_de', data.title_de || titlePt, { shouldDirty: true });
+        form.setValue('description_fr', data.description_fr || descriptionPt, { shouldDirty: true });
+        form.setValue('description_en', data.description_en || descriptionPt, { shouldDirty: true });
+        form.setValue('description_de', data.description_de || descriptionPt, { shouldDirty: true });
+        toast({ title: 'Tradução usou texto em português (API não configurada)', variant: 'destructive' });
+      } else {
+        console.error('Unexpected response format:', data);
+        throw new Error('Formato de resposta inesperado da tradução');
       }
     } catch (error) {
-      // Fallback to Portuguese text
-      form.setValue('title_fr', titlePt);
-      form.setValue('title_en', titlePt);
-      form.setValue('title_de', titlePt);
-      form.setValue('description_fr', descriptionPt);
-      form.setValue('description_en', descriptionPt);
-      form.setValue('description_de', descriptionPt);
-      toast({ title: 'Tradução usou texto em português como fallback', variant: 'destructive' });
+      console.error('Translation failed:', error);
+      toast({ 
+        title: 'Erro na tradução automática', 
+        description: error instanceof Error ? error.message : 'Tente novamente',
+        variant: 'destructive' 
+      });
     } finally {
       setIsTranslating(false);
     }
