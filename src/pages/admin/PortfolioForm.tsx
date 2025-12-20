@@ -222,7 +222,7 @@ export default function PortfolioForm() {
     setIsTranslating(true);
     try {
       const response = await supabase.functions.invoke('translate-property', {
-        body: { title: titlePt, description: descriptionPt }
+        body: { title_pt: titlePt, description_pt: descriptionPt }
       });
       
       if (response.data) {
@@ -257,32 +257,57 @@ export default function PortfolioForm() {
         mainImageUrl = await uploadImage(mainImage, 'portfolio');
       }
       
+      // Auto-translate if translation fields are empty
+      let translatedData = { ...formData };
+      const needsTranslation = 
+        (!formData.title_fr || !formData.title_en || !formData.title_de ||
+         !formData.description_fr || !formData.description_en || !formData.description_de);
+      
+      if (needsTranslation && formData.title_pt && formData.description_pt) {
+        try {
+          const response = await supabase.functions.invoke('translate-property', {
+            body: { title_pt: formData.title_pt, description_pt: formData.description_pt }
+          });
+          
+          if (response.data) {
+            translatedData.title_fr = formData.title_fr || response.data.title_fr || formData.title_pt;
+            translatedData.title_en = formData.title_en || response.data.title_en || formData.title_pt;
+            translatedData.title_de = formData.title_de || response.data.title_de || formData.title_pt;
+            translatedData.description_fr = formData.description_fr || response.data.description_fr || formData.description_pt;
+            translatedData.description_en = formData.description_en || response.data.description_en || formData.description_pt;
+            translatedData.description_de = formData.description_de || response.data.description_de || formData.description_pt;
+          }
+        } catch (error) {
+          console.error('Auto-translation failed, using Portuguese as fallback:', error);
+        }
+      }
+      
       const projectData = {
-        title_pt: formData.title_pt,
-        title_fr: formData.title_fr || formData.title_pt,
-        title_en: formData.title_en || formData.title_pt,
-        title_de: formData.title_de || formData.title_pt,
-        description_pt: formData.description_pt,
-        description_fr: formData.description_fr || formData.description_pt,
-        description_en: formData.description_en || formData.description_pt,
-        description_de: formData.description_de || formData.description_pt,
-        location: formData.location,
-        region: formData.region,
-        city: formData.city || null,
-        address: formData.address || null,
-        postal_code: formData.postal_code || null,
-        property_type: formData.property_type || null,
-        operation_type: formData.operation_type || null,
-        price: formData.price || null,
-        bedrooms: formData.bedrooms || null,
-        bathrooms: formData.bathrooms || null,
-        area_sqm: formData.area_sqm || null,
-        parking_spaces: formData.parking_spaces || null,
-        video_url: formData.video_url || null,
-        virtual_tour_url: formData.virtual_tour_url || null,
-        map_embed_url: formData.map_embed_url || null,
-        status: formData.status,
-        featured: formData.featured,
+        title_pt: translatedData.title_pt,
+        title_fr: translatedData.title_fr || translatedData.title_pt,
+        title_en: translatedData.title_en || translatedData.title_pt,
+        title_de: translatedData.title_de || translatedData.title_pt,
+        description_pt: translatedData.description_pt,
+        description_fr: translatedData.description_fr || translatedData.description_pt,
+        description_en: translatedData.description_en || translatedData.description_pt,
+        description_de: translatedData.description_de || translatedData.description_pt,
+        location: translatedData.location,
+        region: translatedData.region,
+        city: translatedData.city || null,
+        address: translatedData.address || null,
+        postal_code: translatedData.postal_code || null,
+        property_type: translatedData.property_type || null,
+        operation_type: translatedData.operation_type || null,
+        price: translatedData.price || null,
+        bedrooms: translatedData.bedrooms || null,
+        bathrooms: translatedData.bathrooms || null,
+        area_sqm: translatedData.area_sqm || null,
+        parking_spaces: translatedData.parking_spaces || null,
+        video_url: translatedData.video_url || null,
+        virtual_tour_url: translatedData.virtual_tour_url || null,
+        map_embed_url: translatedData.map_embed_url || null,
+        status: translatedData.status,
+        featured: translatedData.featured,
         main_image: mainImageUrl || null,
         tags,
         features,
