@@ -47,6 +47,7 @@ import MigrateProjects from "./pages/admin/MigrateProjects";
 import MenuManager from "./pages/admin/MenuManager";
 import PortfolioList from "./pages/admin/PortfolioList";
 import PortfolioForm from "./pages/admin/PortfolioForm";
+import AuditLogPage from "./pages/admin/AuditLogPage";
 
 const queryClient = new QueryClient();
 
@@ -262,6 +263,11 @@ const App = () => {
             <Route path="/admin/portfolio/edit/:id" element={
               <ProtectedRoute requiredRole="editor">
                 <PortfolioForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/audit" element={
+              <ProtectedRoute requiredRole="super_admin">
+                <AuditLogPage />
               </ProtectedRoute>
             } />
 
