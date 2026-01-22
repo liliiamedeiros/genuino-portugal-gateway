@@ -16,7 +16,8 @@ import {
   FileJson,
   CheckCircle,
   ImageIcon,
-  FolderOpen
+  FolderOpen,
+  Shield
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
@@ -54,6 +55,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [location.pathname, isMobile]);
 
+  // DEBUG: Log userRole when component renders
+  useEffect(() => {
+    console.log('[AdminLayout Debug] Current userRole:', userRole);
+    console.log('[AdminLayout Debug] User:', user?.email);
+  }, [userRole, user]);
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
@@ -62,6 +69,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
     { icon: ImageIcon, label: 'Gestor de Imagens', path: '/admin/image-manager', superAdminOnly: true },
+    { icon: Shield, label: 'Logs de Auditoria', path: '/admin/audit', superAdminOnly: true },
     { icon: Menu, label: 'Gestão de Menus', path: '/admin/menus', adminOnly: true },
     { icon: BarChart3, label: 'Relatórios', path: '/admin/reports', adminOnly: true },
     { icon: FileJson, label: 'Sistema-JSON_LD', path: '/admin/json-ld-system', adminOnly: true },
@@ -83,6 +91,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
     return true;
   });
+
+  // DEBUG: Log visible menu items
+  useEffect(() => {
+    console.log('[AdminLayout Debug] visibleMenuItems:', visibleMenuItems.map(i => i.label));
+  }, [visibleMenuItems]);
 
   const isActive = (path: string) => location.pathname === path;
 

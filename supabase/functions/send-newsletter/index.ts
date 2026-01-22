@@ -243,6 +243,19 @@ Deno.serve(async (req) => {
         .replace(/\{\{unsubscribe_link\}\}/g, 
           `${Deno.env.get('SITE_URL')}/unsubscribe?token=${subscriber.id}`);
       
+      // Wrap content in HTML document with CSP headers for XSS protection
+      const emailHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src https: data:; font-src https:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif;">
+  ${personalizedContent}
+</body>
+</html>`;
+      
       try {
         // Enviar email via Resend API
         const res = await fetch('https://api.resend.com/emails', {
@@ -255,7 +268,7 @@ Deno.serve(async (req) => {
             from: 'Newsletter <onboarding@resend.dev>',
             to: [subscriber.email],
             subject: subject,
-            html: personalizedContent,
+            html: emailHtml,
             tags: {
               campaign_id: campaignId,
               subscriber_id: subscriber.id
