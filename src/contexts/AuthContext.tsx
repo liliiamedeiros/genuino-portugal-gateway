@@ -22,43 +22,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const fetchUserRole = async (userId: string): Promise<'super_admin' | 'admin' | 'editor' | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+      
+      const role = data?.role ?? null;
+      setUserRole(role);
+      return role;
+    } catch (err) {
+      console.error('Unexpected error fetching role:', err);
+      setUserRole(null);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
+          await fetchUserRole(session.user.id);
         } else {
           setUserRole(null);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        await fetchUserRole(session.user.id);
       }
+      
       setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    
-    setUserRole(data?.role ?? null);
-  };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
