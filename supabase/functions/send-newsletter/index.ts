@@ -1,24 +1,117 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
+import { DOMParser, Element } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple HTML sanitizer for server-side (allows safe tags only)
+// Allowlists for HTML sanitization
+const ALLOWED_TAGS = new Set([
+  'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'img', 'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'span', 'div',
+  'table', 'tr', 'td', 'th', 'tbody', 'thead', 'tfoot'
+]);
+
+const ALLOWED_ATTRS = new Set([
+  'href', 'src', 'alt', 'class', 'style', 'target', 'width', 'height', 'title'
+]);
+
+// DOM-based HTML sanitizer - more robust than regex
 function sanitizeHtml(html: string): string {
-  const allowedTags = ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'img', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'span', 'div', 'table', 'tr', 'td', 'th', 'tbody', 'thead'];
-  const allowedAttrs = ['href', 'src', 'alt', 'class', 'style', 'target', 'width', 'height'];
+  try {
+    // Parse the HTML using DOM parser
+    const doc = new DOMParser().parseFromString(
+      `<div id="root">${html}</div>`,
+      'text/html'
+    );
+    
+    if (!doc) {
+      console.warn('Failed to parse HTML, returning empty string');
+      return '';
+    }
+
+    const root = doc.getElementById('root');
+    if (!root) {
+      return '';
+    }
+
+    // Recursively sanitize the DOM tree
+    sanitizeNode(root);
+
+    return root.innerHTML;
+  } catch (error) {
+    console.error('HTML sanitization error:', error);
+    // Fallback: strip all HTML tags for safety
+    return html.replace(/<[^>]*>/g, '');
+  }
+}
+
+function sanitizeNode(node: Element): void {
+  // Get all child elements (copy to array since we'll modify)
+  const children = Array.from(node.children);
   
-  // Remove script tags and event handlers
-  let sanitized = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
-    .replace(/javascript:/gi, '');
-  
-  return sanitized;
+  for (const child of children) {
+    const tagName = child.tagName.toLowerCase();
+    
+    // Remove disallowed tags entirely
+    if (!ALLOWED_TAGS.has(tagName)) {
+      // For script/style/iframe - remove completely including content
+      if (['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'].includes(tagName)) {
+        child.remove();
+        continue;
+      }
+      // For other disallowed tags - unwrap (keep content, remove tag)
+      const parent = child.parentElement;
+      if (parent) {
+        while (child.firstChild) {
+          parent.insertBefore(child.firstChild, child);
+        }
+        child.remove();
+      }
+      continue;
+    }
+    
+    // Remove disallowed attributes
+    const attrs = Array.from(child.attributes);
+    for (const attr of attrs) {
+      const attrName = attr.name.toLowerCase();
+      
+      // Remove event handlers (on*)
+      if (attrName.startsWith('on')) {
+        child.removeAttribute(attr.name);
+        continue;
+      }
+      
+      // Check against allowlist
+      if (!ALLOWED_ATTRS.has(attrName)) {
+        child.removeAttribute(attr.name);
+        continue;
+      }
+      
+      // Sanitize href/src to prevent javascript: URLs
+      if ((attrName === 'href' || attrName === 'src') && attr.value) {
+        const value = attr.value.trim().toLowerCase();
+        if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+          child.removeAttribute(attr.name);
+        }
+      }
+      
+      // Sanitize style attribute - remove expression() and url() with javascript
+      if (attrName === 'style' && attr.value) {
+        const cleanStyle = attr.value
+          .replace(/expression\s*\([^)]*\)/gi, '')
+          .replace(/url\s*\(\s*['"]?\s*javascript:[^)]*\)/gi, '')
+          .replace(/behavior\s*:/gi, '');
+        child.setAttribute('style', cleanStyle);
+      }
+    }
+    
+    // Recursively sanitize children
+    if (child.children.length > 0) {
+      sanitizeNode(child);
+    }
+  }
 }
 
 Deno.serve(async (req) => {
