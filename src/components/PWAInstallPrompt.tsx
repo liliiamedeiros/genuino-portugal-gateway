@@ -72,26 +72,32 @@ export const PWAInstallPrompt = () => {
   if (isInstalled || !showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto animate-fade-in">
-      <Alert className="bg-card shadow-2xl border-2 border-primary">
-        <Download className="h-5 w-5 text-primary" />
-        <AlertTitle className="flex items-center justify-between">
-          <span>Instalar Aplicação</span>
+    <div 
+      className="fixed left-4 right-4 z-40 max-w-md mx-auto animate-fade-in safe-area-x"
+      style={{ 
+        bottom: `calc(5rem + var(--safe-area-inset-bottom, 0px))` 
+      }}
+    >
+      <Alert className="bg-card shadow-2xl border-2 border-primary rounded-xl">
+        <Download className="h-5 w-5 text-primary shrink-0" />
+        <AlertTitle className="flex items-center justify-between gap-2">
+          <span className="text-base font-semibold">Instalar Aplicação</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDismiss}
-            className="h-6 w-6 p-0"
+            className="h-10 w-10 p-0 shrink-0 -mr-2"
+            aria-label="Fechar"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </AlertTitle>
-        <AlertDescription className="mt-2">
-          <p className="text-sm mb-3">
+        <AlertDescription className="mt-3">
+          <p className="text-sm mb-4 leading-relaxed">
             Instale o Genuíno Investments no seu dispositivo para acesso rápido e experiência otimizada.
           </p>
-          <Button onClick={handleInstallClick} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
+          <Button onClick={handleInstallClick} className="w-full h-12 text-base">
+            <Download className="mr-2 h-5 w-5" />
             Instalar Agora
           </Button>
         </AlertDescription>
