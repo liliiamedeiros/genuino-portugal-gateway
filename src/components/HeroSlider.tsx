@@ -66,6 +66,10 @@ export const HeroSlider = () => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  const scrollTo = useCallback((index: number) => {
+    if (emblaApi) emblaApi.scrollTo(index);
+  }, [emblaApi]);
+
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setCurrentSlide(emblaApi.selectedScrollSnap());
@@ -102,9 +106,9 @@ export const HeroSlider = () => {
       </div>
 
       {/* Content */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
+      <div className="absolute inset-0 flex items-center justify-center z-10 safe-area-x">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16 text-center">
-          <h1 className="font-serif font-bold mb-4 md:mb-6 3xl:mb-8 4xl:mb-10 animate-fade-in uppercase tracking-wide text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl 4xl:text-7xl text-gray-50 px-2">
+          <h1 className="font-serif font-bold mb-4 md:mb-6 3xl:mb-8 4xl:mb-10 animate-fade-in uppercase tracking-wide text-xl sm:text-2xl md:text-4xl lg:text-5xl 3xl:text-6xl 4xl:text-7xl text-gray-50 px-2">
             {t('home.hero.title')}
           </h1>
           <p className="text-sm sm:text-base md:text-xl lg:text-2xl 3xl:text-3xl 4xl:text-4xl mb-6 md:mb-8 3xl:mb-10 4xl:mb-12 max-w-3xl 3xl:max-w-4xl 4xl:max-w-5xl mx-auto animate-slide-up text-gray-50 uppercase font-semibold tracking-wide px-4">
@@ -114,7 +118,7 @@ export const HeroSlider = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="animate-slide-up bg-transparent border-2 border-primary hover:bg-primary text-base sm:text-lg 3xl:text-xl 4xl:text-2xl px-6 sm:px-8 3xl:px-12 4xl:px-16 py-4 sm:py-6 3xl:py-8 4xl:py-10 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50 min-h-touch 3xl:min-h-touch-lg"
+              className="animate-slide-up bg-transparent border-2 border-primary hover:bg-primary text-sm sm:text-base md:text-lg 3xl:text-xl 4xl:text-2xl px-5 sm:px-8 3xl:px-12 4xl:px-16 py-4 sm:py-6 3xl:py-8 4xl:py-10 uppercase tracking-wider transition-all duration-300 rounded-none text-gray-50 min-h-[52px] sm:min-h-touch 3xl:min-h-touch-lg"
             >
               {t('home.hero.cta')}
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 3xl:h-6 3xl:w-6 4xl:h-8 4xl:w-8" />
@@ -139,17 +143,33 @@ export const HeroSlider = () => {
         <ChevronRight className="h-6 w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10" />
       </button>
 
-      {/* Dots Indicator */}
-      <div className="absolute bottom-6 sm:bottom-8 3xl:bottom-12 4xl:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-2 3xl:gap-3 4xl:gap-4">
+      {/* Dots Indicator - Larger touch targets on mobile */}
+      <div className="absolute bottom-8 sm:bottom-8 3xl:bottom-12 4xl:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-3 sm:gap-2 3xl:gap-3 4xl:gap-4 safe-area-bottom py-2">
         {slides.map((_, index) => (
           <button 
             key={index} 
-            onClick={() => emblaApi?.scrollTo(index)} 
-            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 3xl:w-4 3xl:h-4 4xl:w-5 4xl:h-5 rounded-full transition-all duration-300 min-h-touch min-w-0 ${
-              index === currentSlide ? 'bg-primary w-6 sm:w-8 3xl:w-10 4xl:w-12' : 'bg-white/50 hover:bg-white/75'
-            }`}
+            onClick={() => scrollTo(index)} 
+            className={`
+              transition-all duration-300 rounded-full
+              h-3 sm:h-3 3xl:h-4 4xl:h-5
+              min-w-[44px] sm:min-w-0 min-h-[44px] sm:min-h-0
+              flex items-center justify-center
+              ${index === currentSlide 
+                ? 'bg-primary w-8 sm:w-8 3xl:w-10 4xl:w-12' 
+                : 'bg-white/50 hover:bg-white/75 w-3 sm:w-3 3xl:w-4 4xl:w-5'
+              }
+            `}
             aria-label={`Ir para slide ${index + 1}`}
-          />
+            aria-current={index === currentSlide ? 'true' : 'false'}
+          >
+            <span className={`
+              block rounded-full
+              ${index === currentSlide 
+                ? 'w-8 sm:w-8 3xl:w-10 4xl:w-12 h-3 sm:h-3 3xl:h-4 4xl:h-5 bg-primary' 
+                : 'w-3 sm:w-3 3xl:w-4 4xl:w-5 h-3 sm:h-3 3xl:h-4 4xl:h-5'
+              }
+            `} />
+          </button>
         ))}
       </div>
     </section>
