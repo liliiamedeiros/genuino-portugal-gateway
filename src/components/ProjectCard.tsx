@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MapPin, ArrowRight, Bed, Maximize } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 // Feature icons mapping
 const FEATURE_ICONS: Record<string, string> = {
@@ -76,11 +77,14 @@ export const ProjectCard = ({
       )}
 
       <Link to={`${linkPrefix}/${id}`}>
-        <div className="relative overflow-hidden h-[200px] sm:h-[220px] md:h-[240px] lg:h-[280px] 3xl:h-[320px] 4xl:h-[360px] w-full">
-          <img 
+        <div className="relative overflow-hidden h-[180px] sm:h-[220px] md:h-[240px] lg:h-[280px] 3xl:h-[320px] 4xl:h-[360px] w-full">
+          <OptimizedImage 
             src={image} 
             alt={`${title} – Luxury real estate project in ${location} – Premium Portuguese property investment opportunity`} 
-            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" 
+            className="group-hover:scale-110 transition-transform duration-700" 
+            containerClassName="w-full h-full"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            aspectRatio="16/10"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
