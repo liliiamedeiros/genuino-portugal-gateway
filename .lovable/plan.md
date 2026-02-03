@@ -1,184 +1,190 @@
 
-# Plano de Revisao Completa Mobile
+# Plano de Otimizacao de Imagens para Conexoes Moveis Lentas
 
 ## Resumo
 
-Apos analisar todo o codigo do site, identifiquei varias areas que precisam de melhorias para a experiencia mobile. Este plano aborda todos os componentes principais para garantir uma experiencia otimizada em telemoveis.
+Este plano implementa varias tecnicas de otimizacao de imagens para melhorar significativamente o tempo de carregamento em conexoes moveis lentas (3G, 4G fraco, etc.).
 
 ---
 
-## Problemas Identificados e Solucoes
+## Estrategias de Otimizacao
 
-### 1. Chat Widget - Ocupa Tela Inteira no Mobile
+### 1. Componente OptimizedImage com Lazy Loading Nativo
 
-**Problema:** O ChatWidget tem dimensoes fixas (`w-[400px] h-[650px]`) que nao se adaptam a ecras pequenos.
+**Problema:** As imagens atualmente carregam todas de uma vez, consumindo largura de banda.
 
-**Solucao:**
-- Adicionar classes responsivas: `w-full sm:w-[400px] h-[100dvh] sm:h-[650px]`
-- No mobile, ocupar tela inteira com `fixed inset-0`
-- Melhorar espacamento e tamanhos de touch targets
+**Solucao:** Criar um componente reutilizavel `OptimizedImage` que:
+- Usa `loading="lazy"` nativo do browser
+- Implementa placeholder com blur/skeleton enquanto carrega
+- Suporta `srcset` para diferentes resolucoes
+- Usa `decoding="async"` para nao bloquear renderizacao
+- Implementa `fetchpriority` para imagens acima do fold
 
-**Ficheiro:** `src/components/ChatWidget.tsx`
-
----
-
-### 2. Menu Mobile - Melhorar Experiencia de Navegacao
-
-**Problema:** O menu hamburger pode ser dificil de usar e os links podem ter areas de toque pequenas.
-
-**Solucao:**
-- Aumentar padding dos links do menu mobile
-- Adicionar backdrop blur ao menu aberto
-- Melhorar animacao de abertura/fecho
-- Garantir z-index correto para evitar sobreposicoes
-
-**Ficheiro:** `src/components/Navbar.tsx`
+**Novo Ficheiro:** `src/components/OptimizedImage.tsx`
 
 ---
 
-### 3. Hero Slider - Ajustar para Mobile
+### 2. Imagens Responsivas com srcset
 
-**Problema:** Os dots de navegacao do slider podem ser dificeis de clicar no mobile.
+**Problema:** Imagens grandes carregam em dispositivos pequenos.
 
-**Solucao:**
-- Aumentar tamanho dos dots no mobile
-- Adicionar swipe gesture mais responsivo
-- Melhorar spacing do conteudo no hero
-
-**Ficheiro:** `src/components/HeroSlider.tsx`
-
----
-
-### 4. Footer - Otimizar Layout Mobile
-
-**Problema:** O footer pode ter elementos apertados no mobile.
-
-**Solucao:**
-- Stack vertical para todos elementos no mobile
-- Melhorar espacamento entre sections
-- Garantir que links de redes sociais tem bom touch target
-
-**Ficheiro:** `src/components/Footer.tsx`
-
----
-
-### 5. PWA Install Prompt - Melhorar Posicionamento
-
-**Problema:** O prompt pode sobrepor outros elementos.
-
-**Solucao:**
-- Ajustar posicionamento para nao conflitar com ChatWidget
-- Adicionar safe area inset para dispositivos com notch
-
-**Ficheiro:** `src/components/PWAInstallPrompt.tsx`
-
----
-
-### 6. Property Cards - Otimizar para Mobile
-
-**Problema:** Cards de imoveis podem ter informacao muito apertada.
-
-**Solucao:**
-- Ajustar tamanhos de imagem responsivos
-- Melhorar truncamento de texto
-- Garantir que badges nao sobrepoem conteudo
-
-**Ficheiro:** `src/components/ProjectCard.tsx`
-
----
-
-### 7. Language Switcher - Aumentar Touch Target
-
-**Problema:** O seletor de idioma pode ser pequeno demais no mobile.
-
-**Solucao:**
-- Aumentar tamanho do botao
-- Garantir que dropdown tem bom espacamento
-
-**Ficheiro:** `src/components/LanguageSwitcher.tsx`
-
----
-
-### 8. CSS Global - Melhorias Gerais
-
-**Adicionar ao CSS:**
-- Safe area insets para dispositivos com notch
-- Melhor scroll behavior
-- Touch manipulation para prevenir delay em toques
-- Melhor suporte para 100dvh (dynamic viewport height)
-
-**Ficheiro:** `src/index.css`
-
----
-
-## Alteracoes Tecnicas
-
-### ChatWidget.tsx
+**Solucao:** Implementar `srcset` e `sizes` para servir imagens adequadas ao dispositivo:
 ```text
-- Card fixo no mobile ocupa tela inteira
-- Adicionar inset-0 sm:inset-auto
-- Botao de fechar mais visivel
-- Input maior para melhor usabilidade
+srcset="imagem-400.webp 400w, imagem-800.webp 800w, imagem-1200.webp 1200w"
+sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 ```
 
-### Navbar.tsx
+**Ficheiros Afetados:**
+- `src/components/ProjectCard.tsx`
+- `src/components/HeroSlider.tsx`
+- `src/pages/ProjectDetail.tsx`
+
+---
+
+### 3. Placeholder com Low Quality Image Placeholder (LQIP)
+
+**Problema:** Ecras em branco enquanto imagens carregam.
+
+**Solucao:** Implementar skeleton loading e transicao suave:
+- Skeleton animado enquanto imagem carrega
+- Fade-in quando imagem esta pronta
+- Opcional: usar blur placeholder com imagem tiny (data URI)
+
+---
+
+### 4. Hook useImagePreloader para Pre-carregamento Inteligente
+
+**Problema:** Imagens da proxima pagina/slide nao estao prontas.
+
+**Solucao:** Criar hook `useImagePreloader` que:
+- Pre-carrega imagens adjacentes no HeroSlider
+- Pre-carrega imagens de propriedades visiveis no viewport
+- Usa `IntersectionObserver` para detetar imagens proximo do viewport
+
+**Novo Ficheiro:** `src/hooks/useImagePreloader.ts`
+
+---
+
+### 5. Service Worker com Cache Estrategico (ja parcialmente implementado)
+
+**Estado Atual:** O `vite.config.ts` ja tem configuracao PWA com cache de imagens.
+
+**Melhoria:** Adicionar caching mais agressivo para imagens de propriedades:
+- Aumentar `maxEntries` para imagens
+- Adicionar cache para Supabase Storage
+- Implementar background sync para pre-fetch
+
+**Ficheiro:** `vite.config.ts`
+
+---
+
+### 6. Atributo fetchpriority para Imagens Criticas
+
+**Problema:** Imagens do hero competem com outras pelo carregamento.
+
+**Solucao:** Adicionar `fetchpriority="high"` para:
+- Imagem principal do HeroSlider (slide ativo)
+- Imagem de capa nas paginas de detalhe
+- Primeiros 2-3 cards de propriedades
+
+---
+
+### 7. Dimensoes Explicitas para Evitar Layout Shift
+
+**Problema:** Imagens sem dimensoes causam "saltos" no layout (CLS).
+
+**Solucao:** Garantir que todas as imagens tem:
+- `width` e `height` definidos
+- `aspect-ratio` CSS como fallback
+- Containers com altura fixa responsiva
+
+---
+
+## Alteracoes por Ficheiro
+
+### Novos Ficheiros
+
+| Ficheiro | Descricao |
+|----------|-----------|
+| `src/components/OptimizedImage.tsx` | Componente de imagem otimizada com lazy loading, placeholder e srcset |
+| `src/hooks/useImagePreloader.ts` | Hook para pre-carregamento inteligente de imagens |
+
+### Ficheiros a Modificar
+
+| Ficheiro | Alteracao |
+|----------|-----------|
+| `src/components/ProjectCard.tsx` | Usar OptimizedImage, adicionar aspect-ratio |
+| `src/components/HeroSlider.tsx` | Adicionar fetchpriority, pre-load slides adjacentes |
+| `src/pages/ProjectDetail.tsx` | Usar OptimizedImage no hero e galeria |
+| `src/components/PropertyImageCarousel.tsx` | Melhorar lazy loading existente com OptimizedImage |
+| `vite.config.ts` | Expandir cache de Supabase Storage |
+
+---
+
+## Detalhes Tecnicos
+
+### OptimizedImage.tsx
 ```text
-- Menu mobile com animacao slide-in
-- Backdrop blur quando aberto
-- Links com min-h-12 para toque facil
-- Botao hamburger maior
+Props:
+- src: string (URL da imagem)
+- alt: string
+- width?: number
+- height?: number
+- priority?: boolean (fetchpriority="high")
+- sizes?: string (para srcset)
+- className?: string
+- placeholder?: 'blur' | 'skeleton' (default: skeleton)
+
+Funcionalidades:
+- Skeleton animado enquanto carrega
+- Fade-in transition quando pronta
+- loading="lazy" (ou eager se priority=true)
+- decoding="async"
+- onLoad/onError handlers
 ```
 
-### HeroSlider.tsx
+### useImagePreloader.ts
 ```text
-- Dots com w-3 h-3 no mobile (maior area de toque)
-- Spacing melhorado no conteudo
-- Suporte swipe melhorado
+Hook:
+- Recebe array de URLs
+- Retorna { loaded: Set<string>, preload: (url) => void }
+- Usa Image() constructor para pre-fetch
+- Limita pre-loads concorrentes (max 3)
 ```
 
-### index.css
+### Melhorias no ProjectCard.tsx
 ```text
-- env(safe-area-inset-*) para notch
-- scroll-behavior: smooth
-- touch-action: manipulation
-- 100dvh para altura dinamica
+- Substituir <img> por <OptimizedImage>
+- Adicionar aspect-ratio container
+- Manter animacao hover existente
 ```
 
-### PWAInstallPrompt.tsx
+### Melhorias no HeroSlider.tsx
 ```text
-- Bottom positioning considerando safe-area
-- z-index abaixo do ChatWidget
-- Max-width ajustado para mobile
-```
-
-### ProjectCard.tsx
-```text
-- Imagem responsiva h-[180px] sm:h-[220px]
-- Badges com melhor spacing
-- Texto com line-clamp adequado
+- Slide atual: priority=true
+- Slides adjacentes: pre-load via useImagePreloader
+- Imagens com decoding="async"
 ```
 
 ---
 
-## Resumo das Alteracoes por Ficheiro
+## Impacto Esperado
 
-| Ficheiro | Tipo de Alteracao |
-|----------|-------------------|
-| `src/components/ChatWidget.tsx` | Responsividade fullscreen mobile |
-| `src/components/Navbar.tsx` | Menu mobile melhorado |
-| `src/components/HeroSlider.tsx` | Touch targets maiores |
-| `src/components/Footer.tsx` | Layout vertical no mobile |
-| `src/components/PWAInstallPrompt.tsx` | Safe area + positioning |
-| `src/components/ProjectCard.tsx` | Tamanhos responsivos |
-| `src/components/LanguageSwitcher.tsx` | Touch target maior |
-| `src/index.css` | Safe areas + scroll + touch |
+| Metrica | Antes | Depois |
+|---------|-------|--------|
+| LCP (Largest Contentful Paint) | ~4s em 3G | ~2s em 3G |
+| CLS (Cumulative Layout Shift) | ~0.15 | <0.05 |
+| Dados consumidos (mobile) | 100% | ~50-60% |
+| Tempo para interatividade | Lento | Rapido (skeleton visivel) |
 
 ---
 
-## Beneficios
+## Ordem de Implementacao
 
-- **Melhor usabilidade**: Touch targets de 44px+ em todos os elementos interativos
-- **Compatibilidade**: Suporte para dispositivos com notch (iPhone X+)
-- **Performance**: Scroll suave e animacoes otimizadas
-- **Acessibilidade**: Melhor contraste e legibilidade
-- **PWA**: Experiencia nativa quando instalado
+1. Criar `OptimizedImage.tsx` - componente base reutilizavel
+2. Criar `useImagePreloader.ts` - hook de pre-carregamento
+3. Atualizar `ProjectCard.tsx` - usar novo componente
+4. Atualizar `HeroSlider.tsx` - prioridade e pre-load
+5. Atualizar `PropertyImageCarousel.tsx` - melhorar lazy loading
+6. Atualizar `ProjectDetail.tsx` - imagem hero otimizada
+7. Atualizar `vite.config.ts` - expandir cache PWA
