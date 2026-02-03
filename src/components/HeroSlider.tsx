@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
 import slider1 from '@/assets/slider-1.png';
 import slider2 from '@/assets/slider-2.png';
 import slider3 from '@/assets/slider-3.png';
@@ -57,6 +58,7 @@ export const HeroSlider = () => {
   const { t, language } = useLanguage();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { preloadMultiple, isLoaded } = useImagePreloader({ maxConcurrent: 2 });
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -72,8 +74,14 @@ export const HeroSlider = () => {
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
-    setCurrentSlide(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
+    const index = emblaApi.selectedScrollSnap();
+    setCurrentSlide(index);
+    
+    // Preload adjacent slides
+    const prevIndex = index === 0 ? slides.length - 1 : index - 1;
+    const nextIndex = index === slides.length - 1 ? 0 : index + 1;
+    preloadMultiple([slides[prevIndex].image, slides[nextIndex].image]);
+  }, [emblaApi, preloadMultiple]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -92,13 +100,27 @@ export const HeroSlider = () => {
     return () => clearInterval(timer);
   }, [emblaApi]);
 
+  // Preload first slide on mount
+  useEffect(() => {
+    if (slides.length > 0) {
+      preloadMultiple([slides[0].image, slides[1]?.image].filter(Boolean));
+    }
+  }, [preloadMultiple]);
+
   return (
     <section className="relative h-[100svh] overflow-hidden">
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
           {slides.map((slide, index) => (
             <div key={index} className="embla__slide relative min-w-0 flex-[0_0_100%]">
-              <img src={slide.image} alt={slide.caption[language]} className="w-full h-full object-cover" />
+              <img 
+                src={slide.image} 
+                alt={slide.caption[language]} 
+                className="w-full h-full object-cover"
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchPriority={index === currentSlide ? 'high' : 'auto'}
+              />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
             </div>
           ))}

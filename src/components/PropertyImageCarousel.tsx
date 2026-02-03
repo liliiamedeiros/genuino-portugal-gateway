@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ZoomIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { OptimizedImage } from '@/components/OptimizedImage';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
 
 interface PropertyImageCarouselProps {
   images: string[];
@@ -18,8 +19,15 @@ export function PropertyImageCarousel({
   className 
 }: PropertyImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
   const [api, setApi] = useState<any>();
+  const { preloadMultiple, isLoaded } = useImagePreloader({ maxConcurrent: 3 });
+
+  // Preload first few images on mount
+  useEffect(() => {
+    if (images.length > 0) {
+      preloadMultiple(images.slice(0, 3));
+    }
+  }, [images, preloadMultiple]);
 
   useEffect(() => {
     if (!api) return;
@@ -29,13 +37,13 @@ export function PropertyImageCarousel({
       setCurrentIndex(index);
       
       // Preload adjacent images
-      const toLoad = new Set(loadedImages);
-      toLoad.add(index);
-      if (index > 0) toLoad.add(index - 1);
-      if (index < images.length - 1) toLoad.add(index + 1);
-      setLoadedImages(toLoad);
+      const toPreload: string[] = [];
+      if (index > 0 && images[index - 1]) toPreload.push(images[index - 1]);
+      if (images[index]) toPreload.push(images[index]);
+      if (index < images.length - 1 && images[index + 1]) toPreload.push(images[index + 1]);
+      preloadMultiple(toPreload);
     });
-  }, [api, images.length, loadedImages]);
+  }, [api, images, preloadMultiple]);
 
   const handleThumbnailClick = useCallback((index: number) => {
     api?.scrollTo(index);
@@ -60,24 +68,21 @@ export function PropertyImageCarousel({
           {images.map((image, index) => (
             <CarouselItem key={index}>
               <div 
-                className="relative aspect-video md:aspect-[16/9] lg:aspect-[16/8] overflow-hidden rounded-lg bg-muted cursor-pointer group"
+                className="relative aspect-video md:aspect-[16/9] lg:aspect-[16/8] overflow-hidden rounded-lg cursor-pointer group"
                 onClick={() => onImageClick?.(index)}
               >
-                {loadedImages.has(index) ? (
-                  <>
-                    <img
-                      src={image}
-                      alt={`${alt} - Foto ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                      <ZoomIn className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                  </>
-                ) : (
-                  <Skeleton className="w-full h-full" />
-                )}
+                <OptimizedImage
+                  src={image}
+                  alt={`${alt} - Foto ${index + 1}`}
+                  className="transition-transform duration-300 group-hover:scale-105"
+                  containerClassName="w-full h-full"
+                  priority={index === 0}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+                  aspectRatio="16/9"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                  <ZoomIn className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
               </div>
             </CarouselItem>
           ))}
