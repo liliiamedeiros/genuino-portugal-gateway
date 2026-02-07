@@ -1,191 +1,150 @@
 
 
-# Plano de Compressao Automatica de Imagens no Upload
+# Plano: Adicionar Aba "Favicon" nas Configuracoes
 
 ## Resumo
 
-Este plano implementa compressao automatica de imagens durante o upload em todos os formularios de administracao, garantindo que todas as imagens sejam otimizadas antes de serem armazenadas.
+Adicionar uma nova aba chamada "Favicon" na pagina de Configuracoes da area de administracao, permitindo ao utilizador fazer upload de um icone personalizado para o separador do browser.
 
 ---
 
-## Situacao Atual Analisada
+## Localizacao no Menu
 
-### Testes de Navegacao Realizados
-As imagens estao a carregar corretamente com:
-- Skeleton placeholder animado enquanto carrega
-- Transicao fade-in suave quando a imagem esta pronta
-- Pre-carregamento inteligente de imagens adjacentes
-
-### Conversao Existente
-- **PropertyForm.tsx**: Ja converte para WebP durante upload (linha 399-408 e 473-498)
-- **PortfolioForm.tsx**: Upload SEM conversao automatica (linha 195-209)
-- **ImageConverter.tsx**: Conversor manual completo com opcoes avancadas
+A nova aba sera adicionada na pagina **Configuracoes** (`/admin/settings`), junto com as abas existentes:
+- Geral
+- Email
+- Notificacoes
+- Sistema
+- Seguranca
+- Integracoes
+- **Favicon** (nova)
 
 ---
 
-## Componentes a Criar/Modificar
+## Funcionalidades da Aba Favicon
 
-### 1. Nova Utilidade: compressImage para Compressao Inteligente
+### Interface do Utilizador
 
-Criar uma funcao que comprime automaticamente baseada no tamanho do ficheiro original:
-- Ficheiros < 100KB: Sem compressao (ja pequenos)
-- Ficheiros 100KB-500KB: Compressao leve (qualidade 90%)
-- Ficheiros 500KB-2MB: Compressao media (qualidade 85%)
-- Ficheiros > 2MB: Compressao agressiva (qualidade 75%)
+1. **Titulo e Descricao**
+   - Titulo: "Favicon"
+   - Descricao: "Icone que aparece no separador do browser. Recomendado: PNG, ICO ou SVG, 32x32px ou 64x64px."
 
-**Novo Ficheiro:** `src/utils/autoCompressUtils.ts`
+2. **Preview do Favicon Atual**
+   - Mostrar o favicon atual (se existir)
+   - Placeholder se nenhum favicon estiver configurado
 
----
+3. **Upload de Novo Favicon**
+   - Zona de upload (dropzone simplificada)
+   - Formatos aceites: PNG, ICO, SVG
+   - Tamanho recomendado indicado
 
-### 2. Hook: useAutoCompress
-
-Hook reutilizavel que:
-- Recebe um ficheiro File
-- Retorna ficheiro comprimido + preview + estatisticas
-- Mostra progresso de compressao
-- Suporta cancelamento
-
-**Novo Ficheiro:** `src/hooks/useAutoCompress.ts`
+4. **Botao Salvar**
+   - Guarda o URL do favicon na tabela `system_settings`
+   - Atualiza o `index.html` dinamicamente (ou instrucoes para o utilizador)
 
 ---
 
-### 3. Componente: ImageDropzoneWithCompression
+## Alteracoes Tecnicas
 
-Melhoria do ImageDropzone existente para incluir:
-- Compressao automatica apos selecao
-- Indicador de progresso de compressao
-- Badge mostrando economia de espaco
-- Preview otimizado
+### Ficheiro: src/pages/admin/Settings.tsx
 
-**Ficheiro:** `src/components/admin/ImageDropzoneWithCompression.tsx` (novo)
+**Adicionar:**
+1. Nova `TabsTrigger` para "Favicon"
+2. Novo `TabsContent` com:
+   - Card com preview do favicon atual
+   - Upload de ficheiro
+   - Logica de upload para Supabase Storage
+   - Botao de salvar
 
----
-
-### 4. Atualizar PortfolioForm
-
-Adicionar conversao automatica para WebP durante o upload, similar ao PropertyForm:
-- Compressao antes de upload
-- Preview com imagem ja comprimida
-- Estatisticas de economia
-
-**Ficheiro:** `src/pages/admin/PortfolioForm.tsx`
-
----
-
-### 5. Atualizar PropertyForm
-
-Melhorar a compressao existente com:
-- Compressao adaptativa baseada no tamanho
-- Feedback visual durante compressao
-- Opcao de manter qualidade original
-
-**Ficheiro:** `src/pages/admin/PropertyForm.tsx`
-
----
-
-## Detalhes Tecnicos
-
-### autoCompressUtils.ts
+**Imports Adicionais:**
 ```text
-Interface AutoCompressOptions:
-- maxWidth?: number (default: 1920)
-- maxHeight?: number (default: 1080)
-- quality?: 'auto' | number (default: 'auto')
-- format?: 'webp' | 'jpeg' (default: 'webp')
-- preserveExif?: boolean (default: false)
-
-Funcao compressImage(file: File, options?: AutoCompressOptions):
-- Retorna Promise<{ blob: Blob, savings: number, originalSize: number, newSize: number }>
-- Compressao adaptativa baseada no tamanho
-- Redimensiona se maior que maxWidth/maxHeight mantendo aspect ratio
+- Image (lucide-react) - icone para a aba
+- useRef - para referencia do input file
 ```
 
-### useAutoCompress.ts
+**Estado Adicional:**
 ```text
-Hook retorna:
-- compress: (file: File) => Promise<CompressResult>
-- compressMultiple: (files: File[]) => Promise<CompressResult[]>
-- isCompressing: boolean
-- progress: { current: number, total: number }
-- cancel: () => void
+- faviconFile: File | null
+- faviconPreview: string | null
+- isUploadingFavicon: boolean
 ```
 
-### ImageDropzoneWithCompression.tsx
+**Funcoes Adicionais:**
 ```text
-Props adicionais ao ImageDropzone:
-- autoCompress?: boolean (default: true)
-- showStats?: boolean (default: true)
-- onCompressionComplete?: (stats: CompressionStats) => void
-
-Funcionalidades:
-- Indicador de progresso durante compressao
-- Badge com % de economia apos comprimir
-- Preview usa imagem ja comprimida
-```
-
-### Melhorias no PortfolioForm.tsx
-```text
-Antes do upload (linha 195-209):
-1. Comprimir imagem para WebP
-2. Mostrar progresso de compressao
-3. Exibir estatisticas de economia
-
-Adicionar imports:
-- import { compressImage } from '@/utils/autoCompressUtils';
+- handleFaviconUpload: faz upload para storage e guarda URL
+- handleFaviconChange: preview local antes do upload
 ```
 
 ---
 
-## Fluxo de Compressao
+## Fluxo de Upload
 
 ```text
-1. Utilizador seleciona imagem(ns)
-2. Sistema detecta tamanho do ficheiro
-3. Aplica compressao adaptativa:
-   - Redimensiona se necessario (max 1920x1080)
-   - Converte para WebP
-   - Ajusta qualidade baseada no tamanho
-4. Mostra preview com imagem comprimida
-5. Exibe estatisticas (tamanho original vs comprimido)
-6. Upload da imagem ja otimizada
+1. Utilizador seleciona ficheiro (PNG, ICO, ou SVG)
+2. Preview local aparece na interface
+3. Utilizador clica "Salvar Favicon"
+4. Ficheiro e enviado para Supabase Storage (bucket: favicons)
+5. URL publico e guardado em system_settings (key: favicon_url)
+6. Toast de sucesso
+7. Instrucoes para atualizar index.html (se necessario)
 ```
 
 ---
 
-## Ficheiros a Criar
+## Estrutura do TabsContent
 
-| Ficheiro | Descricao |
-|----------|-----------|
-| `src/utils/autoCompressUtils.ts` | Utilidades de compressao automatica |
-| `src/hooks/useAutoCompress.ts` | Hook reutilizavel para compressao |
-| `src/components/admin/ImageDropzoneWithCompression.tsx` | Dropzone com compressao integrada |
+```text
+TabsContent value="favicon"
+├── Card
+│   ├── CardHeader
+│   │   ├── CardTitle: "Favicon"
+│   │   └── CardDescription: "Icone do separador do browser..."
+│   │
+│   └── CardContent
+│       ├── Preview Atual (ou placeholder)
+│       │   └── img com favicon atual ou icone placeholder
+│       │
+│       ├── Upload Zone
+│       │   ├── input type="file" accept=".png,.ico,.svg"
+│       │   └── Instrucoes de tamanho (32x32px ou 64x64px)
+│       │
+│       ├── Preview do Novo (se selecionado)
+│       │
+│       └── Button "Salvar Favicon"
+```
+
+---
+
+## Consideracoes de Storage
+
+O favicon sera guardado no Supabase Storage:
+- **Bucket:** `site-assets` ou `favicons`
+- **Path:** `favicon/favicon.[extensao]`
+- **Politicas:** Leitura publica, escrita apenas autenticados
+
+Se o bucket nao existir, sera necessario cria-lo ou usar um bucket existente como `project-images`.
+
+---
 
 ## Ficheiros a Modificar
 
 | Ficheiro | Alteracao |
 |----------|-----------|
-| `src/pages/admin/PortfolioForm.tsx` | Adicionar compressao WebP no upload |
-| `src/pages/admin/PropertyForm.tsx` | Melhorar feedback visual de compressao |
-| `src/components/admin/ImageDropzone.tsx` | Adicionar props opcionais para estatisticas |
+| `src/pages/admin/Settings.tsx` | Adicionar TabsTrigger + TabsContent para Favicon |
 
 ---
 
-## Beneficios Esperados
+## Notas Importantes
 
-| Metrica | Antes | Depois |
-|---------|-------|--------|
-| Tamanho medio upload | 2-5MB | 100-500KB |
-| Tempo de upload | 5-10s | 1-2s |
-| Uso de storage | 100% | ~20-30% |
-| Experiencia utilizador | Upload lento | Feedback imediato |
+1. **Limitacao do index.html**: O `index.html` e estatico e nao pode ser alterado dinamicamente via codigo React. O favicon guardado sera util para:
+   - Referencia futura
+   - Futuras implementacoes com SSR
+   - O utilizador pode manualmente atualizar o `index.html` com o URL
 
----
+2. **Alternativa Dinamica**: Podemos usar `react-helmet-async` para injetar o favicon dinamicamente no `<head>`, mas isso so funciona apos o React carregar.
 
-## Notas de Implementacao
-
-1. **Compressao Client-Side**: Toda compressao e feita no browser antes do upload, reduzindo uso de largura de banda
-2. **WebP Universal**: Formato WebP tem suporte em todos os browsers modernos (97%+ globalmente)
-3. **Fallback JPEG**: Para browsers antigos, manter opcao de fallback para JPEG
-4. **Preservar Aspect Ratio**: Nunca distorcer imagens, apenas redimensionar proporcionalmente
-5. **Limite de Qualidade**: Nunca baixar de 70% para garantir qualidade aceitavel
+3. **Formatos Suportados**:
+   - `.png` - Mais comum, suportado por todos os browsers
+   - `.ico` - Formato tradicional, multiplas resolucoes
+   - `.svg` - Vetorial, escalavel (suporte moderno)
 
