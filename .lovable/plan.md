@@ -1,190 +1,191 @@
 
-# Plano de Otimizacao de Imagens para Conexoes Moveis Lentas
+
+# Plano de Compressao Automatica de Imagens no Upload
 
 ## Resumo
 
-Este plano implementa varias tecnicas de otimizacao de imagens para melhorar significativamente o tempo de carregamento em conexoes moveis lentas (3G, 4G fraco, etc.).
+Este plano implementa compressao automatica de imagens durante o upload em todos os formularios de administracao, garantindo que todas as imagens sejam otimizadas antes de serem armazenadas.
 
 ---
 
-## Estrategias de Otimizacao
+## Situacao Atual Analisada
 
-### 1. Componente OptimizedImage com Lazy Loading Nativo
+### Testes de Navegacao Realizados
+As imagens estao a carregar corretamente com:
+- Skeleton placeholder animado enquanto carrega
+- Transicao fade-in suave quando a imagem esta pronta
+- Pre-carregamento inteligente de imagens adjacentes
 
-**Problema:** As imagens atualmente carregam todas de uma vez, consumindo largura de banda.
-
-**Solucao:** Criar um componente reutilizavel `OptimizedImage` que:
-- Usa `loading="lazy"` nativo do browser
-- Implementa placeholder com blur/skeleton enquanto carrega
-- Suporta `srcset` para diferentes resolucoes
-- Usa `decoding="async"` para nao bloquear renderizacao
-- Implementa `fetchpriority` para imagens acima do fold
-
-**Novo Ficheiro:** `src/components/OptimizedImage.tsx`
+### Conversao Existente
+- **PropertyForm.tsx**: Ja converte para WebP durante upload (linha 399-408 e 473-498)
+- **PortfolioForm.tsx**: Upload SEM conversao automatica (linha 195-209)
+- **ImageConverter.tsx**: Conversor manual completo com opcoes avancadas
 
 ---
 
-### 2. Imagens Responsivas com srcset
+## Componentes a Criar/Modificar
 
-**Problema:** Imagens grandes carregam em dispositivos pequenos.
+### 1. Nova Utilidade: compressImage para Compressao Inteligente
 
-**Solucao:** Implementar `srcset` e `sizes` para servir imagens adequadas ao dispositivo:
-```text
-srcset="imagem-400.webp 400w, imagem-800.webp 800w, imagem-1200.webp 1200w"
-sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-```
+Criar uma funcao que comprime automaticamente baseada no tamanho do ficheiro original:
+- Ficheiros < 100KB: Sem compressao (ja pequenos)
+- Ficheiros 100KB-500KB: Compressao leve (qualidade 90%)
+- Ficheiros 500KB-2MB: Compressao media (qualidade 85%)
+- Ficheiros > 2MB: Compressao agressiva (qualidade 75%)
 
-**Ficheiros Afetados:**
-- `src/components/ProjectCard.tsx`
-- `src/components/HeroSlider.tsx`
-- `src/pages/ProjectDetail.tsx`
+**Novo Ficheiro:** `src/utils/autoCompressUtils.ts`
 
 ---
 
-### 3. Placeholder com Low Quality Image Placeholder (LQIP)
+### 2. Hook: useAutoCompress
 
-**Problema:** Ecras em branco enquanto imagens carregam.
+Hook reutilizavel que:
+- Recebe um ficheiro File
+- Retorna ficheiro comprimido + preview + estatisticas
+- Mostra progresso de compressao
+- Suporta cancelamento
 
-**Solucao:** Implementar skeleton loading e transicao suave:
-- Skeleton animado enquanto imagem carrega
-- Fade-in quando imagem esta pronta
-- Opcional: usar blur placeholder com imagem tiny (data URI)
-
----
-
-### 4. Hook useImagePreloader para Pre-carregamento Inteligente
-
-**Problema:** Imagens da proxima pagina/slide nao estao prontas.
-
-**Solucao:** Criar hook `useImagePreloader` que:
-- Pre-carrega imagens adjacentes no HeroSlider
-- Pre-carrega imagens de propriedades visiveis no viewport
-- Usa `IntersectionObserver` para detetar imagens proximo do viewport
-
-**Novo Ficheiro:** `src/hooks/useImagePreloader.ts`
+**Novo Ficheiro:** `src/hooks/useAutoCompress.ts`
 
 ---
 
-### 5. Service Worker com Cache Estrategico (ja parcialmente implementado)
+### 3. Componente: ImageDropzoneWithCompression
 
-**Estado Atual:** O `vite.config.ts` ja tem configuracao PWA com cache de imagens.
+Melhoria do ImageDropzone existente para incluir:
+- Compressao automatica apos selecao
+- Indicador de progresso de compressao
+- Badge mostrando economia de espaco
+- Preview otimizado
 
-**Melhoria:** Adicionar caching mais agressivo para imagens de propriedades:
-- Aumentar `maxEntries` para imagens
-- Adicionar cache para Supabase Storage
-- Implementar background sync para pre-fetch
-
-**Ficheiro:** `vite.config.ts`
-
----
-
-### 6. Atributo fetchpriority para Imagens Criticas
-
-**Problema:** Imagens do hero competem com outras pelo carregamento.
-
-**Solucao:** Adicionar `fetchpriority="high"` para:
-- Imagem principal do HeroSlider (slide ativo)
-- Imagem de capa nas paginas de detalhe
-- Primeiros 2-3 cards de propriedades
+**Ficheiro:** `src/components/admin/ImageDropzoneWithCompression.tsx` (novo)
 
 ---
 
-### 7. Dimensoes Explicitas para Evitar Layout Shift
+### 4. Atualizar PortfolioForm
 
-**Problema:** Imagens sem dimensoes causam "saltos" no layout (CLS).
+Adicionar conversao automatica para WebP durante o upload, similar ao PropertyForm:
+- Compressao antes de upload
+- Preview com imagem ja comprimida
+- Estatisticas de economia
 
-**Solucao:** Garantir que todas as imagens tem:
-- `width` e `height` definidos
-- `aspect-ratio` CSS como fallback
-- Containers com altura fixa responsiva
+**Ficheiro:** `src/pages/admin/PortfolioForm.tsx`
 
 ---
 
-## Alteracoes por Ficheiro
+### 5. Atualizar PropertyForm
 
-### Novos Ficheiros
+Melhorar a compressao existente com:
+- Compressao adaptativa baseada no tamanho
+- Feedback visual durante compressao
+- Opcao de manter qualidade original
 
-| Ficheiro | Descricao |
-|----------|-----------|
-| `src/components/OptimizedImage.tsx` | Componente de imagem otimizada com lazy loading, placeholder e srcset |
-| `src/hooks/useImagePreloader.ts` | Hook para pre-carregamento inteligente de imagens |
-
-### Ficheiros a Modificar
-
-| Ficheiro | Alteracao |
-|----------|-----------|
-| `src/components/ProjectCard.tsx` | Usar OptimizedImage, adicionar aspect-ratio |
-| `src/components/HeroSlider.tsx` | Adicionar fetchpriority, pre-load slides adjacentes |
-| `src/pages/ProjectDetail.tsx` | Usar OptimizedImage no hero e galeria |
-| `src/components/PropertyImageCarousel.tsx` | Melhorar lazy loading existente com OptimizedImage |
-| `vite.config.ts` | Expandir cache de Supabase Storage |
+**Ficheiro:** `src/pages/admin/PropertyForm.tsx`
 
 ---
 
 ## Detalhes Tecnicos
 
-### OptimizedImage.tsx
+### autoCompressUtils.ts
 ```text
-Props:
-- src: string (URL da imagem)
-- alt: string
-- width?: number
-- height?: number
-- priority?: boolean (fetchpriority="high")
-- sizes?: string (para srcset)
-- className?: string
-- placeholder?: 'blur' | 'skeleton' (default: skeleton)
+Interface AutoCompressOptions:
+- maxWidth?: number (default: 1920)
+- maxHeight?: number (default: 1080)
+- quality?: 'auto' | number (default: 'auto')
+- format?: 'webp' | 'jpeg' (default: 'webp')
+- preserveExif?: boolean (default: false)
+
+Funcao compressImage(file: File, options?: AutoCompressOptions):
+- Retorna Promise<{ blob: Blob, savings: number, originalSize: number, newSize: number }>
+- Compressao adaptativa baseada no tamanho
+- Redimensiona se maior que maxWidth/maxHeight mantendo aspect ratio
+```
+
+### useAutoCompress.ts
+```text
+Hook retorna:
+- compress: (file: File) => Promise<CompressResult>
+- compressMultiple: (files: File[]) => Promise<CompressResult[]>
+- isCompressing: boolean
+- progress: { current: number, total: number }
+- cancel: () => void
+```
+
+### ImageDropzoneWithCompression.tsx
+```text
+Props adicionais ao ImageDropzone:
+- autoCompress?: boolean (default: true)
+- showStats?: boolean (default: true)
+- onCompressionComplete?: (stats: CompressionStats) => void
 
 Funcionalidades:
-- Skeleton animado enquanto carrega
-- Fade-in transition quando pronta
-- loading="lazy" (ou eager se priority=true)
-- decoding="async"
-- onLoad/onError handlers
+- Indicador de progresso durante compressao
+- Badge com % de economia apos comprimir
+- Preview usa imagem ja comprimida
 ```
 
-### useImagePreloader.ts
+### Melhorias no PortfolioForm.tsx
 ```text
-Hook:
-- Recebe array de URLs
-- Retorna { loaded: Set<string>, preload: (url) => void }
-- Usa Image() constructor para pre-fetch
-- Limita pre-loads concorrentes (max 3)
-```
+Antes do upload (linha 195-209):
+1. Comprimir imagem para WebP
+2. Mostrar progresso de compressao
+3. Exibir estatisticas de economia
 
-### Melhorias no ProjectCard.tsx
-```text
-- Substituir <img> por <OptimizedImage>
-- Adicionar aspect-ratio container
-- Manter animacao hover existente
-```
-
-### Melhorias no HeroSlider.tsx
-```text
-- Slide atual: priority=true
-- Slides adjacentes: pre-load via useImagePreloader
-- Imagens com decoding="async"
+Adicionar imports:
+- import { compressImage } from '@/utils/autoCompressUtils';
 ```
 
 ---
 
-## Impacto Esperado
+## Fluxo de Compressao
+
+```text
+1. Utilizador seleciona imagem(ns)
+2. Sistema detecta tamanho do ficheiro
+3. Aplica compressao adaptativa:
+   - Redimensiona se necessario (max 1920x1080)
+   - Converte para WebP
+   - Ajusta qualidade baseada no tamanho
+4. Mostra preview com imagem comprimida
+5. Exibe estatisticas (tamanho original vs comprimido)
+6. Upload da imagem ja otimizada
+```
+
+---
+
+## Ficheiros a Criar
+
+| Ficheiro | Descricao |
+|----------|-----------|
+| `src/utils/autoCompressUtils.ts` | Utilidades de compressao automatica |
+| `src/hooks/useAutoCompress.ts` | Hook reutilizavel para compressao |
+| `src/components/admin/ImageDropzoneWithCompression.tsx` | Dropzone com compressao integrada |
+
+## Ficheiros a Modificar
+
+| Ficheiro | Alteracao |
+|----------|-----------|
+| `src/pages/admin/PortfolioForm.tsx` | Adicionar compressao WebP no upload |
+| `src/pages/admin/PropertyForm.tsx` | Melhorar feedback visual de compressao |
+| `src/components/admin/ImageDropzone.tsx` | Adicionar props opcionais para estatisticas |
+
+---
+
+## Beneficios Esperados
 
 | Metrica | Antes | Depois |
 |---------|-------|--------|
-| LCP (Largest Contentful Paint) | ~4s em 3G | ~2s em 3G |
-| CLS (Cumulative Layout Shift) | ~0.15 | <0.05 |
-| Dados consumidos (mobile) | 100% | ~50-60% |
-| Tempo para interatividade | Lento | Rapido (skeleton visivel) |
+| Tamanho medio upload | 2-5MB | 100-500KB |
+| Tempo de upload | 5-10s | 1-2s |
+| Uso de storage | 100% | ~20-30% |
+| Experiencia utilizador | Upload lento | Feedback imediato |
 
 ---
 
-## Ordem de Implementacao
+## Notas de Implementacao
 
-1. Criar `OptimizedImage.tsx` - componente base reutilizavel
-2. Criar `useImagePreloader.ts` - hook de pre-carregamento
-3. Atualizar `ProjectCard.tsx` - usar novo componente
-4. Atualizar `HeroSlider.tsx` - prioridade e pre-load
-5. Atualizar `PropertyImageCarousel.tsx` - melhorar lazy loading
-6. Atualizar `ProjectDetail.tsx` - imagem hero otimizada
-7. Atualizar `vite.config.ts` - expandir cache PWA
+1. **Compressao Client-Side**: Toda compressao e feita no browser antes do upload, reduzindo uso de largura de banda
+2. **WebP Universal**: Formato WebP tem suporte em todos os browsers modernos (97%+ globalmente)
+3. **Fallback JPEG**: Para browsers antigos, manter opcao de fallback para JPEG
+4. **Preservar Aspect Ratio**: Nunca distorcer imagens, apenas redimensionar proporcionalmente
+5. **Limite de Qualidade**: Nunca baixar de 70% para garantir qualidade aceitavel
+
