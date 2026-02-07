@@ -17,8 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, GripVertical, Languages } from 'lucide-react';
 import { TagsInput } from '@/components/admin/TagsInput';
-import { ImageDropzone } from '@/components/admin/ImageDropzone';
-
+import { ImageDropzoneWithCompression, CompressedFile } from '@/components/admin/ImageDropzoneWithCompression';
+import { compressImage } from '@/utils/autoCompressUtils';
 const portfolioSchema = z.object({
   title_pt: z.string().min(3, 'Título em português é obrigatório (mínimo 3 caracteres)'),
   title_fr: z.string().optional().or(z.literal('')),
@@ -191,14 +191,35 @@ export default function PortfolioForm() {
     }
   }, [existingImages]);
 
-  // Upload image to storage
-  const uploadImage = async (file: File, folder: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+  // Upload image to storage with WebP compression
+  const uploadImage = async (file: File | Blob, folder: string): Promise<string> => {
+    // Compress if it's a File (not already compressed Blob)
+    let uploadBlob: Blob = file;
+    
+    if (file instanceof File) {
+      try {
+        const compressed = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 'auto',
+          format: 'webp',
+        });
+        uploadBlob = compressed.blob;
+        console.log(`Compressed ${file.name}: ${Math.round(file.size/1024)}KB → ${Math.round(compressed.newSize/1024)}KB (${compressed.savings}% savings)`);
+      } catch (error) {
+        console.error('Compression failed, using original:', error);
+        uploadBlob = file;
+      }
+    }
+    
+    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`;
     
     const { data, error } = await supabase.storage
       .from('project-images')
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, uploadBlob, { 
+        upsert: true,
+        contentType: 'image/webp'
+      });
     
     if (error) throw error;
     
@@ -384,23 +405,45 @@ export default function PortfolioForm() {
     }
   });
 
-  // Handle main image selection
-  const handleMainImageSelect = (files: File[]) => {
-    if (files.length > 0) {
-      setMainImage(files[0]);
-      setMainImagePreview(URL.createObjectURL(files[0]));
+  // Handle main image selection with compression
+  const handleMainImageCompressed = (compressedFiles: CompressedFile[]) => {
+    if (compressedFiles.length > 0) {
+      const { file, compressed, preview } = compressedFiles[0];
+      // Store the compressed blob as a File for upload
+      const compressedFile = new File([compressed.blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
+        type: 'image/webp',
+      });
+      setMainImage(compressedFile);
+      setMainImagePreview(preview);
+      toast({ 
+        title: `Imagem comprimida: ${compressed.savings}% economia`,
+        description: `${Math.round(compressed.originalSize/1024)}KB → ${Math.round(compressed.newSize/1024)}KB`
+      });
     }
   };
 
-  // Handle gallery images selection
-  const handleGalleryImagesSelect = (files: File[]) => {
-    const newImages: GalleryImage[] = files.map((file, index) => ({
-      image_url: URL.createObjectURL(file),
-      order_index: galleryImages.length + index,
-      file,
-      isNew: true,
-    }));
+  // Handle gallery images selection with compression
+  const handleGalleryImagesCompressed = (compressedFiles: CompressedFile[]) => {
+    const newImages: GalleryImage[] = compressedFiles.map(({ file, compressed, preview }, index) => {
+      const compressedFile = new File([compressed.blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
+        type: 'image/webp',
+      });
+      return {
+        image_url: preview,
+        order_index: galleryImages.length + index,
+        file: compressedFile,
+        isNew: true,
+      };
+    });
     setGalleryImages(prev => [...prev, ...newImages]);
+    
+    if (compressedFiles.length > 0) {
+      const totalSavings = compressedFiles.reduce((acc, f) => acc + f.compressed.savings, 0) / compressedFiles.length;
+      toast({ 
+        title: `${compressedFiles.length} imagens comprimidas`,
+        description: `Economia média: ${Math.round(totalSavings)}%`
+      });
+    }
   };
 
   // Remove gallery image
@@ -809,7 +852,7 @@ export default function PortfolioForm() {
                       </Button>
                     </div>
                   ) : (
-                    <ImageDropzone onFilesSelected={handleMainImageSelect} maxFiles={1} />
+                    <ImageDropzoneWithCompression onFilesCompressed={handleMainImageCompressed} maxFiles={1} />
                   )}
                 </div>
                 
@@ -831,7 +874,7 @@ export default function PortfolioForm() {
                       </div>
                     ))}
                   </div>
-                  <ImageDropzone onFilesSelected={handleGalleryImagesSelect} maxFiles={20} />
+                  <ImageDropzoneWithCompression onFilesCompressed={handleGalleryImagesCompressed} maxFiles={20} />
                 </div>
               </CardContent>
             </Card>
