@@ -10,7 +10,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
-import { Image, Upload, Loader2, Globe } from "lucide-react";
+import { Image, Upload, Loader2, Globe, AlertTriangle, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type SystemSetting = {
   id: string;
@@ -29,6 +30,7 @@ export default function Settings() {
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const [faviconDimensions, setFaviconDimensions] = useState<{width: number, height: number} | null>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch settings
@@ -590,9 +592,36 @@ export default function Settings() {
                         const file = e.target.files?.[0];
                         if (file) {
                           setFaviconFile(file);
+                          setFaviconDimensions(null);
                           const reader = new FileReader();
                           reader.onload = (event) => {
-                            setFaviconPreview(event.target?.result as string);
+                            const dataUrl = event.target?.result as string;
+                            setFaviconPreview(dataUrl);
+                            
+                            // Validate image dimensions
+                            const img = new window.Image();
+                            img.onload = () => {
+                              const { naturalWidth, naturalHeight } = img;
+                              setFaviconDimensions({ width: naturalWidth, height: naturalHeight });
+                              
+                              const validSizes = [16, 32, 48, 64, 128, 256];
+                              const isSquare = naturalWidth === naturalHeight;
+                              const isValidSize = validSizes.includes(naturalWidth);
+                              
+                              if (!isSquare) {
+                                toast({
+                                  title: "Aviso: Imagem não quadrada",
+                                  description: `Detectado: ${naturalWidth}x${naturalHeight}px. Favicons devem ser quadrados para melhor compatibilidade.`,
+                                  variant: "destructive",
+                                });
+                              } else if (!isValidSize) {
+                                toast({
+                                  title: "Aviso: Tamanho não recomendado",
+                                  description: `Detectado: ${naturalWidth}x${naturalHeight}px. Tamanhos recomendados: 32x32 ou 64x64.`,
+                                });
+                              }
+                            };
+                            img.src = dataUrl;
                           };
                           reader.readAsDataURL(file);
                         }
@@ -614,7 +643,25 @@ export default function Settings() {
                 {/* Preview do novo favicon */}
                 {faviconPreview && (
                   <div className="space-y-2">
-                    <Label>Preview do Novo Favicon</Label>
+                    <div className="flex items-center gap-2">
+                      <Label>Preview do Novo Favicon</Label>
+                      {faviconDimensions && (
+                        <>
+                          <Badge 
+                            variant={faviconDimensions.width === faviconDimensions.height ? "default" : "destructive"}
+                            className="text-xs"
+                          >
+                            {faviconDimensions.width}x{faviconDimensions.height}px
+                          </Badge>
+                          {faviconDimensions.width === faviconDimensions.height && 
+                           [16, 32, 48, 64, 128, 256].includes(faviconDimensions.width) ? (
+                            <CheckCircle className="w-4 h-4 text-primary" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4 text-destructive" />
+                          )}
+                        </>
+                      )}
+                    </div>
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-lg border-2 border-primary flex items-center justify-center bg-background overflow-hidden">
                         <img 
@@ -647,6 +694,7 @@ export default function Settings() {
                         onClick={() => {
                           setFaviconFile(null);
                           setFaviconPreview(null);
+                          setFaviconDimensions(null);
                           if (faviconInputRef.current) {
                             faviconInputRef.current.value = '';
                           }
@@ -738,11 +786,13 @@ export default function Settings() {
 
                 {/* Instruções */}
                 <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground space-y-2">
-                  <p className="font-medium text-foreground">Nota:</p>
+                  <p className="font-medium text-foreground flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    Aplicação automática
+                  </p>
                   <p>
-                    Após guardar o favicon aqui, será necessário atualizar manualmente o ficheiro 
-                    <code className="mx-1 px-1 bg-muted rounded">index.html</code> 
-                    com o novo URL para que apareça no separador do browser.
+                    O favicon será aplicado automaticamente em todas as páginas após guardar.
+                    O sistema usa injeção dinâmica via React Helmet, sobrepondo o favicon estático inicial.
                   </p>
                 </div>
               </CardContent>

@@ -3,12 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
+import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ChatWidget } from "@/components/ChatWidget";
 import { CarModeWrapper } from "@/components/CarModeWrapper";
@@ -53,18 +55,20 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <LanguageProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <CarModeWrapper>
-                <OrganizationSchema />
-                <PWAInstallPrompt />
-                <Toaster />
-                <Sonner />
-                <ChatWidget />
-                <Routes>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <LanguageProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <CarModeWrapper>
+                  <OrganizationSchema />
+                  <DynamicFavicon />
+                  <PWAInstallPrompt />
+                  <Toaster />
+                  <Sonner />
+                  <ChatWidget />
+                  <Routes>
               {/* Public Routes */}
               <Route path="/" element={
                 <>
@@ -279,12 +283,13 @@ const App = () => {
                 </>
               } />
             </Routes>
-              </CarModeWrapper>
-          </TooltipProvider>
-        </AuthProvider>
-    </LanguageProvider>
-  </BrowserRouter>
-</QueryClientProvider>
+                </CarModeWrapper>
+              </TooltipProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 
