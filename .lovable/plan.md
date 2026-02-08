@@ -1,150 +1,185 @@
 
 
-# Plano: Adicionar Aba "Favicon" nas Configuracoes
+# Plano: Favicon Dinâmico e Validação de Dimensões
 
 ## Resumo
 
-Adicionar uma nova aba chamada "Favicon" na pagina de Configuracoes da area de administracao, permitindo ao utilizador fazer upload de um icone personalizado para o separador do browser.
+Este plano implementa duas funcionalidades:
+1. **Injeção dinâmica do favicon** usando `react-helmet-async` para aplicar o favicon automaticamente após o React carregar
+2. **Validação de dimensões** para alertar o utilizador se a imagem não tiver 32x32px ou 64x64px
 
 ---
 
-## Localizacao no Menu
+## Parte 1: Favicon Dinâmico com react-helmet-async
 
-A nova aba sera adicionada na pagina **Configuracoes** (`/admin/settings`), junto com as abas existentes:
-- Geral
-- Email
-- Notificacoes
-- Sistema
-- Seguranca
-- Integracoes
-- **Favicon** (nova)
+### Novo Componente: DynamicFavicon.tsx
 
----
+Criar um componente que busca o `favicon_url` da tabela `system_settings` e injeta no `<head>` usando Helmet.
 
-## Funcionalidades da Aba Favicon
+**Novo Ficheiro:** `src/components/DynamicFavicon.tsx`
 
-### Interface do Utilizador
-
-1. **Titulo e Descricao**
-   - Titulo: "Favicon"
-   - Descricao: "Icone que aparece no separador do browser. Recomendado: PNG, ICO ou SVG, 32x32px ou 64x64px."
-
-2. **Preview do Favicon Atual**
-   - Mostrar o favicon atual (se existir)
-   - Placeholder se nenhum favicon estiver configurado
-
-3. **Upload de Novo Favicon**
-   - Zona de upload (dropzone simplificada)
-   - Formatos aceites: PNG, ICO, SVG
-   - Tamanho recomendado indicado
-
-4. **Botao Salvar**
-   - Guarda o URL do favicon na tabela `system_settings`
-   - Atualiza o `index.html` dinamicamente (ou instrucoes para o utilizador)
-
----
-
-## Alteracoes Tecnicas
-
-### Ficheiro: src/pages/admin/Settings.tsx
-
-**Adicionar:**
-1. Nova `TabsTrigger` para "Favicon"
-2. Novo `TabsContent` com:
-   - Card com preview do favicon atual
-   - Upload de ficheiro
-   - Logica de upload para Supabase Storage
-   - Botao de salvar
-
-**Imports Adicionais:**
 ```text
-- Image (lucide-react) - icone para a aba
-- useRef - para referencia do input file
+Funcionalidades:
+- Busca favicon_url do system_settings via React Query
+- Usa Helmet para injetar <link rel="icon"> no head
+- Suporta diferentes tipos (PNG, ICO, SVG)
+- Fallback para favicon padrão se não configurado
 ```
 
-**Estado Adicional:**
-```text
-- faviconFile: File | null
-- faviconPreview: string | null
-- isUploadingFavicon: boolean
-```
+### Integração no App.tsx
 
-**Funcoes Adicionais:**
-```text
-- handleFaviconUpload: faz upload para storage e guarda URL
-- handleFaviconChange: preview local antes do upload
-```
+Adicionar o componente `DynamicFavicon` ao layout principal da aplicação, junto aos outros componentes globais como `OrganizationSchema`.
 
 ---
 
-## Fluxo de Upload
+## Parte 2: Validação de Dimensões de Imagem
+
+### Melhorar onChange do Input no Settings.tsx
+
+Adicionar validação que:
+1. Carrega a imagem num objeto Image
+2. Verifica se as dimensões são 32x32, 64x64, ou potências de 2 comuns para favicons
+3. Mostra alerta (toast) se as dimensões não forem recomendadas
+4. Ainda permite o upload (aviso, não bloqueio)
+
+---
+
+## Detalhes Técnicos
+
+### DynamicFavicon.tsx
 
 ```text
-1. Utilizador seleciona ficheiro (PNG, ICO, ou SVG)
-2. Preview local aparece na interface
-3. Utilizador clica "Salvar Favicon"
-4. Ficheiro e enviado para Supabase Storage (bucket: favicons)
-5. URL publico e guardado em system_settings (key: favicon_url)
-6. Toast de sucesso
-7. Instrucoes para atualizar index.html (se necessario)
+import { Helmet } from 'react-helmet-async';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+Lógica:
+1. useQuery busca favicon_url de system_settings
+2. Determina tipo MIME baseado na extensão (.png, .ico, .svg)
+3. Renderiza Helmet com link rel="icon" se URL existir
+```
+
+### Validação de Dimensões em Settings.tsx
+
+```text
+Adicionar estado:
+- faviconDimensions: { width: number, height: number } | null
+- faviconDimensionWarning: string | null
+
+Nova função validateFaviconDimensions:
+1. Cria objeto Image() com src = data URL
+2. No onload, lê naturalWidth e naturalHeight
+3. Verifica se é 16x16, 32x32, 48x48, 64x64, ou 128x128
+4. Se não for, define warning message
+5. Mostra toast de aviso (não bloqueia upload)
 ```
 
 ---
 
-## Estrutura do TabsContent
+## Fluxo de Validação
 
 ```text
-TabsContent value="favicon"
-├── Card
-│   ├── CardHeader
-│   │   ├── CardTitle: "Favicon"
-│   │   └── CardDescription: "Icone do separador do browser..."
-│   │
-│   └── CardContent
-│       ├── Preview Atual (ou placeholder)
-│       │   └── img com favicon atual ou icone placeholder
-│       │
-│       ├── Upload Zone
-│       │   ├── input type="file" accept=".png,.ico,.svg"
-│       │   └── Instrucoes de tamanho (32x32px ou 64x64px)
-│       │
-│       ├── Preview do Novo (se selecionado)
-│       │
-│       └── Button "Salvar Favicon"
+1. Utilizador seleciona ficheiro
+2. FileReader lê como data URL
+3. Image carrega para obter dimensões
+4. Sistema valida dimensões:
+   - 16x16, 32x32, 48x48, 64x64, 128x128 = OK (sem aviso)
+   - Quadrado mas tamanho diferente = Aviso leve
+   - Não quadrado = Aviso forte (favicon deve ser quadrado)
+5. Preview mostra dimensões detectadas
+6. Utilizador pode continuar com o upload
 ```
 
 ---
 
-## Consideracoes de Storage
+## Ficheiros a Criar
 
-O favicon sera guardado no Supabase Storage:
-- **Bucket:** `site-assets` ou `favicons`
-- **Path:** `favicon/favicon.[extensao]`
-- **Politicas:** Leitura publica, escrita apenas autenticados
-
-Se o bucket nao existir, sera necessario cria-lo ou usar um bucket existente como `project-images`.
-
----
+| Ficheiro | Descrição |
+|----------|-----------|
+| `src/components/DynamicFavicon.tsx` | Componente para injetar favicon dinamicamente via Helmet |
 
 ## Ficheiros a Modificar
 
-| Ficheiro | Alteracao |
+| Ficheiro | Alteração |
 |----------|-----------|
-| `src/pages/admin/Settings.tsx` | Adicionar TabsTrigger + TabsContent para Favicon |
+| `src/App.tsx` | Adicionar DynamicFavicon ao layout global |
+| `src/pages/admin/Settings.tsx` | Adicionar validação de dimensões no onChange do input |
 
 ---
 
-## Notas Importantes
+## Comportamento Esperado
 
-1. **Limitacao do index.html**: O `index.html` e estatico e nao pode ser alterado dinamicamente via codigo React. O favicon guardado sera util para:
-   - Referencia futura
-   - Futuras implementacoes com SSR
-   - O utilizador pode manualmente atualizar o `index.html` com o URL
+### Favicon Dinâmico
+- Quando o utilizador guarda um novo favicon, este é aplicado automaticamente em todas as páginas
+- Não é necessário editar manualmente o index.html (embora o favicon estático inicial ainda venha de lá)
+- O favicon dinâmico sobrepõe o estático após React carregar
 
-2. **Alternativa Dinamica**: Podemos usar `react-helmet-async` para injetar o favicon dinamicamente no `<head>`, mas isso so funciona apos o React carregar.
+### Validação de Dimensões
+- **Dimensões corretas (32x32, 64x64, etc.)**: Upload normal, sem avisos
+- **Dimensões incorretas**: Toast de aviso aparece, mas upload continua possível
+- **Imagem não quadrada**: Toast de aviso mais forte
 
-3. **Formatos Suportados**:
-   - `.png` - Mais comum, suportado por todos os browsers
-   - `.ico` - Formato tradicional, multiplas resolucoes
-   - `.svg` - Vetorial, escalavel (suporte moderno)
+---
+
+## Alterações em Settings.tsx
+
+### Novo Estado
+
+```text
+const [faviconDimensions, setFaviconDimensions] = useState<{width: number, height: number} | null>(null);
+```
+
+### Nova Lógica no onChange
+
+```text
+const file = e.target.files?.[0];
+if (file) {
+  setFaviconFile(file);
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const dataUrl = event.target?.result as string;
+    setFaviconPreview(dataUrl);
+    
+    // Validar dimensões
+    const img = new Image();
+    img.onload = () => {
+      const { naturalWidth, naturalHeight } = img;
+      setFaviconDimensions({ width: naturalWidth, height: naturalHeight });
+      
+      const validSizes = [16, 32, 48, 64, 128, 256];
+      const isSquare = naturalWidth === naturalHeight;
+      const isValidSize = validSizes.includes(naturalWidth);
+      
+      if (!isSquare) {
+        toast({
+          title: "Aviso: Imagem não quadrada",
+          description: `Detectado: ${naturalWidth}x${naturalHeight}px. Favicons devem ser quadrados.`,
+          variant: "destructive",
+        });
+      } else if (!isValidSize) {
+        toast({
+          title: "Aviso: Tamanho não recomendado",
+          description: `Detectado: ${naturalWidth}x${naturalHeight}px. Recomendado: 32x32 ou 64x64.`,
+        });
+      }
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+```
+
+### Mostrar Dimensões no Preview
+
+Adicionar badge mostrando dimensões detectadas junto ao preview do favicon.
+
+---
+
+## Ordem de Implementação
+
+1. Criar `DynamicFavicon.tsx` - componente de injeção dinâmica
+2. Adicionar `DynamicFavicon` ao `App.tsx`
+3. Atualizar `Settings.tsx` com validação de dimensões
+4. Atualizar preview para mostrar dimensões detectadas
+5. Remover nota sobre "atualizar index.html manualmente" (já não é necessário)
 
