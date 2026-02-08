@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Image, Upload, Loader2, Globe } from "lucide-react";
 
 type SystemSetting = {
   id: string;
@@ -23,6 +24,12 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<Record<string, any>>({});
+  
+  // Favicon state
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch settings
   const { data: settingsData, isLoading } = useQuery({
@@ -118,6 +125,10 @@ export default function Settings() {
             <TabsTrigger value="system" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Sistema</TabsTrigger>
             <TabsTrigger value="security" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Segurança</TabsTrigger>
             <TabsTrigger value="integrations" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Integrações</TabsTrigger>
+            <TabsTrigger value="favicon" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
+              <Globe className="w-4 h-4 mr-1" />
+              Favicon
+            </TabsTrigger>
           </TabsList>
 
           {/* General Settings */}
@@ -521,6 +532,219 @@ export default function Settings() {
                 }}>
                   Salvar Alterações
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Favicon Settings */}
+          <TabsContent value="favicon">
+            <Card>
+              <CardHeader className="3xl:p-8">
+                <CardTitle className="3xl:text-2xl 4xl:text-3xl flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Favicon
+                </CardTitle>
+                <CardDescription className="3xl:text-base 4xl:text-lg">
+                  Ícone que aparece no separador do browser. Recomendado: PNG, ICO ou SVG, 32x32px ou 64x64px.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 3xl:space-y-8 3xl:p-8">
+                {/* Preview atual */}
+                <div className="space-y-2">
+                  <Label>Favicon Atual</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/50 overflow-hidden">
+                      {settings.favicon_url ? (
+                        <img 
+                          src={settings.favicon_url} 
+                          alt="Favicon atual" 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <Image className="w-8 h-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    {settings.favicon_url && (
+                      <div className="text-sm text-muted-foreground">
+                        <p>URL atual:</p>
+                        <code className="text-xs bg-muted px-2 py-1 rounded break-all">
+                          {settings.favicon_url}
+                        </code>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upload zona */}
+                <div className="space-y-2">
+                  <Label>Carregar Novo Favicon</Label>
+                  <div 
+                    className="relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 hover:border-primary/50 hover:bg-accent/50 cursor-pointer"
+                    onClick={() => faviconInputRef.current?.click()}
+                  >
+                    <input
+                      ref={faviconInputRef}
+                      type="file"
+                      accept=".png,.ico,.svg,image/png,image/x-icon,image/svg+xml"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFaviconFile(file);
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            setFaviconPreview(event.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Upload className="w-8 h-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground text-center">
+                        Clique para selecionar ou arraste um ficheiro
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, ICO ou SVG • Recomendado: 32x32px ou 64x64px
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview do novo favicon */}
+                {faviconPreview && (
+                  <div className="space-y-2">
+                    <Label>Preview do Novo Favicon</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-lg border-2 border-primary flex items-center justify-center bg-background overflow-hidden">
+                        <img 
+                          src={faviconPreview} 
+                          alt="Preview favicon" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded border flex items-center justify-center bg-background overflow-hidden">
+                          <img 
+                            src={faviconPreview} 
+                            alt="Preview 32px" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">32x32</span>
+                        <div className="w-4 h-4 rounded border flex items-center justify-center bg-background overflow-hidden">
+                          <img 
+                            src={faviconPreview} 
+                            alt="Preview 16px" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">16x16</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFaviconFile(null);
+                          setFaviconPreview(null);
+                          if (faviconInputRef.current) {
+                            faviconInputRef.current.value = '';
+                          }
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Botão salvar */}
+                <Button 
+                  className="min-h-touch 3xl:min-h-touch-lg"
+                  disabled={!faviconFile || isUploadingFavicon}
+                  onClick={async () => {
+                    if (!faviconFile) return;
+                    
+                    setIsUploadingFavicon(true);
+                    try {
+                      // Generate unique filename
+                      const extension = faviconFile.name.split('.').pop();
+                      const fileName = `favicon/favicon-${Date.now()}.${extension}`;
+                      
+                      // Upload to Supabase Storage
+                      const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('project-images')
+                        .upload(fileName, faviconFile, {
+                          cacheControl: '3600',
+                          upsert: true
+                        });
+                      
+                      if (uploadError) throw uploadError;
+                      
+                      // Get public URL
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('project-images')
+                        .getPublicUrl(fileName);
+                      
+                      // Save URL to system_settings
+                      const { error: upsertError } = await supabase
+                        .from('system_settings')
+                        .upsert({
+                          key: 'favicon_url',
+                          value: publicUrl,
+                          category: 'branding',
+                          description: 'URL do favicon do site'
+                        }, {
+                          onConflict: 'key'
+                        });
+                      
+                      if (upsertError) throw upsertError;
+                      
+                      // Update local state
+                      setSettings({ ...settings, favicon_url: publicUrl });
+                      setFaviconFile(null);
+                      setFaviconPreview(null);
+                      if (faviconInputRef.current) {
+                        faviconInputRef.current.value = '';
+                      }
+                      
+                      queryClient.invalidateQueries({ queryKey: ["system-settings"] });
+                      
+                      toast({
+                        title: "Favicon atualizado",
+                        description: "O favicon foi guardado com sucesso. Para aplicar no site, atualize o index.html com o URL acima.",
+                      });
+                    } catch (error) {
+                      console.error('Erro ao fazer upload do favicon:', error);
+                      toast({
+                        title: "Erro ao guardar",
+                        description: "Não foi possível guardar o favicon. Tente novamente.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsUploadingFavicon(false);
+                    }
+                  }}
+                >
+                  {isUploadingFavicon ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A carregar...
+                    </>
+                  ) : (
+                    'Salvar Favicon'
+                  )}
+                </Button>
+
+                {/* Instruções */}
+                <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground space-y-2">
+                  <p className="font-medium text-foreground">Nota:</p>
+                  <p>
+                    Após guardar o favicon aqui, será necessário atualizar manualmente o ficheiro 
+                    <code className="mx-1 px-1 bg-muted rounded">index.html</code> 
+                    com o novo URL para que apareça no separador do browser.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
