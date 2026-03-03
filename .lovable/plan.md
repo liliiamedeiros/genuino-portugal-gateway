@@ -1,185 +1,153 @@
 
 
-# Plano: Favicon Dinâmico e Validação de Dimensões
+# SEO & GEO – Sistema Inteligente de Configuração
 
-## Resumo
+## Scope Assessment
 
-Este plano implementa duas funcionalidades:
-1. **Injeção dinâmica do favicon** usando `react-helmet-async` para aplicar o favicon automaticamente após o React carregar
-2. **Validação de dimensões** para alertar o utilizador se a imagem não tiver 32x32px ou 64x64px
+This is a very large system. To deliver quality and avoid errors, I'll implement it in **Phase 1** (core foundation) now, with subsequent phases buildable on top.
+
+**Phase 1 (this implementation):**
+- Database tables for stages, questions, rules, and responses
+- Admin menu entry "SEO & GEO" with subpages
+- Checklist configuration page (CRUD stages + questions)
+- Dynamic checklist with progress calculation
+- Question field types and validation config
+- Conditional rules engine (basic)
+- Dashboard with configurable score
+
+**Future phases (on request):**
+- GEO module (semantic strategy, FAQ, entity config)
+- Integration management (Search Console, Analytics OAuth)
+- Monitoring & alerts
+- Learning Hub
+- Version history with restore
+- Drag-and-drop reordering
 
 ---
 
-## Parte 1: Favicon Dinâmico com react-helmet-async
+## Database Tables (6 new tables)
 
-### Novo Componente: DynamicFavicon.tsx
+### `seo_stages`
+Stages/steps of the SEO checklist.
+- `id`, `name`, `description`, `order_index`, `importance_weight` (numeric), `min_completion_pct` (default 100), `is_active`, `requires_previous_complete` (bool), `created_at`, `updated_at`
 
-Criar um componente que busca o `favicon_url` da tabela `system_settings` e injeta no `<head>` usando Helmet.
+### `seo_questions`
+Configurable questions within each stage.
+- `id`, `stage_id` (FK), `label`, `description`, `field_type` (enum: text, textarea, wysiwyg, toggle, upload, html_code, json_ld, number, url, domain, api_integration), `is_required`, `weight` (numeric), `seo_impact` (low/medium/high), `min_chars`, `max_chars`, `validation_regex`, `error_message`, `success_message`, `order_index`, `is_active`, `applies_to` (jsonb - page types), `created_at`, `updated_at`
 
-**Novo Ficheiro:** `src/components/DynamicFavicon.tsx`
+### `seo_responses`
+User answers to each question.
+- `id`, `question_id` (FK), `page_reference` (text - which page), `value` (jsonb), `status` (complete/incomplete/critical), `updated_by` (uuid), `created_at`, `updated_at`
+
+### `seo_rules`
+Conditional validation rules.
+- `id`, `name`, `condition_field`, `condition_operator` (lt, gt, eq, contains, not_exists, etc.), `condition_value`, `result_status` (needs_improvement/critical/warning), `result_message`, `is_active`, `order_index`, `created_at`
+
+### `seo_config`
+Global SEO configuration (score formula, dashboard widgets, etc.).
+- `id`, `key`, `value` (jsonb), `category`, `description`, `created_at`, `updated_at`
+
+### `seo_history`
+Change log for SEO modifications.
+- `id`, `user_id`, `entity_type` (stage/question/response/rule), `entity_id`, `action` (create/update/delete), `old_value` (jsonb), `new_value` (jsonb), `created_at`
+
+All tables will have RLS: admin/super_admin for management, editor for viewing/responding.
+
+---
+
+## Admin Pages (4 new pages)
+
+### 1. SEO Dashboard (`/admin/seo`)
+- Overall score (calculated from weighted responses)
+- Progress bars per stage
+- Critical errors list
+- Recommendations
+
+### 2. Checklist & Responses (`/admin/seo/checklist`)
+- Accordion per stage showing questions
+- Status indicators (green/yellow/red)
+- Inline editing of responses
+- Auto-calculated progress per stage
+
+### 3. Configuration (`/admin/seo/config`)
+- Tabs: Stages | Questions | Rules | Settings
+- CRUD for stages with weight/importance config
+- CRUD for questions with full field-type config
+- CRUD for conditional rules
+- Global settings (score formula, dashboard widgets)
+
+### 4. History (`/admin/seo/history`)
+- Table showing who changed what and when
+- Filterable by entity type, user, date
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/pages/admin/SeoGeo.tsx` | Dashboard page |
+| `src/pages/admin/SeoChecklist.tsx` | Checklist with responses |
+| `src/pages/admin/SeoConfig.tsx` | Configuration (stages, questions, rules) |
+| `src/pages/admin/SeoHistory.tsx` | Change history |
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/admin/AdminLayout.tsx` | Add "SEO & GEO" menu with sub-items |
+| `src/App.tsx` | Add routes for 4 new pages |
+
+---
+
+## Menu Structure
 
 ```text
-Funcionalidades:
-- Busca favicon_url do system_settings via React Query
-- Usa Helmet para injetar <link rel="icon"> no head
-- Suporta diferentes tipos (PNG, ICO, SVG)
-- Fallback para favicon padrão se não configurado
+SEO & GEO (icon: Search)
+├── Dashboard        → /admin/seo
+├── Checklist        → /admin/seo/checklist
+├── Configuração     → /admin/seo/config
+└── Histórico        → /admin/seo/history
 ```
 
-### Integração no App.tsx
-
-Adicionar o componente `DynamicFavicon` ao layout principal da aplicação, junto aos outros componentes globais como `OrganizationSchema`.
+The menu will use a parent item with sub-navigation handled via tabs within the config page (Stages | Questions | Rules | Settings).
 
 ---
 
-## Parte 2: Validação de Dimensões de Imagem
+## Question Field Types
 
-### Melhorar onChange do Input no Settings.tsx
-
-Adicionar validação que:
-1. Carrega a imagem num objeto Image
-2. Verifica se as dimensões são 32x32, 64x64, ou potências de 2 comuns para favicons
-3. Mostra alerta (toast) se as dimensões não forem recomendadas
-4. Ainda permite o upload (aviso, não bloqueio)
+Each question renders a different input based on `field_type`:
+- **text**: Input with char limits
+- **textarea**: Textarea with char counter
+- **wysiwyg**: React Quill editor
+- **toggle**: Switch component
+- **upload**: File upload
+- **html_code/json_ld**: Code editor (monospace textarea)
+- **number**: Numeric input
+- **url/domain**: Input with URL/domain validation
 
 ---
 
-## Detalhes Técnicos
-
-### DynamicFavicon.tsx
+## Progress Calculation
 
 ```text
-import { Helmet } from 'react-helmet-async';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-
-Lógica:
-1. useQuery busca favicon_url de system_settings
-2. Determina tipo MIME baseado na extensão (.png, .ico, .svg)
-3. Renderiza Helmet com link rel="icon" se URL existir
+Stage Progress = Σ(completed_question_weight) / Σ(all_question_weights) × 100
+Overall Score = Σ(stage_progress × stage_importance_weight) / Σ(stage_importance_weights)
 ```
 
-### Validação de Dimensões em Settings.tsx
+Both formulas use the configurable weights from the database.
 
+---
+
+## Conditional Rules Engine
+
+Rules are evaluated against responses:
 ```text
-Adicionar estado:
-- faviconDimensions: { width: number, height: number } | null
-- faviconDimensionWarning: string | null
-
-Nova função validateFaviconDimensions:
-1. Cria objeto Image() com src = data URL
-2. No onload, lê naturalWidth e naturalHeight
-3. Verifica se é 16x16, 32x32, 48x48, 64x64, ou 128x128
-4. Se não for, define warning message
-5. Mostra toast de aviso (não bloqueia upload)
+IF response[condition_field] operator condition_value
+THEN status = result_status, message = result_message
 ```
 
----
+Operators: `<`, `>`, `=`, `contains`, `not_exists`, `length_lt`, `length_gt`
 
-## Fluxo de Validação
-
-```text
-1. Utilizador seleciona ficheiro
-2. FileReader lê como data URL
-3. Image carrega para obter dimensões
-4. Sistema valida dimensões:
-   - 16x16, 32x32, 48x48, 64x64, 128x128 = OK (sem aviso)
-   - Quadrado mas tamanho diferente = Aviso leve
-   - Não quadrado = Aviso forte (favicon deve ser quadrado)
-5. Preview mostra dimensões detectadas
-6. Utilizador pode continuar com o upload
-```
-
----
-
-## Ficheiros a Criar
-
-| Ficheiro | Descrição |
-|----------|-----------|
-| `src/components/DynamicFavicon.tsx` | Componente para injetar favicon dinamicamente via Helmet |
-
-## Ficheiros a Modificar
-
-| Ficheiro | Alteração |
-|----------|-----------|
-| `src/App.tsx` | Adicionar DynamicFavicon ao layout global |
-| `src/pages/admin/Settings.tsx` | Adicionar validação de dimensões no onChange do input |
-
----
-
-## Comportamento Esperado
-
-### Favicon Dinâmico
-- Quando o utilizador guarda um novo favicon, este é aplicado automaticamente em todas as páginas
-- Não é necessário editar manualmente o index.html (embora o favicon estático inicial ainda venha de lá)
-- O favicon dinâmico sobrepõe o estático após React carregar
-
-### Validação de Dimensões
-- **Dimensões corretas (32x32, 64x64, etc.)**: Upload normal, sem avisos
-- **Dimensões incorretas**: Toast de aviso aparece, mas upload continua possível
-- **Imagem não quadrada**: Toast de aviso mais forte
-
----
-
-## Alterações em Settings.tsx
-
-### Novo Estado
-
-```text
-const [faviconDimensions, setFaviconDimensions] = useState<{width: number, height: number} | null>(null);
-```
-
-### Nova Lógica no onChange
-
-```text
-const file = e.target.files?.[0];
-if (file) {
-  setFaviconFile(file);
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const dataUrl = event.target?.result as string;
-    setFaviconPreview(dataUrl);
-    
-    // Validar dimensões
-    const img = new Image();
-    img.onload = () => {
-      const { naturalWidth, naturalHeight } = img;
-      setFaviconDimensions({ width: naturalWidth, height: naturalHeight });
-      
-      const validSizes = [16, 32, 48, 64, 128, 256];
-      const isSquare = naturalWidth === naturalHeight;
-      const isValidSize = validSizes.includes(naturalWidth);
-      
-      if (!isSquare) {
-        toast({
-          title: "Aviso: Imagem não quadrada",
-          description: `Detectado: ${naturalWidth}x${naturalHeight}px. Favicons devem ser quadrados.`,
-          variant: "destructive",
-        });
-      } else if (!isValidSize) {
-        toast({
-          title: "Aviso: Tamanho não recomendado",
-          description: `Detectado: ${naturalWidth}x${naturalHeight}px. Recomendado: 32x32 ou 64x64.`,
-        });
-      }
-    };
-    img.src = dataUrl;
-  };
-  reader.readAsDataURL(file);
-}
-```
-
-### Mostrar Dimensões no Preview
-
-Adicionar badge mostrando dimensões detectadas junto ao preview do favicon.
-
----
-
-## Ordem de Implementação
-
-1. Criar `DynamicFavicon.tsx` - componente de injeção dinâmica
-2. Adicionar `DynamicFavicon` ao `App.tsx`
-3. Atualizar `Settings.tsx` com validação de dimensões
-4. Atualizar preview para mostrar dimensões detectadas
-5. Remover nota sobre "atualizar index.html manualmente" (já não é necessário)
+Rules are stored in `seo_rules` and evaluated client-side when displaying the checklist.
 
