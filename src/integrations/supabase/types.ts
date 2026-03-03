@@ -981,6 +981,259 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_config: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      seo_history: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      seo_questions: {
+        Row: {
+          applies_to: Json | null
+          created_at: string
+          description: string | null
+          error_message: string | null
+          field_type: Database["public"]["Enums"]["seo_field_type"]
+          id: string
+          is_active: boolean
+          is_required: boolean
+          label: string
+          max_chars: number | null
+          min_chars: number | null
+          order_index: number
+          seo_impact: Database["public"]["Enums"]["seo_impact_level"]
+          stage_id: string
+          success_message: string | null
+          updated_at: string
+          validation_regex: string | null
+          weight: number
+        }
+        Insert: {
+          applies_to?: Json | null
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          field_type?: Database["public"]["Enums"]["seo_field_type"]
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          label: string
+          max_chars?: number | null
+          min_chars?: number | null
+          order_index?: number
+          seo_impact?: Database["public"]["Enums"]["seo_impact_level"]
+          stage_id: string
+          success_message?: string | null
+          updated_at?: string
+          validation_regex?: string | null
+          weight?: number
+        }
+        Update: {
+          applies_to?: Json | null
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          field_type?: Database["public"]["Enums"]["seo_field_type"]
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          label?: string
+          max_chars?: number | null
+          min_chars?: number | null
+          order_index?: number
+          seo_impact?: Database["public"]["Enums"]["seo_impact_level"]
+          stage_id?: string
+          success_message?: string | null
+          updated_at?: string
+          validation_regex?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_questions_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "seo_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_responses: {
+        Row: {
+          created_at: string
+          id: string
+          page_reference: string
+          question_id: string
+          status: Database["public"]["Enums"]["seo_response_status"]
+          updated_at: string
+          updated_by: string | null
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_reference?: string
+          question_id: string
+          status?: Database["public"]["Enums"]["seo_response_status"]
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_reference?: string
+          question_id?: string
+          status?: Database["public"]["Enums"]["seo_response_status"]
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "seo_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_rules: {
+        Row: {
+          condition_field: string
+          condition_operator: Database["public"]["Enums"]["seo_rule_operator"]
+          condition_value: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+          result_message: string
+          result_status: Database["public"]["Enums"]["seo_rule_result"]
+        }
+        Insert: {
+          condition_field: string
+          condition_operator?: Database["public"]["Enums"]["seo_rule_operator"]
+          condition_value?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+          result_message?: string
+          result_status?: Database["public"]["Enums"]["seo_rule_result"]
+        }
+        Update: {
+          condition_field?: string
+          condition_operator?: Database["public"]["Enums"]["seo_rule_operator"]
+          condition_value?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+          result_message?: string
+          result_status?: Database["public"]["Enums"]["seo_rule_result"]
+        }
+        Relationships: []
+      }
+      seo_stages: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          importance_weight: number
+          is_active: boolean
+          min_completion_pct: number
+          name: string
+          order_index: number
+          requires_previous_complete: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          importance_weight?: number
+          is_active?: boolean
+          min_completion_pct?: number
+          name: string
+          order_index?: number
+          requires_previous_complete?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          importance_weight?: number
+          is_active?: boolean
+          min_completion_pct?: number
+          name?: string
+          order_index?: number
+          requires_previous_complete?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string | null
@@ -1234,6 +1487,29 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor" | "super_admin"
+      seo_field_type:
+        | "text"
+        | "textarea"
+        | "wysiwyg"
+        | "toggle"
+        | "upload"
+        | "html_code"
+        | "json_ld"
+        | "number"
+        | "url"
+        | "domain"
+        | "api_integration"
+      seo_impact_level: "low" | "medium" | "high"
+      seo_response_status: "complete" | "incomplete" | "critical"
+      seo_rule_operator:
+        | "lt"
+        | "gt"
+        | "eq"
+        | "contains"
+        | "not_exists"
+        | "length_lt"
+        | "length_gt"
+      seo_rule_result: "needs_improvement" | "critical" | "warning"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1362,6 +1638,31 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor", "super_admin"],
+      seo_field_type: [
+        "text",
+        "textarea",
+        "wysiwyg",
+        "toggle",
+        "upload",
+        "html_code",
+        "json_ld",
+        "number",
+        "url",
+        "domain",
+        "api_integration",
+      ],
+      seo_impact_level: ["low", "medium", "high"],
+      seo_response_status: ["complete", "incomplete", "critical"],
+      seo_rule_operator: [
+        "lt",
+        "gt",
+        "eq",
+        "contains",
+        "not_exists",
+        "length_lt",
+        "length_gt",
+      ],
+      seo_rule_result: ["needs_improvement", "critical", "warning"],
     },
   },
 } as const

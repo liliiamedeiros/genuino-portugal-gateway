@@ -50,7 +50,10 @@ import MenuManager from "./pages/admin/MenuManager";
 import PortfolioList from "./pages/admin/PortfolioList";
 import PortfolioForm from "./pages/admin/PortfolioForm";
 import AuditLogPage from "./pages/admin/AuditLogPage";
-
+import SeoGeo from "./pages/admin/SeoGeo";
+import SeoChecklist from "./pages/admin/SeoChecklist";
+import SeoConfig from "./pages/admin/SeoConfig";
+import SeoHistory from "./pages/admin/SeoHistory";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -272,6 +275,26 @@ const App = () => {
             <Route path="/admin/audit" element={
               <ProtectedRoute requiredRole="super_admin">
                 <AuditLogPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoGeo />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/checklist" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoChecklist />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/config" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoConfig />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/history" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoHistory />
               </ProtectedRoute>
             } />
 
