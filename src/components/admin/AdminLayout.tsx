@@ -17,7 +17,8 @@ import {
   CheckCircle,
   ImageIcon,
   FolderOpen,
-  Shield
+  Shield,
+  Search
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
@@ -67,6 +68,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: FolderOpen, label: 'Portfolio', path: '/admin/portfolio' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
+    { icon: Search, label: 'SEO & GEO', path: '/admin/seo', adminOnly: true },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
     { icon: ImageIcon, label: 'Gestor de Imagens', path: '/admin/image-manager', superAdminOnly: true },
     { icon: Shield, label: 'Logs de Auditoria', path: '/admin/audit', superAdminOnly: true },
@@ -97,7 +99,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     console.log('[AdminLayout Debug] visibleMenuItems:', visibleMenuItems.map(i => i.label));
   }, [visibleMenuItems]);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <div className="min-h-screen flex w-full bg-background">
