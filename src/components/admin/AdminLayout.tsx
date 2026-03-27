@@ -18,7 +18,8 @@ import {
   ImageIcon,
   FolderOpen,
   Shield,
-  Search
+  Search,
+  Globe
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
