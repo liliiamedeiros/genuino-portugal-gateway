@@ -18,7 +18,8 @@ import {
   ImageIcon,
   FolderOpen,
   Shield,
-  Search
+  Search,
+  Globe
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
@@ -69,6 +70,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
     { icon: Search, label: 'SEO & GEO', path: '/admin/seo', adminOnly: true },
+    { icon: Globe, label: 'GEO (IA)', path: '/admin/seo/geo', adminOnly: true },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
     { icon: ImageIcon, label: 'Gestor de Imagens', path: '/admin/image-manager', superAdminOnly: true },
     { icon: Shield, label: 'Logs de Auditoria', path: '/admin/audit', superAdminOnly: true },

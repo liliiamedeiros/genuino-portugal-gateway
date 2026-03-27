@@ -54,6 +54,7 @@ import SeoGeo from "./pages/admin/SeoGeo";
 import SeoChecklist from "./pages/admin/SeoChecklist";
 import SeoConfig from "./pages/admin/SeoConfig";
 import SeoHistory from "./pages/admin/SeoHistory";
+import SeoGeoModule from "./pages/admin/SeoGeoModule";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -295,6 +296,11 @@ const App = () => {
             <Route path="/admin/seo/history" element={
               <ProtectedRoute requiredRole="admin">
                 <SeoHistory />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/geo" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoGeoModule />
               </ProtectedRoute>
             } />
 

@@ -370,6 +370,143 @@ export type Database = {
         }
         Relationships: []
       }
+      geo_entities: {
+        Row: {
+          created_at: string
+          description: string | null
+          entity_type: string
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+          properties: Json
+          same_as: Json
+          schema_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+          properties?: Json
+          same_as?: Json
+          schema_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+          properties?: Json
+          same_as?: Json
+          schema_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      geo_faqs: {
+        Row: {
+          answer: Json
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          order_index: number
+          page_reference: string | null
+          question: Json
+          schema_enabled: boolean
+          strategy_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          page_reference?: string | null
+          question?: Json
+          schema_enabled?: boolean
+          strategy_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          page_reference?: string | null
+          question?: Json
+          schema_enabled?: boolean
+          strategy_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geo_faqs_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "geo_semantic_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geo_semantic_strategies: {
+        Row: {
+          created_at: string
+          description: string | null
+          entities: Json
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+          primary_keywords: Json
+          response_structure: string | null
+          secondary_keywords: Json
+          target_intent: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entities?: Json
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+          primary_keywords?: Json
+          response_structure?: string | null
+          secondary_keywords?: Json
+          target_intent?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entities?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+          primary_keywords?: Json
+          response_structure?: string | null
+          secondary_keywords?: Json
+          target_intent?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       image_conversions: {
         Row: {
           backup_url: string | null
