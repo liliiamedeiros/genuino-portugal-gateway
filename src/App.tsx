@@ -54,6 +54,7 @@ import SeoGeo from "./pages/admin/SeoGeo";
 import SeoChecklist from "./pages/admin/SeoChecklist";
 import SeoConfig from "./pages/admin/SeoConfig";
 import SeoHistory from "./pages/admin/SeoHistory";
+import SeoGeoModule from "./pages/admin/SeoGeoModule";
 const queryClient = new QueryClient();
 
 const App = () => {
