@@ -298,6 +298,11 @@ const App = () => {
                 <SeoHistory />
               </ProtectedRoute>
             } />
+            <Route path="/admin/seo/geo" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoGeoModule />
+              </ProtectedRoute>
+            } />
 
               <Route path="*" element={
                 <>
