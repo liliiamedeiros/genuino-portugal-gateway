@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, MapPin, Phone } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
 import { NewsletterForm } from '@/components/NewsletterForm';
 import { CarModeToggle } from '@/components/CarModeWrapper';
@@ -13,18 +13,31 @@ export const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 3xl:gap-12 4xl:gap-16 mb-8 3xl:mb-12">
           <div>
-            <img src={logo} alt="Genuíno Investments Switzerland" className="h-14 sm:h-16 3xl:h-20 4xl:h-24 w-auto mb-4 3xl:mb-6" />
+            <img src={logo} alt="GenuinoInvestments Switzerland" className="h-14 sm:h-16 3xl:h-20 4xl:h-24 w-auto mb-4 3xl:mb-6" />
             <p className="text-sm 3xl:text-base 4xl:text-lg text-muted-foreground leading-relaxed">
               Entreprise suisse, nous sommes spécialisés dans la promotion et le développement de projets immobiliers au Portugal, où nous allions innovation, fonctionnalité et design intemporel.
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 3xl:mb-6 text-base 3xl:text-lg 4xl:text-xl">{t('nav.contact')}</h4>
+            <h4 className="font-semibold mb-4 3xl:mb-6 text-base 3xl:text-lg 4xl:text-xl">
+              <MapPin className="inline h-4 w-4 mr-1" />
+              Suisse
+            </h4>
             <div className="space-y-2 3xl:space-y-3 text-sm 3xl:text-base 4xl:text-lg text-muted-foreground">
-              <p>+41 78 487 60 00</p>
+              <p>Quai du Cheval Blanc, 2</p>
+              <p>1227 Carouge/Genève</p>
+              <p className="flex items-center gap-1"><Phone className="h-3 w-3" /> +41 76 487 60 00</p>
               <p>info@genuinoinvestments.ch</p>
-              <p>Geneva, Switzerland</p>
+            </div>
+            <h4 className="font-semibold mt-4 mb-2 3xl:mb-3 text-base 3xl:text-lg 4xl:text-xl">
+              <MapPin className="inline h-4 w-4 mr-1" />
+              Portugal
+            </h4>
+            <div className="space-y-2 3xl:space-y-3 text-sm 3xl:text-base 4xl:text-lg text-muted-foreground">
+              <p>Rua António Stromp 12 A</p>
+              <p>1600-411 Lumiar, Lisboa</p>
+              <p className="flex items-center gap-1"><Phone className="h-3 w-3" /> +351 21 7 580673</p>
             </div>
           </div>
 
@@ -64,13 +77,13 @@ export const Footer = () => {
         <div className="border-t border-border pt-6 sm:pt-8 3xl:pt-12 mt-6 sm:mt-8 3xl:mt-12">
           <div className="max-w-3xl 3xl:max-w-4xl mx-auto text-center">
             <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-bold mb-3 sm:mb-4 text-primary">
-              Genuíno Investments
+              GenuinoInvestments Switzerland
             </h3>
             <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg mb-2 sm:mb-3 text-muted-foreground">
-              Escritórios: Lisboa (Portugal) | Genève (Switzerland)
+              Carouge/Genève (Suisse) | Lumiar/Lisboa (Portugal)
             </p>
             <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg mb-3 sm:mb-4 text-muted-foreground">
-              Investimentos Imobiliários – Férias, Praia e Campo
+              Investissements Immobiliers – Vacances, Plage et Campagne
             </p>
             <div className="flex justify-center gap-2 sm:gap-3 text-xs sm:text-sm 3xl:text-base text-muted-foreground/75 flex-wrap">
               <span>Português</span>
@@ -88,7 +101,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 3xl:gap-6">
             <div className="flex items-center gap-4">
               <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg text-muted-foreground text-center md:text-left">
-                © 2025 Genuíno Investments. {t('footer.rights')}
+                © 2025 GenuinoInvestments Switzerland. {t('footer.rights')}
               </p>
               <CarModeToggle />
             </div>

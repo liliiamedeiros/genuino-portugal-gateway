@@ -4,11 +4,11 @@ export const OrganizationSchema = () => {
   const schema = {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
-    "name": "Genuíno Investments",
+    "name": "GenuinoInvestments Switzerland",
     "url": "https://genuinoinvestments.ch",
     "logo": "https://genuinoinvestments.ch/logo.png",
-    "description": "Imobiliária internacional especializada em investimentos de luxo em Portugal e Suíça",
-    "telephone": "+41 78 487 60 00",
+    "description": "Entreprise suisse spécialisée dans la promotion et le développement de projets immobiliers au Portugal. Innovation, fonctionnalité et design intemporel.",
+    "telephone": "+41 76 487 60 00",
     "email": "info@genuinoinvestments.ch",
     "sameAs": [
       "https://www.linkedin.com/company/genuinoinvestments",
@@ -18,15 +18,19 @@ export const OrganizationSchema = () => {
     "address": [
       {
         "@type": "PostalAddress",
-        "streetAddress": "Geneva",
-        "addressLocality": "Geneva",
+        "streetAddress": "Quai du Cheval Blanc, 2",
+        "addressLocality": "Carouge/Genève",
+        "postalCode": "1227",
+        "addressRegion": "Genève",
         "addressCountry": "CH",
-        "name": "Escritório Genebra"
+        "name": "Siège Suisse"
       },
       {
         "@type": "PostalAddress",
-        "streetAddress": "Avenida da Liberdade",
+        "streetAddress": "Rua António Stromp 12 A",
         "addressLocality": "Lisboa",
+        "postalCode": "1600-411",
+        "addressRegion": "Lumiar",
         "addressCountry": "PT",
         "name": "Escritório Lisboa"
       }
@@ -39,6 +43,22 @@ export const OrganizationSchema = () => {
       {
         "@type": "Country",
         "name": "Switzerland"
+      }
+    ],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+41 76 487 60 00",
+        "contactType": "customer service",
+        "areaServed": "CH",
+        "availableLanguage": ["French", "English", "Portuguese", "German"]
+      },
+      {
+        "@type": "ContactPoint",
+        "telephone": "+351 21 7 580673",
+        "contactType": "customer service",
+        "areaServed": "PT",
+        "availableLanguage": ["Portuguese", "English", "French"]
       }
     ]
   };

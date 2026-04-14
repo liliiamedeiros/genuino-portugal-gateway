@@ -17,8 +17,8 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
   const defaultImage = `${baseUrl}/og-image.jpg`;
   
   const fullTitle = title 
-    ? `${title} | Genuíno Investments` 
-    : 'Genuíno Investments | Imobiliária Internacional Portugal & Suíça';
+    ? `${title} | GenuinoInvestments Switzerland` 
+    : 'GenuinoInvestments Switzerland | Investissements Immobiliers Portugal & Suisse';
   
   const fullUrl = url ? `${baseUrl}${url}` : baseUrl;
   

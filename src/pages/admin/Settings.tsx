@@ -10,8 +10,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
-import { Image, Upload, Loader2, Globe, AlertTriangle, CheckCircle } from "lucide-react";
+import { Image, Upload, Loader2, Globe, AlertTriangle, CheckCircle, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 type SystemSetting = {
   id: string;
@@ -86,6 +87,25 @@ export default function Settings() {
     updateSettingMutation.mutate({ key: "contact_phone", value: settings.contact_phone });
   };
 
+  const handleSaveAddresses = () => {
+    const addressKeys = [
+      'address_ch_street', 'address_ch_postal', 'address_ch_city', 'address_ch_phone',
+      'address_pt_street', 'address_pt_postal', 'address_pt_city', 'address_pt_phone',
+    ];
+    addressKeys.forEach(key => {
+      updateSettingMutation.mutate({ key, value: settings[key] || '' });
+    });
+  };
+
+  const handleSaveIntegrations = () => {
+    const keys = [
+      'google_analytics_id', 'google_search_console_id', 'facebook_pixel_id', 'webhook_url',
+    ];
+    keys.forEach(key => {
+      updateSettingMutation.mutate({ key, value: settings[key] || '' });
+    });
+  };
+
   const handleSaveNotifications = () => {
     updateSettingMutation.mutate({ key: "notify_new_clients", value: settings.notify_new_clients });
     updateSettingMutation.mutate({ key: "notify_new_appointments", value: settings.notify_new_appointments });
@@ -130,6 +150,10 @@ export default function Settings() {
             <TabsTrigger value="favicon" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
               <Globe className="w-4 h-4 mr-1" />
               Favicon
+            </TabsTrigger>
+            <TabsTrigger value="addresses" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
+              <MapPin className="w-4 h-4 mr-1" />
+              Endereços
             </TabsTrigger>
           </TabsList>
 
@@ -485,9 +509,9 @@ export default function Settings() {
           <TabsContent value="integrations">
             <Card>
               <CardHeader>
-                <CardTitle>Integrações</CardTitle>
+                <CardTitle>Integrações SEO & Marketing</CardTitle>
                 <CardDescription>
-                  Configure integrações com serviços externos
+                  Configure integrações com Google Search Console, Analytics e outros serviços
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -501,6 +525,19 @@ export default function Settings() {
                     }
                     placeholder="G-XXXXXXXXXX"
                   />
+                  <p className="text-xs text-muted-foreground">ID de medição do Google Analytics 4</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="google_search_console_id">Google Search Console - Meta Tag de Verificação</Label>
+                  <Input
+                    id="google_search_console_id"
+                    value={settings.google_search_console_id || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, google_search_console_id: e.target.value })
+                    }
+                    placeholder="google-site-verification=XXXXXXXXXX"
+                  />
+                  <p className="text-xs text-muted-foreground">Conteúdo da meta tag de verificação do Search Console</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="facebook_pixel_id">Facebook Pixel ID</Label>
@@ -523,15 +560,22 @@ export default function Settings() {
                     }
                     placeholder="https://example.com/webhook"
                   />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     URL para receber notificações de eventos do sistema
                   </p>
                 </div>
-                <Button onClick={() => {
-                  updateSettingMutation.mutate({ key: "google_analytics_id", value: settings.google_analytics_id });
-                  updateSettingMutation.mutate({ key: "facebook_pixel_id", value: settings.facebook_pixel_id });
-                  updateSettingMutation.mutate({ key: "webhook_url", value: settings.webhook_url });
-                }}>
+
+                <div className="rounded-lg bg-muted/50 p-4 text-sm space-y-2">
+                  <p className="font-medium text-foreground">Ficheiros SEO</p>
+                  <p className="text-muted-foreground">
+                    • <strong>robots.txt</strong> — Configurado em <code>/public/robots.txt</code>. Bloqueia /admin/ e permite todos os crawlers.
+                  </p>
+                  <p className="text-muted-foreground">
+                    • <strong>sitemap.xml</strong> — Disponível em <code>/public/sitemap.xml</code>. Referenciado no robots.txt.
+                  </p>
+                </div>
+
+                <Button onClick={handleSaveIntegrations}>
                   Salvar Alterações
                 </Button>
               </CardContent>
@@ -797,6 +841,110 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          {/* Addresses Settings */}
+          <TabsContent value="addresses">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Escritório Suíça
+                  </CardTitle>
+                  <CardDescription>
+                    Endereço do escritório na Suíça (aparece no footer, contacto e Schema.org)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Rua / Morada</Label>
+                    <Input
+                      value={settings.address_ch_street || "Quai du Cheval Blanc, 2"}
+                      onChange={(e) => setSettings({ ...settings, address_ch_street: e.target.value })}
+                      placeholder="Quai du Cheval Blanc, 2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Código Postal</Label>
+                      <Input
+                        value={settings.address_ch_postal || "1227"}
+                        onChange={(e) => setSettings({ ...settings, address_ch_postal: e.target.value })}
+                        placeholder="1227"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input
+                        value={settings.address_ch_city || "Carouge/Genève"}
+                        onChange={(e) => setSettings({ ...settings, address_ch_city: e.target.value })}
+                        placeholder="Carouge/Genève"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone Suíça</Label>
+                    <Input
+                      value={settings.address_ch_phone || "+41 76 487 60 00"}
+                      onChange={(e) => setSettings({ ...settings, address_ch_phone: e.target.value })}
+                      placeholder="+41 76 487 60 00"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Escritório Portugal
+                  </CardTitle>
+                  <CardDescription>
+                    Endereço do escritório em Portugal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Rua / Morada</Label>
+                    <Input
+                      value={settings.address_pt_street || "Rua António Stromp 12 A"}
+                      onChange={(e) => setSettings({ ...settings, address_pt_street: e.target.value })}
+                      placeholder="Rua António Stromp 12 A"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Código Postal</Label>
+                      <Input
+                        value={settings.address_pt_postal || "1600-411"}
+                        onChange={(e) => setSettings({ ...settings, address_pt_postal: e.target.value })}
+                        placeholder="1600-411"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input
+                        value={settings.address_pt_city || "Lumiar, Lisboa"}
+                        onChange={(e) => setSettings({ ...settings, address_pt_city: e.target.value })}
+                        placeholder="Lumiar, Lisboa"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone Portugal</Label>
+                    <Input
+                      value={settings.address_pt_phone || "+351 21 7 580673"}
+                      onChange={(e) => setSettings({ ...settings, address_pt_phone: e.target.value })}
+                      placeholder="+351 21 7 580673"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button onClick={handleSaveAddresses} className="min-h-touch">
+                Salvar Endereços
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
