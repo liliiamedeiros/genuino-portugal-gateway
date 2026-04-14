@@ -19,7 +19,12 @@ import {
   FolderOpen,
   Shield,
   Search,
-  Globe
+  Globe,
+  ChevronDown,
+  ChevronRight,
+  ListChecks,
+  Sliders,
+  History
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
@@ -27,13 +32,22 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
+interface MenuItem {
+  icon: any;
+  label: string;
+  path: string;
+  adminOnly?: boolean;
+  superAdminOnly?: boolean;
+  children?: MenuItem[];
+}
+
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { signOut, user, userRole } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
-  // Auto-collapse sidebar on mobile/tablet
   useEffect(() => {
     const checkScreenSize = () => {
       const mobile = window.innerWidth < 1024;
@@ -44,33 +58,50 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         setSidebarOpen(true);
       }
     };
-
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Close sidebar on route change (mobile only)
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
   }, [location.pathname, isMobile]);
 
-  // DEBUG: Log userRole when component renders
+  // Auto-expand SEO menu if on a SEO sub-route
   useEffect(() => {
-    console.log('[AdminLayout Debug] Current userRole:', userRole);
-    console.log('[AdminLayout Debug] User:', user?.email);
-  }, [userRole, user]);
+    if (location.pathname.startsWith('/admin/seo')) {
+      setExpandedMenus(prev => prev.includes('seo') ? prev : [...prev, 'seo']);
+    }
+  }, [location.pathname]);
 
-  const menuItems = [
+  const toggleMenu = (key: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+
+  const menuItems: (MenuItem & { key?: string })[] = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Building2, label: 'Gestão de Imóveis', path: '/admin/properties' },
     { icon: FolderOpen, label: 'Portfolio', path: '/admin/portfolio' },
     { icon: Users, label: 'Gestão de Clientes', path: '/admin/clients' },
     { icon: Calendar, label: 'Agendamentos', path: '/admin/appointments' },
-    { icon: Search, label: 'SEO & GEO', path: '/admin/seo', adminOnly: true },
-    { icon: Globe, label: 'GEO (IA)', path: '/admin/seo/geo', adminOnly: true },
+    { 
+      icon: Search, 
+      label: 'SEO & GEO', 
+      path: '/admin/seo',
+      key: 'seo',
+      adminOnly: true,
+      children: [
+        { icon: LayoutDashboard, label: 'Dashboard SEO', path: '/admin/seo' },
+        { icon: ListChecks, label: 'Checklist', path: '/admin/seo/checklist' },
+        { icon: Sliders, label: 'Configuração', path: '/admin/seo/config' },
+        { icon: Globe, label: 'GEO (IA)', path: '/admin/seo/geo' },
+        { icon: History, label: 'Histórico', path: '/admin/seo/history' },
+      ]
+    },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
     { icon: ImageIcon, label: 'Gestor de Imagens', path: '/admin/image-manager', superAdminOnly: true },
     { icon: Shield, label: 'Logs de Auditoria', path: '/admin/audit', superAdminOnly: true },
@@ -83,29 +114,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
   ];
 
-  // Filter menus based on role - hide admin-only and super-admin-only items
   const visibleMenuItems = menuItems.filter(item => {
-    // Hide superAdminOnly items for non-super_admins
-    if (item.superAdminOnly && userRole !== 'super_admin') {
-      return false;
-    }
-    // Hide adminOnly items for editors
-    if (item.adminOnly && userRole === 'editor') {
-      return false;
-    }
+    if (item.superAdminOnly && userRole !== 'super_admin') return false;
+    if (item.adminOnly && userRole === 'editor') return false;
     return true;
   });
 
-  // DEBUG: Log visible menu items
-  useEffect(() => {
-    console.log('[AdminLayout Debug] visibleMenuItems:', visibleMenuItems.map(i => i.label));
-  }, [visibleMenuItems]);
-
-  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const isActive = (path: string) => location.pathname === path;
+  const isInGroup = (path: string) => location.pathname.startsWith(path);
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -113,14 +132,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64 3xl:w-72 4xl:w-80' : 'w-0 lg:w-16 3xl:w-20'
         } ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'} 
         bg-card border-r transition-all duration-300 flex flex-col overflow-hidden`}
       >
-        {/* Logo */}
         <div className="h-16 3xl:h-20 4xl:h-24 flex items-center justify-between px-4 border-b shrink-0">
           {sidebarOpen && <img src={logo} alt="Logo" className="h-8 3xl:h-10 4xl:h-12" />}
           <Button
@@ -133,10 +150,57 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </Button>
         </div>
 
-        {/* Menu */}
         <nav className="flex-1 p-2 lg:p-4 space-y-1 overflow-y-auto">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
+            const hasChildren = item.children && item.children.length > 0;
+            const menuKey = (item as any).key || item.path;
+            const isExpanded = expandedMenus.includes(menuKey);
+
+            if (hasChildren && sidebarOpen) {
+              return (
+                <div key={item.path}>
+                  <button
+                    onClick={() => toggleMenu(menuKey)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 lg:py-2 3xl:py-3 rounded-md transition-colors min-h-touch 3xl:min-h-touch-lg ${
+                      isInGroup(item.path)
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 3xl:h-6 3xl:w-6 shrink-0" />
+                    <span className="text-sm 3xl:text-base truncate flex-1 text-left">{item.label}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0" />
+                    )}
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-muted pl-2">
+                      {item.children!.map((child) => {
+                        const ChildIcon = child.icon;
+                        return (
+                          <Link
+                            key={child.path}
+                            to={child.path}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm ${
+                              isActive(child.path)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            <ChildIcon className="h-4 w-4 shrink-0" />
+                            <span className="truncate">{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.path}
@@ -156,7 +220,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
 
-        {/* User Info & Logout */}
         <div className="p-4 border-t shrink-0">
           {sidebarOpen && (
             <div className="mb-2 text-sm 3xl:text-base">
@@ -177,7 +240,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile header with menu toggle */}
       {isMobile && !sidebarOpen && (
         <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b z-30 flex items-center px-4 lg:hidden">
           <Button
@@ -192,7 +254,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       )}
 
-      {/* Main Content */}
       <main className={`flex-1 overflow-auto ${isMobile ? 'pt-16' : ''}`}>
         {children}
       </main>

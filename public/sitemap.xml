@@ -5,7 +5,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://genuinoinvestments.ch</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch?lang=pt"/>
@@ -17,77 +17,105 @@
   <!-- About -->
   <url>
     <loc>https://genuinoinvestments.ch/about</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/about?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/about?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/about?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/about?lang=de"/>
   </url>
   
   <!-- Services -->
   <url>
     <loc>https://genuinoinvestments.ch/services</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/services?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/services?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/services?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/services?lang=de"/>
   </url>
   
   <!-- Portfolio -->
   <url>
     <loc>https://genuinoinvestments.ch/portfolio</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/portfolio?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/portfolio?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/portfolio?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/portfolio?lang=de"/>
   </url>
   
   <!-- Properties -->
   <url>
     <loc>https://genuinoinvestments.ch/properties</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/properties?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/properties?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/properties?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/properties?lang=de"/>
   </url>
   
   <!-- Vision -->
   <url>
     <loc>https://genuinoinvestments.ch/vision</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/vision?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/vision?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/vision?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/vision?lang=de"/>
   </url>
   
   <!-- Investors -->
   <url>
     <loc>https://genuinoinvestments.ch/investors</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/investors?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/investors?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/investors?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/investors?lang=de"/>
   </url>
   
   <!-- Contact -->
   <url>
     <loc>https://genuinoinvestments.ch/contact</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/contact?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://genuinoinvestments.ch/contact?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://genuinoinvestments.ch/contact?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch/contact?lang=de"/>
   </url>
   
   <!-- Legal Pages -->
   <url>
     <loc>https://genuinoinvestments.ch/legal</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   
   <url>
     <loc>https://genuinoinvestments.ch/privacy</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   
   <url>
     <loc>https://genuinoinvestments.ch/disputes</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
