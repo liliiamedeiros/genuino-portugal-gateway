@@ -842,6 +842,110 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Addresses Settings */}
+          <TabsContent value="addresses">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Escritório Suíça
+                  </CardTitle>
+                  <CardDescription>
+                    Endereço do escritório na Suíça (aparece no footer, contacto e Schema.org)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Rua / Morada</Label>
+                    <Input
+                      value={settings.address_ch_street || "Quai du Cheval Blanc, 2"}
+                      onChange={(e) => setSettings({ ...settings, address_ch_street: e.target.value })}
+                      placeholder="Quai du Cheval Blanc, 2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Código Postal</Label>
+                      <Input
+                        value={settings.address_ch_postal || "1227"}
+                        onChange={(e) => setSettings({ ...settings, address_ch_postal: e.target.value })}
+                        placeholder="1227"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input
+                        value={settings.address_ch_city || "Carouge/Genève"}
+                        onChange={(e) => setSettings({ ...settings, address_ch_city: e.target.value })}
+                        placeholder="Carouge/Genève"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone Suíça</Label>
+                    <Input
+                      value={settings.address_ch_phone || "+41 76 487 60 00"}
+                      onChange={(e) => setSettings({ ...settings, address_ch_phone: e.target.value })}
+                      placeholder="+41 76 487 60 00"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Escritório Portugal
+                  </CardTitle>
+                  <CardDescription>
+                    Endereço do escritório em Portugal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Rua / Morada</Label>
+                    <Input
+                      value={settings.address_pt_street || "Rua António Stromp 12 A"}
+                      onChange={(e) => setSettings({ ...settings, address_pt_street: e.target.value })}
+                      placeholder="Rua António Stromp 12 A"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Código Postal</Label>
+                      <Input
+                        value={settings.address_pt_postal || "1600-411"}
+                        onChange={(e) => setSettings({ ...settings, address_pt_postal: e.target.value })}
+                        placeholder="1600-411"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input
+                        value={settings.address_pt_city || "Lumiar, Lisboa"}
+                        onChange={(e) => setSettings({ ...settings, address_pt_city: e.target.value })}
+                        placeholder="Lumiar, Lisboa"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone Portugal</Label>
+                    <Input
+                      value={settings.address_pt_phone || "+351 21 7 580673"}
+                      onChange={(e) => setSettings({ ...settings, address_pt_phone: e.target.value })}
+                      placeholder="+351 21 7 580673"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button onClick={handleSaveAddresses} className="min-h-touch">
+                Salvar Endereços
+              </Button>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
