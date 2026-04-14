@@ -151,6 +151,10 @@ export default function Settings() {
               <Globe className="w-4 h-4 mr-1" />
               Favicon
             </TabsTrigger>
+            <TabsTrigger value="addresses" className="min-h-touch text-xs sm:text-sm 3xl:text-base">
+              <MapPin className="w-4 h-4 mr-1" />
+              Endereços
+            </TabsTrigger>
           </TabsList>
 
           {/* General Settings */}
