@@ -10,8 +10,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
-import { Image, Upload, Loader2, Globe, AlertTriangle, CheckCircle } from "lucide-react";
+import { Image, Upload, Loader2, Globe, AlertTriangle, CheckCircle, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 type SystemSetting = {
   id: string;
@@ -84,6 +85,25 @@ export default function Settings() {
     updateSettingMutation.mutate({ key: "company_name", value: settings.company_name });
     updateSettingMutation.mutate({ key: "contact_email", value: settings.contact_email });
     updateSettingMutation.mutate({ key: "contact_phone", value: settings.contact_phone });
+  };
+
+  const handleSaveAddresses = () => {
+    const addressKeys = [
+      'address_ch_street', 'address_ch_postal', 'address_ch_city', 'address_ch_phone',
+      'address_pt_street', 'address_pt_postal', 'address_pt_city', 'address_pt_phone',
+    ];
+    addressKeys.forEach(key => {
+      updateSettingMutation.mutate({ key, value: settings[key] || '' });
+    });
+  };
+
+  const handleSaveIntegrations = () => {
+    const keys = [
+      'google_analytics_id', 'google_search_console_id', 'facebook_pixel_id', 'webhook_url',
+    ];
+    keys.forEach(key => {
+      updateSettingMutation.mutate({ key, value: settings[key] || '' });
+    });
   };
 
   const handleSaveNotifications = () => {
