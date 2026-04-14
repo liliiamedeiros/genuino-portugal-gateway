@@ -509,9 +509,9 @@ export default function Settings() {
           <TabsContent value="integrations">
             <Card>
               <CardHeader>
-                <CardTitle>Integrações</CardTitle>
+                <CardTitle>Integrações SEO & Marketing</CardTitle>
                 <CardDescription>
-                  Configure integrações com serviços externos
+                  Configure integrações com Google Search Console, Analytics e outros serviços
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -525,6 +525,19 @@ export default function Settings() {
                     }
                     placeholder="G-XXXXXXXXXX"
                   />
+                  <p className="text-xs text-muted-foreground">ID de medição do Google Analytics 4</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="google_search_console_id">Google Search Console - Meta Tag de Verificação</Label>
+                  <Input
+                    id="google_search_console_id"
+                    value={settings.google_search_console_id || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, google_search_console_id: e.target.value })
+                    }
+                    placeholder="google-site-verification=XXXXXXXXXX"
+                  />
+                  <p className="text-xs text-muted-foreground">Conteúdo da meta tag de verificação do Search Console</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="facebook_pixel_id">Facebook Pixel ID</Label>
@@ -547,15 +560,22 @@ export default function Settings() {
                     }
                     placeholder="https://example.com/webhook"
                   />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     URL para receber notificações de eventos do sistema
                   </p>
                 </div>
-                <Button onClick={() => {
-                  updateSettingMutation.mutate({ key: "google_analytics_id", value: settings.google_analytics_id });
-                  updateSettingMutation.mutate({ key: "facebook_pixel_id", value: settings.facebook_pixel_id });
-                  updateSettingMutation.mutate({ key: "webhook_url", value: settings.webhook_url });
-                }}>
+
+                <div className="rounded-lg bg-muted/50 p-4 text-sm space-y-2">
+                  <p className="font-medium text-foreground">Ficheiros SEO</p>
+                  <p className="text-muted-foreground">
+                    • <strong>robots.txt</strong> — Configurado em <code>/public/robots.txt</code>. Bloqueia /admin/ e permite todos os crawlers.
+                  </p>
+                  <p className="text-muted-foreground">
+                    • <strong>sitemap.xml</strong> — Disponível em <code>/public/sitemap.xml</code>. Referenciado no robots.txt.
+                  </p>
+                </div>
+
+                <Button onClick={handleSaveIntegrations}>
                   Salvar Alterações
                 </Button>
               </CardContent>
