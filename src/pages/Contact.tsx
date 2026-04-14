@@ -22,13 +22,11 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.message) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
 
-    // Simulate form submission
     toast.success('Message envoyé avec succès !');
     setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
   };
@@ -36,9 +34,9 @@ export default function Contact() {
   return (
     <>
       <SEOHead 
-        title="Contacto"
-        description="Entre em contato com Genuíno Investments. Escritórios em Lisboa e Genebra. Tel: +41 78 487 60 00 | Email: info@genuinoinvestments.ch"
-        keywords="contacto genuino investments, email, telefone, escritórios"
+        title="Contact"
+        description="Contactez GenuinoInvestments Switzerland. Bureaux à Carouge/Genève et Lumiar/Lisboa. Tél Suisse: +41 76 487 60 00 | Tél Portugal: +351 21 7 580673"
+        keywords="contact genuino investments, email, téléphone, bureaux, suisse, portugal"
         url="/contact"
       />
       <div className="min-h-screen pt-20">
@@ -134,16 +132,47 @@ export default function Contact() {
             <div className="animate-fade-in">
               <h2 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">{t('contact.info')}</h2>
               <div className="space-y-4 sm:space-y-6 3xl:space-y-8">
+                {/* Switzerland Office */}
                 <Card>
-                  <CardContent className="p-4 sm:p-6 3xl:p-8 flex items-start gap-3 sm:gap-4 3xl:gap-6">
-                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold mb-1 text-base 3xl:text-lg 4xl:text-xl">Téléphone</h3>
-                      <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">+41 78 487 60 00</p>
+                  <CardContent className="p-4 sm:p-6 3xl:p-8">
+                    <h3 className="font-semibold mb-3 text-base 3xl:text-lg 4xl:text-xl flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Siège Suisse
+                    </h3>
+                    <div className="space-y-2 text-sm sm:text-base 3xl:text-lg text-muted-foreground ml-7">
+                      <p>Quai du Cheval Blanc, 2</p>
+                      <p>1227 Carouge/Genève - Suisse</p>
+                      <p className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-primary" />
+                        +41 76 487 60 00
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-primary" />
+                        info@genuinoinvestments.ch
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
 
+                {/* Portugal Office */}
+                <Card>
+                  <CardContent className="p-4 sm:p-6 3xl:p-8">
+                    <h3 className="font-semibold mb-3 text-base 3xl:text-lg 4xl:text-xl flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Escritório Portugal
+                    </h3>
+                    <div className="space-y-2 text-sm sm:text-base 3xl:text-lg text-muted-foreground ml-7">
+                      <p>Rua António Stromp 12 A</p>
+                      <p>1600-411 Lumiar, Lisboa - Portugal</p>
+                      <p className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-primary" />
+                        +351 21 7 580673
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Email */}
                 <Card>
                   <CardContent className="p-4 sm:p-6 3xl:p-8 flex items-start gap-3 sm:gap-4 3xl:gap-6">
                     <Mail className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10 text-primary flex-shrink-0 mt-1" />
@@ -153,31 +182,19 @@ export default function Contact() {
                     </div>
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardContent className="p-4 sm:p-6 3xl:p-8 flex items-start gap-3 sm:gap-4 3xl:gap-6">
-                    <MapPin className="h-5 w-5 sm:h-6 sm:w-6 3xl:h-8 3xl:w-8 4xl:h-10 4xl:w-10 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold mb-1 text-base 3xl:text-lg 4xl:text-xl">Adresse</h3>
-                      <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">
-                        Geneva, Switzerland
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
 
-              {/* Map */}
+              {/* Map - Carouge/Geneva */}
               <div className="mt-6 sm:mt-8 3xl:mt-10 rounded-lg overflow-hidden shadow-lg h-48 sm:h-56 lg:h-64 3xl:h-80 4xl:h-96">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d86903.47889722069!2d6.062660450000001!3d46.2043907!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c64ef6f596d61%3A0x5c56b5110fcb7b15!2sGeneva%2C%20Switzerland!5e0!3m2!1sen!2s!4v1234567890123!5m2!1sen!2s"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2762.4!2d6.1384!3d46.1834!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c7ad7a0b9e97d%3A0x7e8c8dc4e0e0c0b0!2sQuai%20du%20Cheval-Blanc%202%2C%201227%20Carouge%2C%20Switzerland!5e0!3m2!1sfr!2sch!4v1234567890123!5m2!1sfr!2sch"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Geneva Office Location"
+                  title="Siège Suisse - Carouge/Genève"
                 />
               </div>
             </div>
