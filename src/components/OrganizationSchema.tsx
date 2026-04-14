@@ -7,7 +7,10 @@ export const OrganizationSchema = () => {
     "name": "GenuinoInvestments Switzerland",
     "url": "https://genuinoinvestments.ch",
     "logo": "https://genuinoinvestments.ch/logo.png",
+    "image": "https://genuinoinvestments.ch/logo.png",
     "description": "Entreprise suisse spécialisée dans la promotion et le développement de projets immobiliers au Portugal. Innovation, fonctionnalité et design intemporel.",
+    "priceRange": "€€€",
+    "currenciesAccepted": "EUR, CHF",
     "telephone": "+41 76 487 60 00",
     "email": "info@genuinoinvestments.ch",
     "sameAs": [
