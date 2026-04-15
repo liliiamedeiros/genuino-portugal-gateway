@@ -10,12 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
+import { compressImage } from '@/utils/autoCompressUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, X, AlertCircle, Languages, Tag } from 'lucide-react';
 import { TagsInput } from '@/components/admin/TagsInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
-import type { WatermarkConfig } from '@/utils/watermarkUtils';
+// Watermark is dynamically imported when needed
 import { propertySchema } from '@/schemas/propertySchema';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -391,20 +392,39 @@ export default function PropertyForm() {
       let mainImageUrl = existingProject?.main_image || null;
 
       if (mainImage) {
-        const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
-          position: watermarkPosition,
-          opacity: 0.7,
-        } : undefined;
+        // Auto-compress and convert to WebP before upload
+        const compressed = await compressImage(mainImage, {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 'auto',
+          format: 'webp',
+        });
+        
+        let finalBlob = compressed.blob;
+        
+        // Apply watermark if enabled
+        if (watermarkEnabled) {
+          const { applyWatermark } = await import('@/utils/watermarkUtils');
+          try {
+            finalBlob = await applyWatermark(finalBlob, {
+              position: watermarkPosition,
+              opacity: 0.7,
+            });
+          } catch (e) {
+            console.error('Watermark failed, using compressed image:', e);
+          }
+        }
 
-        const webpBlob = await convertToWebP(mainImage, 1920, 1080, watermarkConfig);
         const uploadResult = await uploadImageToStorage(
-          webpBlob,
+          finalBlob,
           `properties/${projectId}/main-${Date.now()}.webp`,
           supabase
         );
 
         if (uploadResult.error) throw uploadResult.error;
         mainImageUrl = uploadResult.url;
+        
+        console.log(`[AutoCompress] Main image: ${compressed.originalSize} → ${compressed.newSize} bytes (${compressed.savings}% saved)`);
       }
 
       const jsonLd = generatePropertyJsonLd({
@@ -472,19 +492,38 @@ export default function PropertyForm() {
       // Upload gallery images
       if (galleryImages.length > 0) {
         for (let i = 0; i < galleryImages.length; i++) {
-          const watermarkConfig: Partial<WatermarkConfig> = watermarkEnabled ? {
-            position: watermarkPosition,
-            opacity: 0.7,
-          } : undefined;
+          // Auto-compress and convert to WebP
+          const compressed = await compressImage(galleryImages[i].file, {
+            maxWidth: 1920,
+            maxHeight: 1080,
+            quality: 'auto',
+            format: 'webp',
+          });
+          
+          let finalBlob = compressed.blob;
+          
+          // Apply watermark if enabled
+          if (watermarkEnabled) {
+            const { applyWatermark } = await import('@/utils/watermarkUtils');
+            try {
+              finalBlob = await applyWatermark(finalBlob, {
+                position: watermarkPosition,
+                opacity: 0.7,
+              });
+            } catch (e) {
+              console.error('Watermark failed for gallery image:', e);
+            }
+          }
 
-          const webpBlob = await convertToWebP(galleryImages[i].file, 1920, 1080, watermarkConfig);
           const uploadResult = await uploadImageToStorage(
-            webpBlob,
+            finalBlob,
             `properties/${projectId}/gallery-${Date.now()}-${i}.webp`,
             supabase
           );
 
           if (uploadResult.error) throw uploadResult.error;
+          
+          console.log(`[AutoCompress] Gallery ${i}: ${compressed.originalSize} → ${compressed.newSize} bytes (${compressed.savings}% saved)`);
 
           const { error: galleryError } = await supabase
             .from('project_images')
