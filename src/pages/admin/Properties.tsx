@@ -21,17 +21,19 @@ export default function Properties() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, error } = useQuery({
     queryKey: ['admin-projects'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select('id, title_pt, location, region, property_type, price, status, created_at')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
     },
+    staleTime: 30000,
+    retry: 2,
   });
 
   const deleteMutation = useMutation({
@@ -93,6 +95,12 @@ export default function Properties() {
         {isLoading ? (
           <div className="flex justify-center p-12 3xl:p-16">
             <div className="animate-spin rounded-full h-12 w-12 3xl:h-16 3xl:w-16 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center p-12 text-destructive">
+            <p className="font-medium">Erro ao carregar imóveis</p>
+            <p className="text-sm text-muted-foreground mt-1">{(error as Error).message}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Tentar novamente</Button>
           </div>
         ) : (
           <div className="rounded-md border overflow-x-auto">
