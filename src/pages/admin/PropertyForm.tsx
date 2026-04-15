@@ -16,7 +16,7 @@ import { Upload, X, AlertCircle, Languages, Tag } from 'lucide-react';
 import { TagsInput } from '@/components/admin/TagsInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
-import type { WatermarkConfig } from '@/utils/watermarkUtils';
+// Watermark is dynamically imported when needed
 import { propertySchema } from '@/schemas/propertySchema';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
