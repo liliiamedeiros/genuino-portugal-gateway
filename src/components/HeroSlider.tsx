@@ -117,6 +117,8 @@ export const HeroSlider = () => {
                 src={slide.image} 
                 alt={slide.caption[language]} 
                 className="w-full h-full object-cover"
+                width={1920}
+                height={1080}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchPriority={index === currentSlide ? 'high' : 'auto'}

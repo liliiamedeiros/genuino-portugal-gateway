@@ -16,7 +16,7 @@ import { TagsInput } from '@/components/admin/TagsInput';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Eye, Globe, HelpCircle, Building2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, Globe, HelpCircle, Building2, X, Download, RefreshCw } from 'lucide-react';
 
 // ── Types ──
 interface SemanticStrategy {
@@ -692,6 +692,50 @@ function EntitiesTab() {
   );
 }
 
+// ── Sitemap Generator ──
+function SitemapGenerator() {
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-sitemap');
+      if (error) throw error;
+      
+      // data is the XML string
+      const blob = new Blob([data], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Sitemap gerado e descarregado com sucesso!');
+    } catch (err: any) {
+      toast.error('Erro ao gerar sitemap: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="py-4 flex items-center justify-between">
+        <div>
+          <h4 className="font-medium">Sitemap XML Dinâmico</h4>
+          <p className="text-sm text-muted-foreground">Gera automaticamente o sitemap com todos os imóveis e páginas ativos</p>
+        </div>
+        <Button onClick={handleGenerate} disabled={generating} variant="outline">
+          {generating ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+          {generating ? 'A gerar...' : 'Gerar Sitemap'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Main Page ──
 export default function SeoGeoModule() {
   return (
@@ -701,6 +745,8 @@ export default function SeoGeoModule() {
           <h1 className="text-2xl font-bold">GEO – Otimização para IA Generativa</h1>
           <p className="text-muted-foreground">Estratégias semânticas, FAQs estruturadas e entidades para motores de IA</p>
         </div>
+
+        <SitemapGenerator />
 
         <Tabs defaultValue="strategies" className="space-y-4">
           <TabsList>
