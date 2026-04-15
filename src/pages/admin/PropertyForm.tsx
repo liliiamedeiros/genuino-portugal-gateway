@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertToWebP, uploadImageToStorage } from '@/utils/imageUtils';
+import { compressImage } from '@/utils/autoCompressUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, X, AlertCircle, Languages, Tag } from 'lucide-react';
 import { TagsInput } from '@/components/admin/TagsInput';
