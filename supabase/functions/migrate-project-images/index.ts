@@ -10,12 +10,83 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Allowlist of trusted domains for image migration source
+const ALLOWED_HOSTS = new Set<string>([
+  'eyvfrocuuhxleroghybv.supabase.co',
+  'images.unsplash.com',
+  'unsplash.com',
+  'res.cloudinary.com',
+  'lovable.dev',
+  'lovable.app',
+  'lovableproject.com',
+]);
+
+function isAllowedUrl(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== 'https:') return false;
+    const host = u.hostname.toLowerCase();
+    if (ALLOWED_HOSTS.has(host)) return true;
+    // Allow subdomains of explicitly listed roots
+    for (const allowed of ALLOWED_HOSTS) {
+      if (host.endsWith('.' + allowed)) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function isSafePath(path: string): boolean {
+  if (typeof path !== 'string' || path.length === 0 || path.length > 512) return false;
+  if (path.startsWith('/') || path.includes('..') || path.includes('\\')) return false;
+  // Only allow safe characters: alphanumerics, dash, underscore, dot, slash
+  return /^[A-Za-z0-9_\-./]+$/.test(path);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify caller has admin/super_admin/editor role
+    const { data: roleRows } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
+    const allowed = roles.some((r) => r === 'admin' || r === 'super_admin' || r === 'editor');
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { imageUrl, path } = await req.json();
 
     if (!imageUrl || !path) {
@@ -25,22 +96,40 @@ serve(async (req) => {
       });
     }
 
+    if (!isAllowedUrl(imageUrl)) {
+      return new Response(JSON.stringify({ error: 'imageUrl host is not allowed' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!isSafePath(path)) {
+      return new Response(JSON.stringify({ error: 'Invalid storage path' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Downloading image from:', imageUrl);
 
-    // Download image from URL
-    const imageResponse = await fetch(imageUrl);
+    const imageResponse = await fetch(imageUrl, { redirect: 'error' });
     if (!imageResponse.ok) {
       throw new Error(`Failed to download image: ${imageResponse.status}`);
+    }
+
+    const contentType = imageResponse.headers.get('content-type') || '';
+    if (!contentType.startsWith('image/')) {
+      return new Response(JSON.stringify({ error: 'URL did not return an image' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const imageBlob = await imageResponse.blob();
     const arrayBuffer = await imageBlob.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Upload to Supabase Storage using service role
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    const { data, error } = await supabase.storage
+    const { error } = await supabaseAdmin.storage
       .from('project-images')
       .upload(path, uint8Array, {
         contentType: imageBlob.type || 'image/jpeg',
@@ -52,8 +141,7 @@ serve(async (req) => {
       throw error;
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseAdmin.storage
       .from('project-images')
       .getPublicUrl(path);
 
@@ -64,7 +152,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Migration error:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: error instanceof Error ? error.message : 'Migration failed',
     }), {
       status: 500,
