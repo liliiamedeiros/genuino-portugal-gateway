@@ -13,6 +13,32 @@ interface ConversionRequest {
   quality?: number;
 }
 
+// SSRF protection: allowlist of trusted image hosts
+const ALLOWED_HOSTS = new Set<string>([
+  'eyvfrocuuhxleroghybv.supabase.co',
+  'images.unsplash.com',
+  'unsplash.com',
+  'res.cloudinary.com',
+  'lovable.dev',
+  'lovable.app',
+  'lovableproject.com',
+]);
+
+function isAllowedUrl(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== 'https:') return false;
+    const host = u.hostname.toLowerCase();
+    if (ALLOWED_HOSTS.has(host)) return true;
+    for (const allowed of ALLOWED_HOSTS) {
+      if (host.endsWith('.' + allowed)) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -29,6 +55,13 @@ serve(async (req) => {
     if (!imageUrl || !sourceTable || !sourceId) {
       return new Response(
         JSON.stringify({ error: 'Missing required parameters: imageUrl, sourceTable, sourceId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isAllowedUrl(imageUrl)) {
+      return new Response(
+        JSON.stringify({ error: 'imageUrl host is not allowed' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
