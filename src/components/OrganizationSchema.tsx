@@ -21,19 +21,19 @@ export const OrganizationSchema = () => {
     "address": [
       {
         "@type": "PostalAddress",
-        "streetAddress": "Quai du Cheval Blanc, 2",
-        "addressLocality": "Carouge/Genève",
+        "streetAddress": "Quai du Cheval Blanc 2",
+        "addressLocality": "Carouge",
         "postalCode": "1227",
         "addressRegion": "Genève",
         "addressCountry": "CH",
-        "name": "Siège Suisse"
+        "name": "Siège Suisse - Carouge/Genève"
       },
       {
         "@type": "PostalAddress",
         "streetAddress": "Rua António Stromp 12 A",
-        "addressLocality": "Lisboa",
+        "addressLocality": "Lumiar, Lisboa",
         "postalCode": "1600-411",
-        "addressRegion": "Lumiar",
+        "addressRegion": "Lisboa",
         "addressCountry": "PT",
         "name": "Escritório Lisboa"
       }
