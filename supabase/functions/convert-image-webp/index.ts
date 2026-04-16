@@ -59,6 +59,13 @@ serve(async (req) => {
       );
     }
 
+    if (!isAllowedUrl(imageUrl)) {
+      return new Response(
+        JSON.stringify({ error: 'imageUrl host is not allowed' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`Converting image: ${imageUrl} for ${sourceTable}/${sourceId}`);
 
     // Check if already WEBP
