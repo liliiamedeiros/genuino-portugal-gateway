@@ -351,6 +351,7 @@ const App = () => {
                     </Routes>
                   </Suspense>
                 </CarModeWrapper>
+                <ResponsiveDebugPanel />
               </TooltipProvider>
             </AuthProvider>
           </LanguageProvider>
