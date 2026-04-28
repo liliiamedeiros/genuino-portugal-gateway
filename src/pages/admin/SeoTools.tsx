@@ -932,6 +932,85 @@ export default function SeoTools() {
           <p className="text-muted-foreground">Bot view, sitemap/robots/hreflang tester, JSON-LD validator, link audit.</p>
         </div>
 
+        {/* === SUMMARY: instant SEO visibility re-check + coverage score === */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gauge className="w-5 h-5" /> Summary
+            </CardTitle>
+            <CardDescription>
+              Instantly re-check robots.txt, sitemaps, canonical, hreflang and x-default.
+              Coverage score updates after running the Canonical &amp; hreflang report.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button onClick={runVisibilityTest} disabled={visibilityLoading}>
+                {visibilityLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
+                Run SEO visibility test
+              </Button>
+              {visibilityRan && (
+                <>
+                  <Badge className="bg-green-600">{visibilityChecks.filter(c => c.level === "ok").length} pass</Badge>
+                  <Badge variant="secondary">{visibilityChecks.filter(c => c.level === "warn").length} warn</Badge>
+                  <Badge variant="destructive">{visibilityChecks.filter(c => c.level === "error").length} fail</Badge>
+                </>
+              )}
+            </div>
+
+            {coverage ? (
+              <div className="border rounded p-4 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Hreflang coverage score</div>
+                    <div className="text-3xl font-bold">
+                      {coverage.score}<span className="text-base font-normal text-muted-foreground">/100</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {coverage.totals.complete} of {coverage.totals.total} (route × language) combinations are complete
+                    </div>
+                  </div>
+                  <Badge
+                    className={coverage.score === 100 ? "bg-green-600" : coverage.score >= 80 ? "bg-yellow-600" : "bg-destructive"}
+                  >
+                    {coverage.score === 100 ? "Complete" : coverage.score >= 80 ? "Needs attention" : "Critical gaps"}
+                  </Badge>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {(LANGS).map(l => {
+                    const v = coverage.perLang[l];
+                    const pct = v.total === 0 ? 0 : Math.round((v.complete / v.total) * 100);
+                    return (
+                      <div key={l} className="border rounded p-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono uppercase font-bold">{l}</span>
+                          <Badge variant={pct === 100 ? "default" : "destructive"} className={pct === 100 ? "bg-green-600" : ""}>
+                            {pct}%
+                          </Badge>
+                        </div>
+                        <div className="text-muted-foreground mt-1">{v.complete}/{v.total} routes complete</div>
+                        {v.missing.length > 0 && (
+                          <details className="mt-1">
+                            <summary className="cursor-pointer text-destructive">{v.missing.length} missing</summary>
+                            <ul className="mt-1 ml-4 list-disc text-[10px]">
+                              {v.missing.slice(0, 6).map((m, i) => <li key={i}>{m}</li>)}
+                              {v.missing.length > 6 && <li>…and {v.missing.length - 6} more</li>}
+                            </ul>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Run the Canonical &amp; hreflang report (tab below) to compute the hreflang coverage score.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="bot">
           <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="bot"><Bot className="w-4 h-4 mr-2" />Bot View / URLs</TabsTrigger>
