@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, LogIn } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.png';
 import logoWhite from '@/assets/logo-white.png';
+import { FALLBACK_MAIN_MENU, resolveLabel } from '@/data/navigationFallback';
 
 export const Navbar = () => {
   const { language } = useLanguage();
@@ -41,18 +42,37 @@ export const Navbar = () => {
   const { data: navLinks } = useQuery({
     queryKey: ['navigation-menus', 'main', language],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('navigation_menus')
         .select('*')
         .eq('menu_type', 'main')
         .eq('is_active', true)
         .order('order_index');
-      
-      return data?.map(item => ({
+
+      // Fallback: query failed (RLS/401/network) OR returned empty.
+      // Keep the public site usable with the static cached menu.
+      if (error || !data || data.length === 0) {
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.warn('[Navbar] navigation_menus query failed, using fallback dataset:', error.message);
+        }
+        return FALLBACK_MAIN_MENU.map(item => ({
+          to: item.path,
+          label: resolveLabel(item, language),
+        }));
+      }
+
+      return data.map(item => ({
         to: item.path,
         label: (item.label as Record<string, string>)?.[language] || (item.label as Record<string, string>)?.['pt'] || ''
-      })) || [];
-    }
+      }));
+    },
+    // Use fallback as initial data so links appear immediately on first paint
+    initialData: FALLBACK_MAIN_MENU.map(item => ({
+      to: item.path,
+      label: resolveLabel(item, language),
+    })),
+    staleTime: 60_000,
   });
 
   const isActive = (path: string) => location.pathname === path;

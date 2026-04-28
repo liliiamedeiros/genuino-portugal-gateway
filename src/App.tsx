@@ -15,6 +15,7 @@ import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ChatWidget } from "@/components/ChatWidget";
 import { CarModeWrapper } from "@/components/CarModeWrapper";
+import { ResponsiveDebugPanel } from "@/components/ResponsiveDebugPanel";
 import { installSeoAuditWatcher } from "@/utils/seoAudit";
 import Home from "./pages/Home";
 
@@ -350,6 +351,7 @@ const App = () => {
                     </Routes>
                   </Suspense>
                 </CarModeWrapper>
+                <ResponsiveDebugPanel />
               </TooltipProvider>
             </AuthProvider>
           </LanguageProvider>
