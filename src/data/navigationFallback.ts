@@ -31,5 +31,6 @@ export const FALLBACK_MAIN_MENU: FallbackMenuItem[] = [
 
 /** Resolve an item to a single language with PT fallback. */
 export function resolveLabel(item: FallbackMenuItem, language: string): string {
-  return (item.label as Record<string, string>)[language] || item.label.pt;
+  const labels = item.label as unknown as Record<string, string>;
+  return labels[language] || item.label.pt;
 }
