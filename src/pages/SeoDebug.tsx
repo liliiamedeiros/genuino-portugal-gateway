@@ -3,8 +3,9 @@ import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CheckCircle2, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, ExternalLink, Copy, Check } from "lucide-react";
 import { ROUTE_META, BASE_URL, LANGS } from "@/data/seoMeta";
 
 interface DetectedTag {
@@ -29,6 +30,7 @@ export default function SeoDebug() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [refreshTick, setRefreshTick] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   // Re-read document.head on route change, language change and explicit refresh.
   useEffect(() => {
@@ -64,6 +66,36 @@ export default function SeoDebug() {
     !xDefault.href.endsWith(expectedRoute) &&
     !xDefault.href.endsWith(`${expectedRoute}?lang=pt`);
 
+  const buildSnapshot = () => ({
+    capturedAt: new Date().toISOString(),
+    environment: typeof window !== "undefined" ? window.location.origin : "",
+    route: pathname,
+    search,
+    activeLanguage: language,
+    expectedCanonical: expectedCanonicalBase,
+    detectedCanonical: canonical,
+    title,
+    description,
+    hreflangs: hreflangs.map(h => ({ hreflang: h.hreflang, href: h.href })),
+    xDefault: xDefault ? xDefault.href : null,
+    ptFallback: ptHref || null,
+    issues: {
+      missingLangs,
+      xDefaultMismatch: !!xDefaultMismatch,
+      missingXDefault: !xDefault,
+    },
+  });
+
+  const copySnapshot = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(buildSnapshot(), null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error("Copy failed", e);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -72,12 +104,18 @@ export default function SeoDebug() {
       </Helmet>
       <div className="min-h-screen bg-background pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Hreflang &amp; Canonical Debug</h1>
-            <p className="text-muted-foreground text-sm">
-              Live view of the SEO tags rendered into <code>&lt;head&gt;</code> for the current page and language.
-              This page is set to <code>noindex</code>.
-            </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-3xl font-bold">Hreflang &amp; Canonical Debug</h1>
+              <p className="text-muted-foreground text-sm">
+                Live view of the SEO tags rendered into <code>&lt;head&gt;</code> for the current page and language.
+                This page is set to <code>noindex</code>.
+              </p>
+            </div>
+            <Button onClick={copySnapshot} variant="outline" size="sm">
+              {copied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Copy className="w-4 h-4 mr-2" />}
+              {copied ? "Copied!" : "Copy JSON snapshot"}
+            </Button>
           </div>
 
           <Card>

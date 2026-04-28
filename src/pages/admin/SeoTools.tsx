@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity, Share2, Copy, Check, GitCompare, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
@@ -765,6 +765,165 @@ export default function SeoTools() {
     setVisibilityLoading(false);
   };
 
+  // === HREFLANG COVERAGE SCORE (derived from canonicalRows) ===
+  // Computes per-language completeness for every route audited by the
+  // Canonical & hreflang report. A language is "complete" on a route when:
+  //   - the page is reachable
+  //   - the page declares hreflang for ALL 4 languages
+  //   - x-default is present and resolves to the PT fallback
+  //   - canonical is present on the BASE_URL host
+  const coverage = (() => {
+    if (canonicalRows.length === 0) return null;
+    const perLang: Record<Lang, { total: number; complete: number; missing: string[] }> = {
+      pt: { total: 0, complete: 0, missing: [] },
+      en: { total: 0, complete: 0, missing: [] },
+      fr: { total: 0, complete: 0, missing: [] },
+      de: { total: 0, complete: 0, missing: [] },
+    };
+    for (const r of canonicalRows) {
+      const slot = perLang[r.lang];
+      slot.total++;
+      const ok = r.status === "ok" && r.missing.length === 0 && !r.xDefaultIssue && !!r.canonical;
+      if (ok) slot.complete++;
+      else {
+        const reasons: string[] = [];
+        if (!r.canonical) reasons.push("no canonical");
+        if (r.missing.length > 0) reasons.push(`missing ${r.missing.join("/")}`);
+        if (r.xDefaultIssue) reasons.push("x-default issue");
+        slot.missing.push(`${r.route} (${reasons.join(", ") || "issues"})`);
+      }
+    }
+    const totals = Object.values(perLang).reduce(
+      (acc, v) => ({ total: acc.total + v.total, complete: acc.complete + v.complete }),
+      { total: 0, complete: 0 },
+    );
+    const score = totals.total === 0 ? 0 : Math.round((totals.complete / totals.total) * 100);
+    return { perLang, score, totals };
+  })();
+
+  // === SITEMAP DIFF (compares latest sitemap-index.xml against previous saved one) ===
+  const SITEMAP_DIFF_KEY = "seo-tools.sitemap-snapshot";
+  type SitemapDiff = {
+    previousAt?: string;
+    currentAt: string;
+    added: string[];
+    removed: string[];
+    unchangedCount: number;
+  };
+  const [sitemapDiff, setSitemapDiff] = useState<SitemapDiff | null>(null);
+  const [sitemapDiffLoading, setSitemapDiffLoading] = useState(false);
+
+  const extractLocs = (xml: string): string[] => {
+    const matches = xml.match(/<loc>([^<]+)<\/loc>/g) || [];
+    return matches.map(m => m.replace(/<\/?loc>/g, "").trim());
+  };
+
+  const runSitemapDiff = async () => {
+    setSitemapDiffLoading(true);
+    try {
+      // Aggregate every per-language sitemap so the diff covers the full URL set.
+      const sitemaps = ["/sitemap-pt.xml", "/sitemap-en.xml", "/sitemap-fr.xml", "/sitemap-de.xml"];
+      const allLocs: string[] = [];
+      for (const sm of sitemaps) {
+        try {
+          const r = await fetch(`${ORIGIN}${sm}`, { cache: "no-store" });
+          if (r.status === 200) allLocs.push(...extractLocs(await r.text()));
+        } catch {/* ignore */}
+      }
+      const current = Array.from(new Set(allLocs)).sort();
+      const raw = localStorage.getItem(SITEMAP_DIFF_KEY);
+      const previous: { capturedAt: string; locs: string[] } | null = raw ? JSON.parse(raw) : null;
+      const prevSet = new Set(previous?.locs || []);
+      const currSet = new Set(current);
+      const added = current.filter(u => !prevSet.has(u));
+      const removed = (previous?.locs || []).filter(u => !currSet.has(u));
+      const unchangedCount = current.filter(u => prevSet.has(u)).length;
+      setSitemapDiff({
+        previousAt: previous?.capturedAt,
+        currentAt: new Date().toISOString(),
+        added,
+        removed,
+        unchangedCount,
+      });
+      // Persist current as new baseline for next comparison.
+      localStorage.setItem(SITEMAP_DIFF_KEY, JSON.stringify({ capturedAt: new Date().toISOString(), locs: current }));
+    } finally {
+      setSitemapDiffLoading(false);
+    }
+  };
+
+  const resetSitemapBaseline = () => {
+    localStorage.removeItem(SITEMAP_DIFF_KEY);
+    setSitemapDiff(null);
+  };
+
+  // === SHAREABLE PERMALINK FOR CANONICAL & HREFLANG REPORT ===
+  // Encodes the latest report into the URL hash (#canonical=...) so the user
+  // can copy/paste a link with timestamp + environment + per-row results.
+  const [permalinkCopied, setPermalinkCopied] = useState(false);
+  const [canonicalReportMeta, setCanonicalReportMeta] = useState<{ ranAt: string; env: string } | null>(null);
+
+  // Wrap runCanonicalReport to also stamp metadata for permalinks.
+  const runCanonicalReportWithMeta = async () => {
+    setCanonicalReportMeta(null);
+    await runCanonicalReport();
+    setCanonicalReportMeta({ ranAt: new Date().toISOString(), env: ORIGIN });
+  };
+
+  const buildPermalink = () => {
+    const payload = {
+      v: 1,
+      ranAt: canonicalReportMeta?.ranAt || new Date().toISOString(),
+      env: canonicalReportMeta?.env || ORIGIN,
+      rows: canonicalRows.map(r => ({
+        route: r.route, lang: r.lang, status: r.status,
+        canonical: r.canonical, missing: r.missing, duplicates: r.duplicates,
+        xDefaultIssue: r.xDefaultIssue, notes: r.notes,
+      })),
+    };
+    // Base64 (URL-safe) so the hash stays compact and shareable.
+    const json = JSON.stringify(payload);
+    const b64 = btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    return `${window.location.origin}${window.location.pathname}#canonical=${b64}`;
+  };
+
+  const copyPermalink = async () => {
+    try {
+      await navigator.clipboard.writeText(buildPermalink());
+      setPermalinkCopied(true);
+      setTimeout(() => setPermalinkCopied(false), 2000);
+    } catch (e) {
+      console.error("Permalink copy failed", e);
+    }
+  };
+
+  // Restore a shared report from the URL hash on first mount.
+  useEffect(() => {
+    const hash = window.location.hash;
+    const m = hash.match(/canonical=([^&]+)/);
+    if (!m) return;
+    try {
+      const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+      const json = decodeURIComponent(escape(atob(padded)));
+      const payload = JSON.parse(json);
+      if (Array.isArray(payload.rows)) {
+        setCanonicalRows(payload.rows.map((r: any) => ({
+          route: r.route, lang: r.lang, status: r.status,
+          canonical: r.canonical, expectedCanonical: `${BASE_URL}${r.route}`,
+          hreflangs: [], missing: r.missing || [], duplicates: r.duplicates || [],
+          notes: r.notes || [], xDefaultIssue: r.xDefaultIssue, xDefaultHref: undefined,
+        })));
+        setCanonicalScanned(payload.rows.length);
+        setCanonicalReportMeta({ ranAt: payload.ranAt, env: payload.env });
+      }
+    } catch (e) {
+      console.warn("Failed to restore shared report", e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -772,6 +931,85 @@ export default function SeoTools() {
           <h1 className="text-3xl font-bold">SEO Tools</h1>
           <p className="text-muted-foreground">Bot view, sitemap/robots/hreflang tester, JSON-LD validator, link audit.</p>
         </div>
+
+        {/* === SUMMARY: instant SEO visibility re-check + coverage score === */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gauge className="w-5 h-5" /> Summary
+            </CardTitle>
+            <CardDescription>
+              Instantly re-check robots.txt, sitemaps, canonical, hreflang and x-default.
+              Coverage score updates after running the Canonical &amp; hreflang report.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button onClick={runVisibilityTest} disabled={visibilityLoading}>
+                {visibilityLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
+                Run SEO visibility test
+              </Button>
+              {visibilityRan && (
+                <>
+                  <Badge className="bg-green-600">{visibilityChecks.filter(c => c.level === "ok").length} pass</Badge>
+                  <Badge variant="secondary">{visibilityChecks.filter(c => c.level === "warn").length} warn</Badge>
+                  <Badge variant="destructive">{visibilityChecks.filter(c => c.level === "error").length} fail</Badge>
+                </>
+              )}
+            </div>
+
+            {coverage ? (
+              <div className="border rounded p-4 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Hreflang coverage score</div>
+                    <div className="text-3xl font-bold">
+                      {coverage.score}<span className="text-base font-normal text-muted-foreground">/100</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {coverage.totals.complete} of {coverage.totals.total} (route × language) combinations are complete
+                    </div>
+                  </div>
+                  <Badge
+                    className={coverage.score === 100 ? "bg-green-600" : coverage.score >= 80 ? "bg-yellow-600" : "bg-destructive"}
+                  >
+                    {coverage.score === 100 ? "Complete" : coverage.score >= 80 ? "Needs attention" : "Critical gaps"}
+                  </Badge>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {(LANGS).map(l => {
+                    const v = coverage.perLang[l];
+                    const pct = v.total === 0 ? 0 : Math.round((v.complete / v.total) * 100);
+                    return (
+                      <div key={l} className="border rounded p-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono uppercase font-bold">{l}</span>
+                          <Badge variant={pct === 100 ? "default" : "destructive"} className={pct === 100 ? "bg-green-600" : ""}>
+                            {pct}%
+                          </Badge>
+                        </div>
+                        <div className="text-muted-foreground mt-1">{v.complete}/{v.total} routes complete</div>
+                        {v.missing.length > 0 && (
+                          <details className="mt-1">
+                            <summary className="cursor-pointer text-destructive">{v.missing.length} missing</summary>
+                            <ul className="mt-1 ml-4 list-disc text-[10px]">
+                              {v.missing.slice(0, 6).map((m, i) => <li key={i}>{m}</li>)}
+                              {v.missing.length > 6 && <li>…and {v.missing.length - 6} more</li>}
+                            </ul>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Run the Canonical &amp; hreflang report (tab below) to compute the hreflang coverage score.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="bot">
           <TabsList className="grid w-full grid-cols-7">
@@ -922,6 +1160,74 @@ export default function SeoTools() {
                     {sitemapContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto mt-2">{sitemapContent}</pre>}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* === SITEMAP DIFF === */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GitCompare className="w-5 h-5" /> Sitemap diff
+                </CardTitle>
+                <CardDescription>
+                  Downloads every per-language sitemap, deduplicates the URL set, and compares it
+                  against the previous snapshot stored in this browser. Highlights added and removed URLs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2 flex-wrap">
+                  <Button onClick={runSitemapDiff} disabled={sitemapDiffLoading}>
+                    {sitemapDiffLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <GitCompare className="w-4 h-4 mr-2" />}
+                    Run sitemap diff
+                  </Button>
+                  <Button variant="outline" onClick={resetSitemapBaseline}>Reset baseline</Button>
+                </div>
+                {sitemapDiff && (
+                  <div className="space-y-3 text-sm">
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      <Badge variant="outline">Previous: {sitemapDiff.previousAt ? new Date(sitemapDiff.previousAt).toLocaleString() : "(no baseline)"}</Badge>
+                      <Badge variant="outline">Current: {new Date(sitemapDiff.currentAt).toLocaleString()}</Badge>
+                      <Badge className="bg-green-600">+{sitemapDiff.added.length} added</Badge>
+                      <Badge variant="destructive">-{sitemapDiff.removed.length} removed</Badge>
+                      <Badge variant="secondary">{sitemapDiff.unchangedCount} unchanged</Badge>
+                    </div>
+                    {sitemapDiff.added.length === 0 && sitemapDiff.removed.length === 0 && (
+                      <p className="text-green-600 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> No changes since last snapshot.
+                      </p>
+                    )}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <div className="font-semibold text-green-600 mb-1">Added URLs</div>
+                        <div className="border rounded max-h-60 overflow-auto bg-muted/40">
+                          {sitemapDiff.added.length === 0 ? (
+                            <div className="p-2 text-xs text-muted-foreground">None</div>
+                          ) : (
+                            <ul className="text-xs">
+                              {sitemapDiff.added.map((u, i) => (
+                                <li key={i} className="p-1.5 border-b font-mono break-all">{u}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-destructive mb-1">Removed URLs</div>
+                        <div className="border rounded max-h-60 overflow-auto bg-muted/40">
+                          {sitemapDiff.removed.length === 0 ? (
+                            <div className="p-2 text-xs text-muted-foreground">None</div>
+                          ) : (
+                            <ul className="text-xs">
+                              {sitemapDiff.removed.map((u, i) => (
+                                <li key={i} className="p-1.5 border-b font-mono break-all">{u}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1170,10 +1476,23 @@ export default function SeoTools() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button onClick={runCanonicalReport} disabled={canonicalLoading}>
-                  {canonicalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Run canonical & hreflang report
-                </Button>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Button onClick={runCanonicalReportWithMeta} disabled={canonicalLoading}>
+                    {canonicalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Run canonical & hreflang report
+                  </Button>
+                  {canonicalRows.length > 0 && (
+                    <Button variant="outline" onClick={copyPermalink}>
+                      {permalinkCopied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Share2 className="w-4 h-4 mr-2" />}
+                      {permalinkCopied ? "Permalink copied!" : "Copy shareable permalink"}
+                    </Button>
+                  )}
+                  {canonicalReportMeta && (
+                    <span className="text-xs text-muted-foreground">
+                      Ran {new Date(canonicalReportMeta.ranAt).toLocaleString()} · env <code>{canonicalReportMeta.env}</code>
+                    </span>
+                  )}
+                </div>
                 {canonicalScanned > 0 && (
                   <div className="flex gap-3 text-sm flex-wrap">
                     <Badge variant="outline">{canonicalScanned} URLs scanned</Badge>
