@@ -1610,12 +1610,46 @@ export default function SeoTools() {
                       {permalinkCopied ? "Permalink copied!" : "Copy shareable permalink"}
                     </Button>
                   )}
+                  {canonicalRows.length > 0 && (
+                    <Button variant="outline" onClick={saveCanonicalReportToDb}>
+                      <Database className="w-4 h-4 mr-2" /> Save to shared snapshots
+                    </Button>
+                  )}
                   {canonicalReportMeta && (
                     <span className="text-xs text-muted-foreground">
                       Ran {new Date(canonicalReportMeta.ranAt).toLocaleString()} · env <code>{canonicalReportMeta.env}</code>
                     </span>
                   )}
                 </div>
+                {canonicalRows.length > 0 && (
+                  <div className="flex flex-wrap gap-2 items-center border rounded p-2 bg-muted/30">
+                    <Filter className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      value={filterPath}
+                      onChange={(e) => setFilterPath(e.target.value)}
+                      placeholder="Filter by path (e.g. /portfolio)"
+                      className="max-w-xs h-8 text-xs"
+                    />
+                    <Select value={filterLang} onValueChange={(v) => setFilterLang(v as any)}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All languages</SelectItem>
+                        {LANGS.map((l) => <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filterIssuesOnly}
+                        onChange={(e) => setFilterIssuesOnly(e.target.checked)}
+                      />
+                      Show only rows with issues
+                    </label>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      Showing {filteredCanonicalRows.length} of {canonicalRows.length}
+                    </span>
+                  </div>
+                )}
                 {canonicalScanned > 0 && (
                   <div className="flex gap-3 text-sm flex-wrap">
                     <Badge variant="outline">{canonicalScanned} URLs scanned</Badge>
