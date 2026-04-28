@@ -61,6 +61,7 @@ const SeoChecklist = lazy(() => import("./pages/admin/SeoChecklist"));
 const SeoConfig = lazy(() => import("./pages/admin/SeoConfig"));
 const SeoHistory = lazy(() => import("./pages/admin/SeoHistory"));
 const SeoGeoModule = lazy(() => import("./pages/admin/SeoGeoModule"));
+const SeoTools = lazy(() => import("./pages/admin/SeoTools"));
 
 // Loading fallback shown while route chunks are fetched
 const RouteLoader = () => (
@@ -319,6 +320,11 @@ const App = () => {
             <Route path="/admin/seo/geo" element={
               <ProtectedRoute requiredRole="admin">
                 <SeoGeoModule />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/tools" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoTools />
               </ProtectedRoute>
             } />
 
