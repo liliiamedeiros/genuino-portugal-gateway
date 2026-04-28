@@ -11,7 +11,7 @@ export const OrganizationSchema = () => {
     "description": "Entreprise suisse spécialisée dans la promotion et le développement de projets immobiliers au Portugal. Innovation, fonctionnalité et design intemporel.",
     "priceRange": "€€€",
     "currenciesAccepted": "EUR, CHF",
-    "telephone": "+41 76 487 60 00",
+    "telephone": "+41764876000",
     "email": "info@genuinoinvestments.ch",
     "sameAs": [
       "https://www.linkedin.com/company/genuinoinvestments",
@@ -31,11 +31,11 @@ export const OrganizationSchema = () => {
       {
         "@type": "PostalAddress",
         "streetAddress": "Rua António Stromp 12 A",
-        "addressLocality": "Lumiar, Lisboa",
+        "addressLocality": "Lisboa",
         "postalCode": "1600-411",
         "addressRegion": "Lisboa",
         "addressCountry": "PT",
-        "name": "Escritório Lisboa"
+        "name": "Escritório Lisboa - Lumiar"
       }
     ],
     "areaServed": [
@@ -51,14 +51,14 @@ export const OrganizationSchema = () => {
     "contactPoint": [
       {
         "@type": "ContactPoint",
-        "telephone": "+41 76 487 60 00",
+        "telephone": "+41764876000",
         "contactType": "customer service",
         "areaServed": "CH",
         "availableLanguage": ["French", "English", "Portuguese", "German"]
       },
       {
         "@type": "ContactPoint",
-        "telephone": "+351 21 7 580673",
+        "telephone": "+351217580673",
         "contactType": "customer service",
         "areaServed": "PT",
         "availableLanguage": ["Portuguese", "English", "French"]
