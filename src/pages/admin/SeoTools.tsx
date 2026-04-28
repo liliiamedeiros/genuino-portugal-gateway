@@ -948,7 +948,7 @@ export default function SeoTools() {
       if (!data?.ok) throw new Error(data?.error || "screenshot failed");
       setRouteShots((s) => ({ ...s, [key]: { loading: false, b64: data.base64, kind: data.kind } }));
       // Also persist to seo_snapshots for cross-browser sharing.
-      await supabase.from("seo_snapshots").insert({
+      await (supabase.from("seo_snapshots") as any).insert({
         snapshot_type: "route_screenshot",
         label: `${route} (${lang})`,
         environment: BASE_URL,
@@ -973,7 +973,7 @@ export default function SeoTools() {
 
   const loadSnapshots = async () => {
     setSnapshotsLoading(true);
-    let q = supabase.from("seo_snapshots").select("*").order("created_at", { ascending: false }).limit(100);
+    let q: any = (supabase.from("seo_snapshots") as any).select("*").order("created_at", { ascending: false }).limit(100);
     if (snapshotTypeFilter !== "all") q = q.eq("snapshot_type", snapshotTypeFilter);
     const { data } = await q;
     setSnapshots((data as any) || []);
@@ -982,7 +982,7 @@ export default function SeoTools() {
   useEffect(() => { loadSnapshots(); /* eslint-disable-next-line */ }, [snapshotTypeFilter]);
 
   const saveCanonicalReportToDb = async () => {
-    await supabase.from("seo_snapshots").insert({
+    await (supabase.from("seo_snapshots") as any).insert({
       snapshot_type: "canonical_report",
       label: `Canonical report ${new Date().toLocaleString()}`,
       environment: ORIGIN,
@@ -1003,7 +1003,7 @@ export default function SeoTools() {
   };
 
   const deleteSnapshot = async (id: string) => {
-    await supabase.from("seo_snapshots").delete().eq("id", id);
+    await (supabase.from("seo_snapshots") as any).delete().eq("id", id);
     await loadSnapshots();
   };
 
