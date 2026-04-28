@@ -72,6 +72,9 @@ const RouteLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
+  useEffect(() => {
+    installSeoAuditWatcher();
+  }, []);
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
