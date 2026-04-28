@@ -1162,6 +1162,74 @@ export default function SeoTools() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* === SITEMAP DIFF === */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GitCompare className="w-5 h-5" /> Sitemap diff
+                </CardTitle>
+                <CardDescription>
+                  Downloads every per-language sitemap, deduplicates the URL set, and compares it
+                  against the previous snapshot stored in this browser. Highlights added and removed URLs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2 flex-wrap">
+                  <Button onClick={runSitemapDiff} disabled={sitemapDiffLoading}>
+                    {sitemapDiffLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <GitCompare className="w-4 h-4 mr-2" />}
+                    Run sitemap diff
+                  </Button>
+                  <Button variant="outline" onClick={resetSitemapBaseline}>Reset baseline</Button>
+                </div>
+                {sitemapDiff && (
+                  <div className="space-y-3 text-sm">
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      <Badge variant="outline">Previous: {sitemapDiff.previousAt ? new Date(sitemapDiff.previousAt).toLocaleString() : "(no baseline)"}</Badge>
+                      <Badge variant="outline">Current: {new Date(sitemapDiff.currentAt).toLocaleString()}</Badge>
+                      <Badge className="bg-green-600">+{sitemapDiff.added.length} added</Badge>
+                      <Badge variant="destructive">-{sitemapDiff.removed.length} removed</Badge>
+                      <Badge variant="secondary">{sitemapDiff.unchangedCount} unchanged</Badge>
+                    </div>
+                    {sitemapDiff.added.length === 0 && sitemapDiff.removed.length === 0 && (
+                      <p className="text-green-600 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> No changes since last snapshot.
+                      </p>
+                    )}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <div className="font-semibold text-green-600 mb-1">Added URLs</div>
+                        <div className="border rounded max-h-60 overflow-auto bg-muted/40">
+                          {sitemapDiff.added.length === 0 ? (
+                            <div className="p-2 text-xs text-muted-foreground">None</div>
+                          ) : (
+                            <ul className="text-xs">
+                              {sitemapDiff.added.map((u, i) => (
+                                <li key={i} className="p-1.5 border-b font-mono break-all">{u}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-destructive mb-1">Removed URLs</div>
+                        <div className="border rounded max-h-60 overflow-auto bg-muted/40">
+                          {sitemapDiff.removed.length === 0 ? (
+                            <div className="p-2 text-xs text-muted-foreground">None</div>
+                          ) : (
+                            <ul className="text-xs">
+                              {sitemapDiff.removed.map((u, i) => (
+                                <li key={i} className="p-1.5 border-b font-mono break-all">{u}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* === SCHEMA VALIDATOR === */}
