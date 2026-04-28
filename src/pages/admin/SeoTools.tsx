@@ -527,6 +527,136 @@ export default function SeoTools() {
     setLinkLoading(false);
   };
 
+  // === CANONICAL & HREFLANG REPORT ===
+  const [canonicalRows, setCanonicalRows] = useState<CanonicalRow[]>([]);
+  const [canonicalLoading, setCanonicalLoading] = useState(false);
+  const [canonicalScanned, setCanonicalScanned] = useState(0);
+
+  const runCanonicalReport = async () => {
+    setCanonicalLoading(true);
+    setCanonicalRows([]);
+    const rows: CanonicalRow[] = [];
+    let count = 0;
+    for (const route of ALL_ROUTES) {
+      for (const lang of LANGS) {
+        const url = `${ORIGIN}${route}?lang=${lang}`;
+        const r = await fetchAsBot(url);
+        count++;
+        const expectedCanonical = `${BASE_URL}${route}`;
+        const present = r.hreflangs.map(h => h.lang.toLowerCase());
+        const missing: string[] = [];
+        for (const required of LANGS) {
+          if (!present.includes(required)) missing.push(required);
+        }
+        if (!present.includes("x-default")) missing.push("x-default");
+        const seen = new Set<string>();
+        const duplicates: string[] = [];
+        for (const h of r.hreflangs) {
+          const k = h.lang.toLowerCase();
+          if (seen.has(k)) duplicates.push(k);
+          seen.add(k);
+        }
+        const notes: string[] = [];
+        if (!r.canonical) notes.push("missing canonical");
+        else if (!r.canonical.startsWith(BASE_URL)) notes.push(`canonical not on ${BASE_URL}`);
+        const status: "ok" | "warn" | "error" =
+          !r.canonical || missing.length > 0 ? "error" :
+          duplicates.length > 0 || notes.length > 0 ? "warn" : "ok";
+        rows.push({
+          route, lang,
+          canonical: r.canonical,
+          expectedCanonical,
+          hreflangs: r.hreflangs,
+          missing, duplicates, status, notes,
+        });
+      }
+    }
+    setCanonicalRows(rows);
+    setCanonicalScanned(count);
+    setCanonicalLoading(false);
+  };
+
+  // === SEO VISIBILITY TEST (sitemap + robots + per-lang metadata) ===
+  const [visibilityChecks, setVisibilityChecks] = useState<VisibilityCheck[]>([]);
+  const [visibilityLoading, setVisibilityLoading] = useState(false);
+  const [visibilityRan, setVisibilityRan] = useState(false);
+
+  const runVisibilityTest = async () => {
+    setVisibilityLoading(true);
+    setVisibilityChecks([]);
+    setVisibilityRan(false);
+    const checks: VisibilityCheck[] = [];
+    const base = ORIGIN;
+
+    // 1) robots.txt must exist and reference all per-lang sitemaps
+    try {
+      const r = await fetch(`${base}/robots.txt`);
+      const txt = await r.text();
+      if (r.status !== 200) {
+        checks.push({ level: "error", category: "robots.txt", url: `${base}/robots.txt`, message: `HTTP ${r.status}` });
+      } else {
+        checks.push({ level: "ok", category: "robots.txt", url: `${base}/robots.txt`, message: "200 OK" });
+        const required = ["sitemap-index.xml", "sitemap-pt.xml", "sitemap-en.xml", "sitemap-fr.xml", "sitemap-de.xml"];
+        for (const req of required) {
+          if (!txt.includes(req)) {
+            checks.push({ level: "warn", category: "robots.txt", message: `Sitemap reference missing: ${req}` });
+          }
+        }
+      }
+    } catch (e: any) {
+      checks.push({ level: "error", category: "robots.txt", message: "Network error", detail: e.message });
+    }
+
+    // 2) Sitemaps must return 200 with XML content-type
+    const sitemaps = [
+      "/sitemap-index.xml", "/sitemap.xml",
+      "/sitemap-pt.xml", "/sitemap-en.xml", "/sitemap-fr.xml", "/sitemap-de.xml",
+    ];
+    for (const sm of sitemaps) {
+      try {
+        const r = await fetch(`${base}${sm}`);
+        const ct = r.headers.get("content-type") || "";
+        const body = await r.text();
+        if (r.status !== 200) {
+          checks.push({ level: "error", category: "sitemap", url: `${base}${sm}`, message: `HTTP ${r.status}` });
+        } else if (!body.trim().startsWith("<?xml") && !body.includes("<urlset") && !body.includes("<sitemapindex")) {
+          checks.push({ level: "error", category: "sitemap", url: `${base}${sm}`, message: "Not XML — fallback HTML returned", detail: ct });
+        } else {
+          const urlCount = (body.match(/<loc>/g) || []).length;
+          checks.push({ level: "ok", category: "sitemap", url: `${base}${sm}`, message: `200 OK (${urlCount} <loc>)`, detail: ct });
+        }
+      } catch (e: any) {
+        checks.push({ level: "error", category: "sitemap", url: `${base}${sm}`, message: "Network error", detail: e.message });
+      }
+    }
+
+    // 3) Key pages must expose title + description + canonical for every language
+    const keyPages = ["/", "/about", "/portfolio", "/contact"];
+    for (const route of keyPages) {
+      for (const lang of LANGS) {
+        const url = `${base}${route}?lang=${lang}`;
+        const r = await fetchAsBot(url);
+        if (r.status !== 200) {
+          checks.push({ level: "error", category: `page ${route}`, url, message: `HTTP ${r.status}` });
+          continue;
+        }
+        const probs: string[] = [];
+        if (!r.title) probs.push("missing <title>");
+        if (!r.description) probs.push("missing meta description");
+        if (!r.canonical) probs.push("missing canonical");
+        if (r.hreflangs.length < LANGS.length) probs.push(`only ${r.hreflangs.length} hreflang declarations`);
+        if (probs.length === 0) {
+          checks.push({ level: "ok", category: `page ${route}`, url, message: `${lang.toUpperCase()} OK — title + meta + canonical + hreflang` });
+        } else {
+          checks.push({ level: "warn", category: `page ${route}`, url, message: `${lang.toUpperCase()}: ${probs.join("; ")}` });
+        }
+      }
+    }
+    setVisibilityChecks(checks);
+    setVisibilityRan(true);
+    setVisibilityLoading(false);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
