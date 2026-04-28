@@ -137,7 +137,20 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Pre-render content for SEO crawlers (replaced by React on hydration) -->
+      <h1 style="position:absolute;left:-9999px;top:-9999px;">GenuinoInvestments Switzerland — Investissements Immobiliers Portugal & Suisse</h1>
+      <noscript>
+        <h1>GenuinoInvestments Switzerland</h1>
+        <p>Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo. Escritórios em Carouge/Genève e Lumiar/Lisboa.</p>
+        <p>Contacto Suíça: +41 76 487 60 00 — Contacto Portugal: +351 21 758 06 73 — info@genuinoinvestments.ch</p>
+        <nav>
+          <a href="/">Home</a> | <a href="/about">Sobre</a> | <a href="/services">Serviços</a> |
+          <a href="/portfolio">Portfólio</a> | <a href="/properties">Imóveis</a> |
+          <a href="/vision">Visão</a> | <a href="/investors">Investidores</a> | <a href="/contact">Contacto</a>
+        </nav>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
