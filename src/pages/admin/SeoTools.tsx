@@ -1700,10 +1700,14 @@ export default function SeoTools() {
                         <th className="text-left p-2">Missing</th>
                         <th className="text-left p-2">Duplicates</th>
                         <th className="text-left p-2">x-default</th>
+                        <th className="text-left p-2">Proof</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {canonicalRows.map((r, i) => (
+                      {filteredCanonicalRows.map((r, i) => {
+                        const shotKey = `${r.route}|${r.lang}`;
+                        const shot = routeShots[shotKey];
+                        return (
                         <tr key={i} className="border-t">
                           <td className="p-2 font-mono">{r.route}</td>
                           <td className="p-2 uppercase">{r.lang}</td>
@@ -1723,8 +1727,35 @@ export default function SeoTools() {
                                 ? <Badge className="bg-green-600">OK</Badge>
                                 : <span className="text-muted-foreground">—</span>}
                           </td>
+                          <td className="p-2">
+                            {shot?.b64 ? (
+                              <a
+                                href={`data:image/${shot.kind === "png" ? "png" : "svg+xml"};base64,${shot.b64}`}
+                                target="_blank" rel="noreferrer"
+                                title="Open proof"
+                              >
+                                <img
+                                  src={`data:image/${shot.kind === "png" ? "png" : "svg+xml"};base64,${shot.b64}`}
+                                  alt={`SEO head proof for ${r.route} (${r.lang})`}
+                                  className="w-16 h-10 object-cover border rounded"
+                                />
+                              </a>
+                            ) : (
+                              <Button
+                                size="sm" variant="ghost" className="h-7 px-2"
+                                disabled={shot?.loading}
+                                onClick={() => captureRouteScreenshot(r.route, r.lang as Lang)}
+                              >
+                                {shot?.loading
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : <Camera className="w-3 h-3" />}
+                              </Button>
+                            )}
+                            {shot?.error && <div className="text-[10px] text-destructive max-w-[120px]">{shot.error}</div>}
+                          </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
