@@ -1822,6 +1822,92 @@ export default function SeoTools() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* === SHARED SNAPSHOTS === */}
+          <TabsContent value="snapshots" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Database className="w-5 h-5" /> Shared snapshots</CardTitle>
+                <CardDescription>
+                  Canonical reports, sitemap baselines, visibility tests and route screenshots saved to the database
+                  so the whole team can compare results across browsers and over time.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Select value={snapshotTypeFilter} onValueChange={setSnapshotTypeFilter}>
+                    <SelectTrigger className="w-[220px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All types</SelectItem>
+                      <SelectItem value="canonical_report">Canonical reports</SelectItem>
+                      <SelectItem value="sitemap_baseline">Sitemap baselines</SelectItem>
+                      <SelectItem value="visibility_test">Visibility tests</SelectItem>
+                      <SelectItem value="route_screenshot">Route screenshots</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button size="sm" variant="outline" onClick={loadSnapshots} disabled={snapshotsLoading}>
+                    {snapshotsLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null} Refresh
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-auto">{snapshots.length} snapshots</span>
+                </div>
+                <div className="border rounded max-h-[600px] overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted sticky top-0">
+                      <tr>
+                        <th className="text-left p-2">When</th>
+                        <th className="text-left p-2">Type</th>
+                        <th className="text-left p-2">Label</th>
+                        <th className="text-left p-2">Env</th>
+                        <th className="text-left p-2">Route / Lang</th>
+                        <th className="text-left p-2">Preview</th>
+                        <th className="text-left p-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {snapshots.map((s) => (
+                        <tr key={s.id} className="border-t">
+                          <td className="p-2 whitespace-nowrap">{new Date(s.created_at).toLocaleString()}</td>
+                          <td className="p-2"><Badge variant="outline">{s.snapshot_type}</Badge></td>
+                          <td className="p-2">{s.label || "—"}</td>
+                          <td className="p-2 font-mono truncate max-w-[160px]" title={s.environment || ""}>{s.environment || "—"}</td>
+                          <td className="p-2">{s.route ? `${s.route} / ${s.language || ""}` : "—"}</td>
+                          <td className="p-2">
+                            {s.snapshot_type === "route_screenshot" && s.payload?.base64 ? (
+                              <img
+                                src={`data:image/${s.payload.kind === "png" ? "png" : "svg+xml"};base64,${s.payload.base64}`}
+                                alt="route proof" className="w-20 h-12 object-cover border rounded"
+                              />
+                            ) : s.snapshot_type === "canonical_report" ? (
+                              <span>{s.payload?.rows?.length || 0} rows</span>
+                            ) : s.snapshot_type === "sitemap_baseline" ? (
+                              <span>{s.payload?.locs?.length || 0} URLs</span>
+                            ) : s.snapshot_type === "visibility_test" ? (
+                              <span>{s.payload?.checks?.length || 0} checks · +{s.payload?.diff?.added?.length || 0}/-{s.payload?.diff?.removed?.length || 0}</span>
+                            ) : "—"}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex gap-1">
+                              {s.snapshot_type === "canonical_report" && (
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => restoreSnapshot(s)} title="Load into Canonical tab">
+                                  <Share2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => deleteSnapshot(s.id)} title="Delete">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {snapshots.length === 0 && (
+                        <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">No snapshots yet. Save a canonical report or capture a route screenshot to get started.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
