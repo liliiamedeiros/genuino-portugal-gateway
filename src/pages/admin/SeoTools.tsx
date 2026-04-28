@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity, Share2, Copy, Check, GitCompare, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
