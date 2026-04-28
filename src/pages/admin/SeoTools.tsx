@@ -1057,7 +1057,28 @@ export default function SeoTools() {
                   <Badge variant="destructive">{visibilityChecks.filter(c => c.level === "error").length} fail</Badge>
                 </>
               )}
+              <div className="ml-auto flex items-center gap-2">
+                <Button variant="outline" onClick={runDailyCheckNow} disabled={dailyRunning}>
+                  {dailyRunning ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                  Run daily check + email now
+                </Button>
+              </div>
             </div>
+            {dailyResult && (
+              <div className="text-xs border rounded p-2 bg-muted/40">
+                {dailyResult.error
+                  ? <span className="text-destructive">Error: {dailyResult.error}</span>
+                  : <>
+                      Checks: <b>{dailyResult.checks_count}</b> ·
+                      Sitemap diff: +{dailyResult.diff?.added} / -{dailyResult.diff?.removed} ·
+                      Emails sent: <b>{dailyResult.emails_sent}/{dailyResult.emails_attempted}</b>
+                      {dailyResult.email_error && <span className="text-destructive"> · {dailyResult.email_error}</span>}
+                    </>}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              An automated daily run is scheduled at <b>07:00 UTC</b> and emails the summary to all admins.
+            </p>
 
             {coverage ? (
               <div className="border rounded p-4 space-y-3">
