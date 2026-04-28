@@ -5,9 +5,19 @@
   RewriteEngine On
   RewriteBase /
 
-  # Force HTTPS (uncomment after SSL is installed)
-  # RewriteCond %{HTTPS} off
-  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # === Force HTTPS (genuinoinvestments.ch) ===
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # === Force non-www → www (or change to opposite if preferred) ===
+  # Currently primary domain is the apex genuinoinvestments.ch, redirect www → apex.
+  RewriteCond %{HTTP_HOST} ^www\.genuinoinvestments\.ch$ [NC]
+  RewriteRule ^(.*)$ https://genuinoinvestments.ch/$1 [L,R=301]
+
+  # === Per-language sitemaps proxied to Lovable Cloud edge function ===
+  RewriteRule ^sitemap-index\.xml$ https://eyvfrocuuhxleroghybv.supabase.co/functions/v1/generate-sitemap?type=index [P,L]
+  RewriteRule ^sitemap-(pt|en|fr|de)\.xml$ https://eyvfrocuuhxleroghybv.supabase.co/functions/v1/generate-sitemap?type=lang&lang=$1 [P,L]
 
   # SPA fallback
   RewriteRule ^index\.html$ - [L]
@@ -51,12 +61,21 @@
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 
-  # Security headers
-  Header set X-Content-Type-Options "nosniff"
-  Header set X-Frame-Options "SAMEORIGIN"
-  Header set Referrer-Policy "strict-origin-when-cross-origin"
-  Header set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
-  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+  # === Security & SSL-friendly headers ===
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+  # HSTS — 1 year, includeSubDomains, preload-ready (only sent over HTTPS)
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" env=HTTPS
+  # Upgrade insecure requests at browser level
+  Header always set Content-Security-Policy "upgrade-insecure-requests" env=HTTPS
+
+  # Correct content-type for sitemap files
+  <FilesMatch "\.xml$">
+    Header set Content-Type "application/xml; charset=utf-8"
+  </FilesMatch>
 </IfModule>
 
 # MIME types

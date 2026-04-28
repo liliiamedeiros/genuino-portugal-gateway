@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Lang = "pt" | "en" | "fr" | "de";
@@ -42,6 +42,70 @@ interface LinkIssue {
   href: string;
   text: string;
   reason: string;
+}
+
+interface HreflangIssue {
+  pageUrl: string;
+  lang: string; // language of the page being checked
+  level: "error" | "warn";
+  message: string;
+}
+
+// === Export utilities (CSV / PDF via window.print) ===
+function downloadCsv(filename: string, rows: Record<string, any>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]);
+  const escape = (v: any) => {
+    const s = v === null || v === undefined ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [
+    headers.join(","),
+    ...rows.map(r => headers.map(h => escape(r[h])).join(",")),
+  ].join("\n");
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadPdf(title: string, rows: Record<string, any>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]);
+  const win = window.open("", "_blank", "width=900,height=700");
+  if (!win) return;
+  const style = `<style>
+    body { font-family: -apple-system, sans-serif; padding: 24px; color: #111; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .meta { color: #666; font-size: 11px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; word-break: break-word; }
+    th { background: #f4f4f4; }
+    tr:nth-child(even) { background: #fafafa; }
+    .err { color: #c00; }
+    .warn { color: #b80; }
+    @media print { @page { margin: 12mm; } }
+  </style>`;
+  const tbody = rows.map(r =>
+    `<tr>${headers.map(h => {
+      const v = r[h] ?? "";
+      const cls = h === "level" && v === "error" ? "err" : h === "level" && v === "warn" ? "warn" : "";
+      return `<td class="${cls}">${String(v).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))}</td>`;
+    }).join("")}</tr>`
+  ).join("");
+  win.document.write(`<!doctype html><html><head><title>${title}</title>${style}</head><body>
+    <h1>${title}</h1>
+    <div class="meta">${rows.length} rows · Generated ${new Date().toISOString()} · genuinoinvestments.ch</div>
+    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${tbody}</tbody></table>
+    <script>window.onload = () => setTimeout(() => window.print(), 200);<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function langOfUrl(url: string): string {
+  try { return new URL(url).searchParams.get("lang") || "—"; } catch { return "—"; }
 }
 
 async function fetchAsBot(url: string): Promise<BotViewResult> {
@@ -125,6 +189,35 @@ function auditLinks(url: string, html: string): LinkIssue[] {
       issues.push({ pageUrl: url, href, text, reason: "Trailing undefined/null" });
     }
   });
+  return issues;
+}
+
+/** Verify that the page declares hreflang for all 4 languages and that x-default exists. */
+function checkHreflangSet(pageUrl: string, hreflangs: { lang: string; href: string }[]): HreflangIssue[] {
+  const issues: HreflangIssue[] = [];
+  const lang = langOfUrl(pageUrl);
+  const present = new Set(hreflangs.map(h => h.lang.toLowerCase()));
+  for (const required of LANGS) {
+    if (!present.has(required)) {
+      issues.push({ pageUrl, lang, level: "error", message: `Missing hreflang for "${required}"` });
+    }
+  }
+  if (!present.has("x-default")) {
+    issues.push({ pageUrl, lang, level: "warn", message: 'Missing hreflang="x-default"' });
+  }
+  // Detect duplicates
+  const seen = new Set<string>();
+  for (const h of hreflangs) {
+    const k = h.lang.toLowerCase();
+    if (seen.has(k)) issues.push({ pageUrl, lang, level: "warn", message: `Duplicate hreflang declaration: ${k}` });
+    seen.add(k);
+  }
+  // Empty / invalid hrefs
+  for (const h of hreflangs) {
+    if (!h.href || h.href.includes("undefined") || h.href.includes("null")) {
+      issues.push({ pageUrl, lang, level: "error", message: `Invalid href for hreflang="${h.lang}": ${h.href}` });
+    }
+  }
   return issues;
 }
 
@@ -219,6 +312,60 @@ export default function SeoTools() {
   const [linkScanned, setLinkScanned] = useState(0);
   const [linkLoading, setLinkLoading] = useState(false);
 
+  // === Hreflang reciprocity tab ===
+  const [hreflangIssues, setHreflangIssues] = useState<HreflangIssue[]>([]);
+  const [hreflangScanned, setHreflangScanned] = useState(0);
+  const [hreflangLoading, setHreflangLoading] = useState(false);
+
+  const runHreflangAudit = async () => {
+    setHreflangLoading(true);
+    setHreflangIssues([]);
+    const all: HreflangIssue[] = [];
+    let count = 0;
+    // Per-route per-lang fetched maps
+    const routeMap = new Map<string, Map<string, BotViewResult>>(); // route -> lang -> result
+    for (const route of KEY_ROUTES) {
+      const langMap = new Map<string, BotViewResult>();
+      for (const lang of LANGS) {
+        const url = `${ORIGIN}${route}?lang=${lang}`;
+        const r = await fetchAsBot(url);
+        langMap.set(lang, r);
+        count++;
+        // Per-page check (set + x-default + dupes)
+        all.push(...checkHreflangSet(url, r.hreflangs));
+      }
+      routeMap.set(route, langMap);
+    }
+    // Reciprocity check: for each (route, langA), every declared hreflang langB
+    // must point to a URL whose page in turn declares langA back.
+    for (const route of KEY_ROUTES) {
+      const langMap = routeMap.get(route)!;
+      for (const langA of LANGS) {
+        const a = langMap.get(langA)!;
+        const urlA = `${ORIGIN}${route}?lang=${langA}`;
+        for (const langB of LANGS) {
+          if (langB === langA) continue;
+          const declaredB = a.hreflangs.find(h => h.lang.toLowerCase() === langB);
+          if (!declaredB) continue; // already reported by checkHreflangSet
+          const b = langMap.get(langB);
+          if (!b) continue;
+          const back = b.hreflangs.find(h => h.lang.toLowerCase() === langA);
+          if (!back) {
+            all.push({
+              pageUrl: urlA,
+              lang: langA,
+              level: "error",
+              message: `Reciprocity broken: declares "${langB}" but the ${langB.toUpperCase()} page does not link back to "${langA}"`,
+            });
+          }
+        }
+      }
+    }
+    setHreflangIssues(all);
+    setHreflangScanned(count);
+    setHreflangLoading(false);
+  };
+
   const runLinkAudit = async () => {
     setLinkLoading(true);
     setLinkIssues([]);
@@ -249,9 +396,10 @@ export default function SeoTools() {
         </div>
 
         <Tabs defaultValue="bot">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="bot"><Bot className="w-4 h-4 mr-2" />Bot View / URLs</TabsTrigger>
             <TabsTrigger value="schema"><FileJson className="w-4 h-4 mr-2" />JSON-LD Validator</TabsTrigger>
+            <TabsTrigger value="hreflang"><Languages className="w-4 h-4 mr-2" />Hreflang Reciprocity</TabsTrigger>
             <TabsTrigger value="links"><Link2 className="w-4 h-4 mr-2" />Internal Links</TabsTrigger>
           </TabsList>
 
@@ -355,6 +503,18 @@ export default function SeoTools() {
                     <Badge variant="secondary">{schemaIssues.filter((i) => i.level === "warn").length} warnings</Badge>
                   </div>
                 )}
+                {schemaIssues.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `seo-schema-${new Date().toISOString().slice(0,10)}.csv`,
+                      schemaIssues.map(i => ({ url: i.url, lang: langOfUrl(i.url), schema_type: i.type, level: i.level, message: i.message }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "JSON-LD Validation Report",
+                      schemaIssues.map(i => ({ url: i.url, lang: langOfUrl(i.url), schema_type: i.type, level: i.level, message: i.message }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
+                  </div>
+                )}
                 {schemaIssues.length === 0 && schemaScans > 0 && (
                   <p className="text-green-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> All schemas valid</p>
                 )}
@@ -365,6 +525,61 @@ export default function SeoTools() {
                       <div className="min-w-0 flex-1">
                         <div className="font-mono text-xs text-muted-foreground truncate">{iss.url}</div>
                         <div><Badge variant="outline" className="mr-2">{iss.type}</Badge>{iss.message}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* === HREFLANG RECIPROCITY === */}
+          <TabsContent value="hreflang" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Hreflang reciprocity & coverage</CardTitle>
+                <CardDescription>
+                  Verifies every key route declares hreflang for PT, EN, FR, DE plus x-default — and that each declared
+                  language reciprocates the link back. Missing back-links break Google's language mapping.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={runHreflangAudit} disabled={hreflangLoading}>
+                  {hreflangLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Run hreflang audit
+                </Button>
+                {hreflangScanned > 0 && (
+                  <div className="flex gap-3 text-sm">
+                    <Badge variant="outline">{hreflangScanned} pages scanned</Badge>
+                    <Badge variant="destructive">{hreflangIssues.filter(i => i.level === "error").length} errors</Badge>
+                    <Badge variant="secondary">{hreflangIssues.filter(i => i.level === "warn").length} warnings</Badge>
+                  </div>
+                )}
+                {hreflangIssues.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `seo-hreflang-${new Date().toISOString().slice(0,10)}.csv`,
+                      hreflangIssues.map(i => ({ url: i.pageUrl, lang: i.lang, level: i.level, message: i.message }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "Hreflang Audit Report",
+                      hreflangIssues.map(i => ({ url: i.pageUrl, lang: i.lang, level: i.level, message: i.message }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
+                  </div>
+                )}
+                {hreflangIssues.length === 0 && hreflangScanned > 0 && (
+                  <p className="text-green-600 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> All hreflang sets reciprocal and complete
+                  </p>
+                )}
+                <div className="space-y-1 max-h-[500px] overflow-auto">
+                  {hreflangIssues.map((iss, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm border-b py-2">
+                      {iss.level === "error"
+                        ? <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                        : <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-mono text-xs text-muted-foreground truncate">{iss.pageUrl}</div>
+                        <div><Badge variant="outline" className="mr-2 uppercase">{iss.lang}</Badge>{iss.message}</div>
                       </div>
                     </div>
                   ))}
@@ -391,6 +606,18 @@ export default function SeoTools() {
                   <div className="flex gap-3 text-sm">
                     <Badge variant="outline">{linkScanned} pages scanned</Badge>
                     <Badge variant={linkIssues.length > 0 ? "destructive" : "default"}>{linkIssues.length} issues</Badge>
+                  </div>
+                )}
+                {linkIssues.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `seo-links-${new Date().toISOString().slice(0,10)}.csv`,
+                      linkIssues.map(i => ({ page_url: i.pageUrl, lang: langOfUrl(i.pageUrl), href: i.href, anchor_text: i.text, reason: i.reason }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "Internal Link Audit Report",
+                      linkIssues.map(i => ({ page_url: i.pageUrl, lang: langOfUrl(i.pageUrl), href: i.href, anchor_text: i.text, reason: i.reason }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
                   </div>
                 )}
                 {linkIssues.length === 0 && linkScanned > 0 && (

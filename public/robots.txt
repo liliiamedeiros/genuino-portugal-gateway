@@ -32,5 +32,10 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
-# Sitemap
+# Sitemap index (main entry-point for Google) + per-language sitemaps
+Sitemap: https://genuinoinvestments.ch/sitemap-index.xml
 Sitemap: https://genuinoinvestments.ch/sitemap.xml
+Sitemap: https://genuinoinvestments.ch/sitemap-pt.xml
+Sitemap: https://genuinoinvestments.ch/sitemap-en.xml
+Sitemap: https://genuinoinvestments.ch/sitemap-fr.xml
+Sitemap: https://genuinoinvestments.ch/sitemap-de.xml
