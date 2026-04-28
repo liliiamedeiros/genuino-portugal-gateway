@@ -563,15 +563,33 @@ export default function SeoTools() {
         const notes: string[] = [];
         if (!r.canonical) notes.push("missing canonical");
         else if (!r.canonical.startsWith(BASE_URL)) notes.push(`canonical not on ${BASE_URL}`);
-        const status: "ok" | "warn" | "error" =
-          !r.canonical || missing.length > 0 ? "error" :
-          duplicates.length > 0 || notes.length > 0 ? "warn" : "ok";
+
+        // x-default validation: PT is the fallback language for this site,
+        // so x-default must point to the same href as hreflang="pt".
+        const xDefaultHref = r.hreflangs.find(h => h.lang.toLowerCase() === "x-default")?.href;
+        const ptHref = r.hreflangs.find(h => h.lang.toLowerCase() === "pt")?.href;
+        let xDefaultIssue: string | undefined;
+        if (!xDefaultHref) {
+          xDefaultIssue = "missing x-default";
+        } else if (ptHref && xDefaultHref !== ptHref) {
+          xDefaultIssue = `x-default points to "${xDefaultHref}" but PT is "${ptHref}"`;
+          notes.push("x-default ≠ PT fallback");
+        } else if (!xDefaultHref.includes(route)) {
+          xDefaultIssue = `x-default href does not include route "${route}"`;
+          notes.push("x-default route mismatch");
+        }
+
+        const hasError = !r.canonical || missing.length > 0 || (xDefaultIssue && xDefaultIssue.startsWith("x-default points"));
+        const hasWarn = duplicates.length > 0 || notes.length > 0 || !!xDefaultIssue;
+        const status: "ok" | "warn" | "error" = hasError ? "error" : hasWarn ? "warn" : "ok";
+
         rows.push({
           route, lang,
           canonical: r.canonical,
           expectedCanonical,
           hreflangs: r.hreflangs,
           missing, duplicates, status, notes,
+          xDefaultHref, xDefaultIssue,
         });
       }
     }
