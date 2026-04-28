@@ -924,6 +924,107 @@ export default function SeoTools() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // === ROUTE-LEVEL FILTERS for the canonical & hreflang report ===
+  const [filterPath, setFilterPath] = useState("");
+  const [filterLang, setFilterLang] = useState<"all" | Lang>("all");
+  const [filterIssuesOnly, setFilterIssuesOnly] = useState(false);
+  const filteredCanonicalRows = canonicalRows.filter((r) => {
+    if (filterIssuesOnly && r.status === "ok") return false;
+    if (filterLang !== "all" && r.lang !== filterLang) return false;
+    if (filterPath && !r.route.toLowerCase().includes(filterPath.toLowerCase())) return false;
+    return true;
+  });
+
+  // === ROUTE SCREENSHOT PROOF (per row, base64 stored in component state) ===
+  type ShotState = { loading: boolean; b64?: string; kind?: "png" | "svg"; error?: string };
+  const [routeShots, setRouteShots] = useState<Record<string, ShotState>>({});
+  const captureRouteScreenshot = async (route: string, lang: Lang) => {
+    const key = `${route}|${lang}`;
+    setRouteShots((s) => ({ ...s, [key]: { loading: true } }));
+    try {
+      const url = `${BASE_URL}${route}?lang=${lang}`;
+      const { data, error } = await supabase.functions.invoke("seo-route-screenshot", { body: { url } });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || "screenshot failed");
+      setRouteShots((s) => ({ ...s, [key]: { loading: false, b64: data.base64, kind: data.kind } }));
+      // Also persist to seo_snapshots for cross-browser sharing.
+      await supabase.from("seo_snapshots").insert({
+        snapshot_type: "route_screenshot",
+        label: `${route} (${lang})`,
+        environment: BASE_URL,
+        route,
+        language: lang,
+        payload: { kind: data.kind, base64: data.base64, head: data.head, url },
+      });
+    } catch (e: any) {
+      setRouteShots((s) => ({ ...s, [key]: { loading: false, error: e.message || String(e) } }));
+    }
+  };
+
+  // === SHARED SNAPSHOTS (saved to seo_snapshots) ===
+  type Snapshot = {
+    id: string; snapshot_type: string; label: string | null;
+    environment: string | null; route: string | null; language: string | null;
+    payload: any; created_at: string;
+  };
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [snapshotsLoading, setSnapshotsLoading] = useState(false);
+  const [snapshotTypeFilter, setSnapshotTypeFilter] = useState<string>("all");
+
+  const loadSnapshots = async () => {
+    setSnapshotsLoading(true);
+    let q = supabase.from("seo_snapshots").select("*").order("created_at", { ascending: false }).limit(100);
+    if (snapshotTypeFilter !== "all") q = q.eq("snapshot_type", snapshotTypeFilter);
+    const { data } = await q;
+    setSnapshots((data as any) || []);
+    setSnapshotsLoading(false);
+  };
+  useEffect(() => { loadSnapshots(); /* eslint-disable-next-line */ }, [snapshotTypeFilter]);
+
+  const saveCanonicalReportToDb = async () => {
+    await supabase.from("seo_snapshots").insert({
+      snapshot_type: "canonical_report",
+      label: `Canonical report ${new Date().toLocaleString()}`,
+      environment: ORIGIN,
+      payload: {
+        ranAt: canonicalReportMeta?.ranAt || new Date().toISOString(),
+        rows: canonicalRows,
+      },
+    });
+    await loadSnapshots();
+  };
+
+  const restoreSnapshot = (s: Snapshot) => {
+    if (s.snapshot_type === "canonical_report" && Array.isArray(s.payload?.rows)) {
+      setCanonicalRows(s.payload.rows);
+      setCanonicalScanned(s.payload.rows.length);
+      setCanonicalReportMeta({ ranAt: s.payload.ranAt || s.created_at, env: s.environment || "" });
+    }
+  };
+
+  const deleteSnapshot = async (id: string) => {
+    await supabase.from("seo_snapshots").delete().eq("id", id);
+    await loadSnapshots();
+  };
+
+  // === Manually trigger the daily check (also runs by cron at 07:00 UTC) ===
+  const [dailyRunning, setDailyRunning] = useState(false);
+  const [dailyResult, setDailyResult] = useState<any>(null);
+  const runDailyCheckNow = async () => {
+    setDailyRunning(true);
+    setDailyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("seo-daily-check");
+      if (error) throw error;
+      setDailyResult(data);
+      await loadSnapshots();
+    } catch (e: any) {
+      setDailyResult({ error: e.message });
+    } finally {
+      setDailyRunning(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
