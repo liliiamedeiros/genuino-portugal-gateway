@@ -114,8 +114,20 @@ const App = () => {
                   <Footer />
                 </>
               } />
-              <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/portfolio/:id" element={<PortfolioDetail />} />
+              <Route path="/portfolio" element={
+                <>
+                  <Navbar />
+                  <Portfolio />
+                  <Footer />
+                </>
+              } />
+              <Route path="/portfolio/:id" element={
+                <>
+                  <Navbar />
+                  <PortfolioDetail />
+                  <Footer />
+                </>
+              } />
               <Route path="/properties" element={
                 <>
                   <Navbar />
