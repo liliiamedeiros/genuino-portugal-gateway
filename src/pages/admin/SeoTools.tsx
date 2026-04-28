@@ -1113,7 +1113,7 @@ export default function SeoTools() {
         </Card>
 
         <Tabs defaultValue="bot">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="bot"><Bot className="w-4 h-4 mr-2" />Bot View / URLs</TabsTrigger>
             <TabsTrigger value="schema"><FileJson className="w-4 h-4 mr-2" />JSON-LD Validator</TabsTrigger>
             <TabsTrigger value="hreflang"><Languages className="w-4 h-4 mr-2" />Hreflang Reciprocity</TabsTrigger>
@@ -1121,6 +1121,7 @@ export default function SeoTools() {
             <TabsTrigger value="visibility"><Activity className="w-4 h-4 mr-2" />SEO Visibility Test</TabsTrigger>
             <TabsTrigger value="links"><Link2 className="w-4 h-4 mr-2" />Internal Links</TabsTrigger>
             <TabsTrigger value="public"><ShieldCheck className="w-4 h-4 mr-2" />Verify Public Build</TabsTrigger>
+            <TabsTrigger value="snapshots"><Database className="w-4 h-4 mr-2" />Snapshots</TabsTrigger>
           </TabsList>
 
           {/* === BOT VIEW === */}
