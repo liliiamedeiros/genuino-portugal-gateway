@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, Shield, Award, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 
 export default function Investors() {
   const { t } = useLanguage();
@@ -33,12 +33,7 @@ export default function Investors() {
 
   return (
     <>
-      <SEOHead 
-        title="Para Investidores"
-        description="Oportunidades de investimento imobiliário de alto retorno em Portugal. Projetos estratégicos com transparência e expertise reconhecida."
-        keywords="investimento imobiliário Portugal, oportunidades investimento, rendimento imobiliário"
-        url="/investors"
-      />
+      <RouteSeo route="/investors" />
       <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-24 sm:py-28 lg:py-32 3xl:py-40 4xl:py-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>

@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProjectCard } from '@/components/ProjectCard';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -109,7 +109,7 @@ export default function Properties() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title="Imóveis" url="/properties" description="Propriedades exclusivas em Portugal e Suíça — apartamentos, moradias e villas de luxo." />
+      <RouteSeo route="/properties" />
       <BreadcrumbJsonLd />
       <Navbar />
       

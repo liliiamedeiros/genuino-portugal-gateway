@@ -1,18 +1,13 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import santaMarinha from '@/assets/santa-marinha.jpg';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 
 export default function Vision() {
   const { t } = useLanguage();
 
   return (
     <>
-      <SEOHead 
-        title="Nossa Visão"
-        description="Nossa visão é criar espaços que transcendem o tempo, integrando sustentabilidade, inovação e design atemporal em cada projeto."
-        keywords="visão genuino investments, arquitetura intemporal, sustentabilidade"
-        url="/vision"
-      />
+      <RouteSeo route="/vision" />
       <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-24 sm:py-28 lg:py-32 3xl:py-40 4xl:py-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>

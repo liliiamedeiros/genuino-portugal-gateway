@@ -2,19 +2,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import gardensBuilding2 from '@/assets/gardens-building-2.jpeg';
 import sesmariasGarden from '@/assets/sesmarias-garden.jpg';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 
 export default function About() {
   const { t } = useLanguage();
 
   return (
     <>
-      <SEOHead 
-        title="Sobre Nós"
-        description="Genuíno Investments se distingue no setor imobiliário com mais de 10 anos de experiência. Investimentos de qualidade em Portugal e Suíça."
-        keywords="sobre genuino investments, empresa imobiliária, investimentos Portugal"
-        url="/about"
-      />
+      <RouteSeo route="/about" />
       <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-24 sm:py-28 lg:py-32 3xl:py-40 4xl:py-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
