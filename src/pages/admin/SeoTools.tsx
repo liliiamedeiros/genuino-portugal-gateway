@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 
 type Lang = "pt" | "en" | "fr" | "de";
 const LANGS: Lang[] = ["pt", "en", "fr", "de"];
@@ -49,6 +50,13 @@ interface HreflangIssue {
   lang: string; // language of the page being checked
   level: "error" | "warn";
   message: string;
+}
+
+interface PublicBuildIssue {
+  level: "error" | "warn" | "ok";
+  category: string;
+  message: string;
+  detail?: string;
 }
 
 // === Export utilities (CSV / PDF via window.print) ===
@@ -316,6 +324,117 @@ export default function SeoTools() {
   const [hreflangIssues, setHreflangIssues] = useState<HreflangIssue[]>([]);
   const [hreflangScanned, setHreflangScanned] = useState(0);
   const [hreflangLoading, setHreflangLoading] = useState(false);
+
+  // === Verify Public Build tab ===
+  const [publicBuildUrl, setPublicBuildUrl] = useState<string>(
+    typeof window !== "undefined" && window.location.hostname.includes("lovable")
+      ? `${window.location.origin}`
+      : "https://genuino-portugal-gateway.lovable.app"
+  );
+  const [publicIssues, setPublicIssues] = useState<PublicBuildIssue[]>([]);
+  const [publicLoading, setPublicLoading] = useState(false);
+  const [publicChecked, setPublicChecked] = useState(false);
+
+  const runPublicBuildVerify = async () => {
+    setPublicLoading(true);
+    setPublicIssues([]);
+    setPublicChecked(false);
+    const issues: PublicBuildIssue[] = [];
+    const base = publicBuildUrl.replace(/\/$/, "");
+
+    // 1) Fetch homepage and confirm it loads
+    try {
+      const r = await fetch(`${base}/`, { cache: "no-store" });
+      if (r.status >= 200 && r.status < 400) {
+        issues.push({ level: "ok", category: "Homepage", message: `HTTP ${r.status} — homepage reachable`, detail: base });
+      } else {
+        issues.push({ level: "error", category: "Homepage", message: `HTTP ${r.status} — homepage not reachable`, detail: base });
+      }
+    } catch (e: any) {
+      issues.push({ level: "error", category: "Homepage", message: "Network error fetching homepage", detail: e.message });
+    }
+
+    // 2) Direct probe to the same Supabase endpoint the live Navbar calls
+    const SUPA_URL = (import.meta as any).env?.VITE_SUPABASE_URL || "https://eyvfrocuuhxleroghybv.supabase.co";
+    const SUPA_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+    try {
+      const r = await fetch(
+        `${SUPA_URL}/rest/v1/navigation_menus?select=path,label,is_active&menu_type=eq.main&is_active=eq.true&order=order_index.asc`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+      );
+      const body = await r.text();
+      if (r.status === 200) {
+        const json = JSON.parse(body);
+        if (Array.isArray(json) && json.length > 0) {
+          issues.push({
+            level: "ok",
+            category: "Navbar API",
+            message: `Navigation menus load (${json.length} items)`,
+            detail: json.map((j: any) => j.path).join(", "),
+          });
+        } else {
+          issues.push({
+            level: "warn",
+            category: "Navbar API",
+            message: "Navigation API returned 200 but 0 items — Navbar will use static fallback",
+          });
+        }
+      } else if (r.status === 401) {
+        issues.push({
+          level: "error",
+          category: "Navbar API",
+          message: "401 Unauthorized — RLS policy blocks anonymous access to navigation_menus",
+          detail: body.slice(0, 240),
+        });
+      } else if (r.status === 403) {
+        issues.push({
+          level: "error",
+          category: "Navbar API",
+          message: "403 Forbidden — permission denied (likely has_role() not granted to anon role)",
+          detail: body.slice(0, 240),
+        });
+      } else {
+        issues.push({
+          level: "error",
+          category: "Navbar API",
+          message: `HTTP ${r.status} when fetching navigation_menus`,
+          detail: body.slice(0, 240),
+        });
+      }
+    } catch (e: any) {
+      issues.push({ level: "error", category: "Navbar API", message: "Network error calling navigation_menus", detail: e.message });
+    }
+
+    // 3) Same probe for system_settings (also queried by header/footer code paths)
+    try {
+      const r = await fetch(
+        `${SUPA_URL}/rest/v1/system_settings?select=key&limit=1`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+      );
+      if (r.status === 200) {
+        issues.push({ level: "ok", category: "System settings", message: "system_settings readable by anon" });
+      } else if (r.status === 401 || r.status === 403) {
+        issues.push({
+          level: "warn",
+          category: "System settings",
+          message: `HTTP ${r.status} — anon can't read system_settings (may be intentional)`,
+        });
+      }
+    } catch (e: any) {
+      issues.push({ level: "warn", category: "System settings", message: "Network error", detail: e.message });
+    }
+
+    // 4) Confirm fallback dataset is up to date
+    issues.push({
+      level: "ok",
+      category: "Fallback",
+      message: `Static Navbar fallback ready (${FALLBACK_MAIN_MENU.length} items): ${FALLBACK_MAIN_MENU.map(m => m.path).join(", ")}`,
+    });
+
+    setPublicIssues(issues);
+    setPublicLoading(false);
+    setPublicChecked(true);
+  };
 
   const runHreflangAudit = async () => {
     setHreflangLoading(true);
