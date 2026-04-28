@@ -843,25 +843,87 @@ export default function SeoTools() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader><CardTitle className="text-base">robots.txt</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  <Button size="sm" onClick={loadRobots}>Test /robots.txt</Button>
-                  {robotsContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto">{robotsContent}</pre>}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="text-base">sitemap.xml</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center justify-between gap-2">
+                  <span>Live status — robots.txt &amp; per-language sitemaps</span>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => loadSitemap(false)}>Static /sitemap.xml</Button>
-                    <Button size="sm" variant="outline" onClick={() => loadSitemap(true)}>Edge (dynamic)</Button>
+                    <Button size="sm" variant="outline" onClick={refreshAllEndpoints} disabled={endpointPolling}>
+                      {endpointPolling ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                      Refresh now
+                    </Button>
+                    <Button size="sm" onClick={downloadAllSitemaps}>
+                      <Download className="w-4 h-4 mr-1" /> Download all sitemaps
+                    </Button>
                   </div>
-                  {sitemapContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto">{sitemapContent}</pre>}
-                </CardContent>
-              </Card>
-            </div>
+                </CardTitle>
+                <CardDescription>
+                  Auto-refreshes every 60 seconds. Each row shows reachability, HTTP code, URL count and last-checked time.
+                  Click <b>Download</b> to save the live XML to disk for local validation.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-auto border rounded">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left p-2">Endpoint</th>
+                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">HTTP</th>
+                        <th className="text-left p-2">URLs</th>
+                        <th className="text-left p-2">Content-Type</th>
+                        <th className="text-left p-2">Last checked</th>
+                        <th className="text-left p-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SEO_ENDPOINTS.map((e) => {
+                        const s = endpointStatuses[e.path];
+                        return (
+                          <tr key={e.path} className="border-t">
+                            <td className="p-2 font-mono">{e.path}</td>
+                            <td className="p-2">
+                              {s.status === "ok"      && <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Reachable</Badge>}
+                              {s.status === "warn"    && <Badge variant="secondary"><AlertTriangle className="w-3 h-3 mr-1" />Empty</Badge>}
+                              {s.status === "error"   && <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />{s.error || "Error"}</Badge>}
+                              {s.status === "unknown" && <Badge variant="outline">Pending…</Badge>}
+                            </td>
+                            <td className="p-2">{s.httpCode ?? "—"}</td>
+                            <td className="p-2">{s.urlCount ?? "—"}</td>
+                            <td className="p-2 truncate max-w-[180px]" title={s.contentType}>{s.contentType || "—"}</td>
+                            <td className="p-2 text-muted-foreground">{s.lastChecked ? s.lastChecked.toLocaleTimeString() : "—"}</td>
+                            <td className="p-2">
+                              <div className="flex gap-1">
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => downloadEndpoint(e)}>
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                                <a href={`${ORIGIN}${e.path}`} target="_blank" rel="noreferrer">
+                                  <Button size="sm" variant="ghost" className="h-7 px-2"><ExternalLink className="w-3 h-3" /></Button>
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="grid gap-2 md:grid-cols-2 mt-4">
+                  <div>
+                    <Button size="sm" variant="outline" onClick={loadRobots}>Inspect /robots.txt</Button>
+                    {robotsContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto mt-2">{robotsContent}</pre>}
+                  </div>
+                  <div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => loadSitemap(false)}>Inspect /sitemap.xml</Button>
+                      <Button size="sm" variant="outline" onClick={() => loadSitemap(true)}>Edge (dynamic)</Button>
+                    </div>
+                    {sitemapContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto mt-2">{sitemapContent}</pre>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* === SCHEMA VALIDATOR === */}
