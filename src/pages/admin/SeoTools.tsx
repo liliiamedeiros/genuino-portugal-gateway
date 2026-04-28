@@ -1476,10 +1476,23 @@ export default function SeoTools() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button onClick={runCanonicalReport} disabled={canonicalLoading}>
-                  {canonicalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Run canonical & hreflang report
-                </Button>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Button onClick={runCanonicalReportWithMeta} disabled={canonicalLoading}>
+                    {canonicalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Run canonical & hreflang report
+                  </Button>
+                  {canonicalRows.length > 0 && (
+                    <Button variant="outline" onClick={copyPermalink}>
+                      {permalinkCopied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Share2 className="w-4 h-4 mr-2" />}
+                      {permalinkCopied ? "Permalink copied!" : "Copy shareable permalink"}
+                    </Button>
+                  )}
+                  {canonicalReportMeta && (
+                    <span className="text-xs text-muted-foreground">
+                      Ran {new Date(canonicalReportMeta.ranAt).toLocaleString()} · env <code>{canonicalReportMeta.env}</code>
+                    </span>
+                  )}
+                </div>
                 {canonicalScanned > 0 && (
                   <div className="flex gap-3 text-sm flex-wrap">
                     <Badge variant="outline">{canonicalScanned} URLs scanned</Badge>
