@@ -70,6 +70,10 @@ interface CanonicalRow {
   duplicates: string[];
   status: "ok" | "warn" | "error";
   notes: string[];
+  /** Detected href for hreflang="x-default" */
+  xDefaultHref?: string;
+  /** Issue with x-default (missing / mismatch with PT fallback) */
+  xDefaultIssue?: string;
 }
 
 interface VisibilityCheck {
