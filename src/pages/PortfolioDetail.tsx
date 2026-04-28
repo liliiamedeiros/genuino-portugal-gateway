@@ -11,6 +11,8 @@ import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
 import { ImageLightbox } from '@/components/ImageLightbox';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -163,6 +165,17 @@ export default function PortfolioDetail() {
     <>
       <Navbar />
       <div className="min-h-screen pt-20">
+        {(() => {
+          const title = (project as any)[`title_${language}`] || project.title_pt;
+          const desc = (project as any)[`description_${language}`] || project.description_pt;
+          const plain = typeof desc === 'string' ? desc.replace(/<[^>]+>/g, '').slice(0, 160) : '';
+          return (
+            <>
+              <SEOHead title={title} url={`/portfolio/${project.id}`} description={plain} image={project.main_image || undefined} type="article" />
+              <BreadcrumbJsonLd current={title} />
+            </>
+          );
+        })()}
         {project.json_ld && (
           <Helmet>
             <script type="application/ld+json">

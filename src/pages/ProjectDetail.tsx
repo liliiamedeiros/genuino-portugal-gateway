@@ -10,6 +10,9 @@ import { toast } from 'sonner';
 import { PropertyImageCarousel } from '@/components/PropertyImageCarousel';
 import { ImageLightbox } from '@/components/ImageLightbox';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
+import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -153,6 +156,26 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen pt-20">
+      {(() => {
+        const title = (project as any)[`title_${language}`] || project.title_pt;
+        const desc = (project as any)[`description_${language}`] || project.description_pt;
+        const plain = typeof desc === 'string' ? desc.replace(/<[^>]+>/g, '').slice(0, 160) : '';
+        return (
+          <SEOHead
+            title={title}
+            url={`/project/${project.id}`}
+            description={plain}
+            image={project.main_image || undefined}
+            type="product"
+          />
+        );
+      })()}
+      <BreadcrumbJsonLd current={(project as any)[`title_${language}`] || project.title_pt} />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(generatePropertyJsonLd(project as any, language))}
+        </script>
+      </Helmet>
       {project.json_ld && (
         <Helmet>
           <script type="application/ld+json">

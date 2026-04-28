@@ -1,10 +1,14 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 
 export default function Disputes() {
   const { t } = useLanguage();
 
   return (
     <div className="min-h-screen pt-20">
+      <SEOHead title={t('footer.disputes')} url="/disputes" description="Résolution des litiges — GenuinoInvestments Switzerland." />
+      <BreadcrumbJsonLd />
       <section className="py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <h1 className="text-5xl font-serif font-bold mb-8 animate-fade-in">
