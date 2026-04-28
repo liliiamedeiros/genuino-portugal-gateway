@@ -515,11 +515,12 @@ export default function SeoTools() {
         </div>
 
         <Tabs defaultValue="bot">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="bot"><Bot className="w-4 h-4 mr-2" />Bot View / URLs</TabsTrigger>
             <TabsTrigger value="schema"><FileJson className="w-4 h-4 mr-2" />JSON-LD Validator</TabsTrigger>
             <TabsTrigger value="hreflang"><Languages className="w-4 h-4 mr-2" />Hreflang Reciprocity</TabsTrigger>
             <TabsTrigger value="links"><Link2 className="w-4 h-4 mr-2" />Internal Links</TabsTrigger>
+            <TabsTrigger value="public"><ShieldCheck className="w-4 h-4 mr-2" />Verify Public Build</TabsTrigger>
           </TabsList>
 
           {/* === BOT VIEW === */}
