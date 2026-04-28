@@ -1332,6 +1332,42 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          environment: string | null
+          id: string
+          label: string | null
+          language: string | null
+          payload: Json
+          route: string | null
+          snapshot_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string | null
+          id?: string
+          label?: string | null
+          language?: string | null
+          payload?: Json
+          route?: string | null
+          snapshot_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string | null
+          id?: string
+          label?: string | null
+          language?: string | null
+          payload?: Json
+          route?: string | null
+          snapshot_type?: string
+        }
+        Relationships: []
+      }
       seo_stages: {
         Row: {
           created_at: string

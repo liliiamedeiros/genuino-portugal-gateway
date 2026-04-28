@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity, Share2, Copy, Check, GitCompare, Gauge } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2, FileJson, Languages, Download, FileText, ShieldCheck, Globe, MapPinned, Activity, Share2, Copy, Check, GitCompare, Gauge, Camera, Database, Mail, Filter, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
@@ -924,6 +924,107 @@ export default function SeoTools() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // === ROUTE-LEVEL FILTERS for the canonical & hreflang report ===
+  const [filterPath, setFilterPath] = useState("");
+  const [filterLang, setFilterLang] = useState<"all" | Lang>("all");
+  const [filterIssuesOnly, setFilterIssuesOnly] = useState(false);
+  const filteredCanonicalRows = canonicalRows.filter((r) => {
+    if (filterIssuesOnly && r.status === "ok") return false;
+    if (filterLang !== "all" && r.lang !== filterLang) return false;
+    if (filterPath && !r.route.toLowerCase().includes(filterPath.toLowerCase())) return false;
+    return true;
+  });
+
+  // === ROUTE SCREENSHOT PROOF (per row, base64 stored in component state) ===
+  type ShotState = { loading: boolean; b64?: string; kind?: "png" | "svg"; error?: string };
+  const [routeShots, setRouteShots] = useState<Record<string, ShotState>>({});
+  const captureRouteScreenshot = async (route: string, lang: Lang) => {
+    const key = `${route}|${lang}`;
+    setRouteShots((s) => ({ ...s, [key]: { loading: true } }));
+    try {
+      const url = `${BASE_URL}${route}?lang=${lang}`;
+      const { data, error } = await supabase.functions.invoke("seo-route-screenshot", { body: { url } });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || "screenshot failed");
+      setRouteShots((s) => ({ ...s, [key]: { loading: false, b64: data.base64, kind: data.kind } }));
+      // Also persist to seo_snapshots for cross-browser sharing.
+      await (supabase.from("seo_snapshots") as any).insert({
+        snapshot_type: "route_screenshot",
+        label: `${route} (${lang})`,
+        environment: BASE_URL,
+        route,
+        language: lang,
+        payload: { kind: data.kind, base64: data.base64, head: data.head, url },
+      });
+    } catch (e: any) {
+      setRouteShots((s) => ({ ...s, [key]: { loading: false, error: e.message || String(e) } }));
+    }
+  };
+
+  // === SHARED SNAPSHOTS (saved to seo_snapshots) ===
+  type Snapshot = {
+    id: string; snapshot_type: string; label: string | null;
+    environment: string | null; route: string | null; language: string | null;
+    payload: any; created_at: string;
+  };
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [snapshotsLoading, setSnapshotsLoading] = useState(false);
+  const [snapshotTypeFilter, setSnapshotTypeFilter] = useState<string>("all");
+
+  const loadSnapshots = async () => {
+    setSnapshotsLoading(true);
+    let q: any = (supabase.from("seo_snapshots") as any).select("*").order("created_at", { ascending: false }).limit(100);
+    if (snapshotTypeFilter !== "all") q = q.eq("snapshot_type", snapshotTypeFilter);
+    const { data } = await q;
+    setSnapshots((data as any) || []);
+    setSnapshotsLoading(false);
+  };
+  useEffect(() => { loadSnapshots(); /* eslint-disable-next-line */ }, [snapshotTypeFilter]);
+
+  const saveCanonicalReportToDb = async () => {
+    await (supabase.from("seo_snapshots") as any).insert({
+      snapshot_type: "canonical_report",
+      label: `Canonical report ${new Date().toLocaleString()}`,
+      environment: ORIGIN,
+      payload: {
+        ranAt: canonicalReportMeta?.ranAt || new Date().toISOString(),
+        rows: canonicalRows,
+      },
+    });
+    await loadSnapshots();
+  };
+
+  const restoreSnapshot = (s: Snapshot) => {
+    if (s.snapshot_type === "canonical_report" && Array.isArray(s.payload?.rows)) {
+      setCanonicalRows(s.payload.rows);
+      setCanonicalScanned(s.payload.rows.length);
+      setCanonicalReportMeta({ ranAt: s.payload.ranAt || s.created_at, env: s.environment || "" });
+    }
+  };
+
+  const deleteSnapshot = async (id: string) => {
+    await (supabase.from("seo_snapshots") as any).delete().eq("id", id);
+    await loadSnapshots();
+  };
+
+  // === Manually trigger the daily check (also runs by cron at 07:00 UTC) ===
+  const [dailyRunning, setDailyRunning] = useState(false);
+  const [dailyResult, setDailyResult] = useState<any>(null);
+  const runDailyCheckNow = async () => {
+    setDailyRunning(true);
+    setDailyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("seo-daily-check");
+      if (error) throw error;
+      setDailyResult(data);
+      await loadSnapshots();
+    } catch (e: any) {
+      setDailyResult({ error: e.message });
+    } finally {
+      setDailyRunning(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -956,7 +1057,28 @@ export default function SeoTools() {
                   <Badge variant="destructive">{visibilityChecks.filter(c => c.level === "error").length} fail</Badge>
                 </>
               )}
+              <div className="ml-auto flex items-center gap-2">
+                <Button variant="outline" onClick={runDailyCheckNow} disabled={dailyRunning}>
+                  {dailyRunning ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                  Run daily check + email now
+                </Button>
+              </div>
             </div>
+            {dailyResult && (
+              <div className="text-xs border rounded p-2 bg-muted/40">
+                {dailyResult.error
+                  ? <span className="text-destructive">Error: {dailyResult.error}</span>
+                  : <>
+                      Checks: <b>{dailyResult.checks_count}</b> ·
+                      Sitemap diff: +{dailyResult.diff?.added} / -{dailyResult.diff?.removed} ·
+                      Emails sent: <b>{dailyResult.emails_sent}/{dailyResult.emails_attempted}</b>
+                      {dailyResult.email_error && <span className="text-destructive"> · {dailyResult.email_error}</span>}
+                    </>}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              An automated daily run is scheduled at <b>07:00 UTC</b> and emails the summary to all admins.
+            </p>
 
             {coverage ? (
               <div className="border rounded p-4 space-y-3">
@@ -1012,7 +1134,7 @@ export default function SeoTools() {
         </Card>
 
         <Tabs defaultValue="bot">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="bot"><Bot className="w-4 h-4 mr-2" />Bot View / URLs</TabsTrigger>
             <TabsTrigger value="schema"><FileJson className="w-4 h-4 mr-2" />JSON-LD Validator</TabsTrigger>
             <TabsTrigger value="hreflang"><Languages className="w-4 h-4 mr-2" />Hreflang Reciprocity</TabsTrigger>
@@ -1020,6 +1142,7 @@ export default function SeoTools() {
             <TabsTrigger value="visibility"><Activity className="w-4 h-4 mr-2" />SEO Visibility Test</TabsTrigger>
             <TabsTrigger value="links"><Link2 className="w-4 h-4 mr-2" />Internal Links</TabsTrigger>
             <TabsTrigger value="public"><ShieldCheck className="w-4 h-4 mr-2" />Verify Public Build</TabsTrigger>
+            <TabsTrigger value="snapshots"><Database className="w-4 h-4 mr-2" />Snapshots</TabsTrigger>
           </TabsList>
 
           {/* === BOT VIEW === */}
@@ -1487,12 +1610,46 @@ export default function SeoTools() {
                       {permalinkCopied ? "Permalink copied!" : "Copy shareable permalink"}
                     </Button>
                   )}
+                  {canonicalRows.length > 0 && (
+                    <Button variant="outline" onClick={saveCanonicalReportToDb}>
+                      <Database className="w-4 h-4 mr-2" /> Save to shared snapshots
+                    </Button>
+                  )}
                   {canonicalReportMeta && (
                     <span className="text-xs text-muted-foreground">
                       Ran {new Date(canonicalReportMeta.ranAt).toLocaleString()} · env <code>{canonicalReportMeta.env}</code>
                     </span>
                   )}
                 </div>
+                {canonicalRows.length > 0 && (
+                  <div className="flex flex-wrap gap-2 items-center border rounded p-2 bg-muted/30">
+                    <Filter className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      value={filterPath}
+                      onChange={(e) => setFilterPath(e.target.value)}
+                      placeholder="Filter by path (e.g. /portfolio)"
+                      className="max-w-xs h-8 text-xs"
+                    />
+                    <Select value={filterLang} onValueChange={(v) => setFilterLang(v as any)}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All languages</SelectItem>
+                        {LANGS.map((l) => <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filterIssuesOnly}
+                        onChange={(e) => setFilterIssuesOnly(e.target.checked)}
+                      />
+                      Show only rows with issues
+                    </label>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      Showing {filteredCanonicalRows.length} of {canonicalRows.length}
+                    </span>
+                  </div>
+                )}
                 {canonicalScanned > 0 && (
                   <div className="flex gap-3 text-sm flex-wrap">
                     <Badge variant="outline">{canonicalScanned} URLs scanned</Badge>
@@ -1543,10 +1700,14 @@ export default function SeoTools() {
                         <th className="text-left p-2">Missing</th>
                         <th className="text-left p-2">Duplicates</th>
                         <th className="text-left p-2">x-default</th>
+                        <th className="text-left p-2">Proof</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {canonicalRows.map((r, i) => (
+                      {filteredCanonicalRows.map((r, i) => {
+                        const shotKey = `${r.route}|${r.lang}`;
+                        const shot = routeShots[shotKey];
+                        return (
                         <tr key={i} className="border-t">
                           <td className="p-2 font-mono">{r.route}</td>
                           <td className="p-2 uppercase">{r.lang}</td>
@@ -1566,8 +1727,35 @@ export default function SeoTools() {
                                 ? <Badge className="bg-green-600">OK</Badge>
                                 : <span className="text-muted-foreground">—</span>}
                           </td>
+                          <td className="p-2">
+                            {shot?.b64 ? (
+                              <a
+                                href={`data:image/${shot.kind === "png" ? "png" : "svg+xml"};base64,${shot.b64}`}
+                                target="_blank" rel="noreferrer"
+                                title="Open proof"
+                              >
+                                <img
+                                  src={`data:image/${shot.kind === "png" ? "png" : "svg+xml"};base64,${shot.b64}`}
+                                  alt={`SEO head proof for ${r.route} (${r.lang})`}
+                                  className="w-16 h-10 object-cover border rounded"
+                                />
+                              </a>
+                            ) : (
+                              <Button
+                                size="sm" variant="ghost" className="h-7 px-2"
+                                disabled={shot?.loading}
+                                onClick={() => captureRouteScreenshot(r.route, r.lang as Lang)}
+                              >
+                                {shot?.loading
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : <Camera className="w-3 h-3" />}
+                              </Button>
+                            )}
+                            {shot?.error && <div className="text-[10px] text-destructive max-w-[120px]">{shot.error}</div>}
+                          </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1631,6 +1819,92 @@ export default function SeoTools() {
                     <CheckCircle2 className="w-4 h-4" /> SEO visibility healthy — robots.txt, sitemaps and key page metadata are valid.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* === SHARED SNAPSHOTS === */}
+          <TabsContent value="snapshots" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Database className="w-5 h-5" /> Shared snapshots</CardTitle>
+                <CardDescription>
+                  Canonical reports, sitemap baselines, visibility tests and route screenshots saved to the database
+                  so the whole team can compare results across browsers and over time.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Select value={snapshotTypeFilter} onValueChange={setSnapshotTypeFilter}>
+                    <SelectTrigger className="w-[220px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All types</SelectItem>
+                      <SelectItem value="canonical_report">Canonical reports</SelectItem>
+                      <SelectItem value="sitemap_baseline">Sitemap baselines</SelectItem>
+                      <SelectItem value="visibility_test">Visibility tests</SelectItem>
+                      <SelectItem value="route_screenshot">Route screenshots</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button size="sm" variant="outline" onClick={loadSnapshots} disabled={snapshotsLoading}>
+                    {snapshotsLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null} Refresh
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-auto">{snapshots.length} snapshots</span>
+                </div>
+                <div className="border rounded max-h-[600px] overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted sticky top-0">
+                      <tr>
+                        <th className="text-left p-2">When</th>
+                        <th className="text-left p-2">Type</th>
+                        <th className="text-left p-2">Label</th>
+                        <th className="text-left p-2">Env</th>
+                        <th className="text-left p-2">Route / Lang</th>
+                        <th className="text-left p-2">Preview</th>
+                        <th className="text-left p-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {snapshots.map((s) => (
+                        <tr key={s.id} className="border-t">
+                          <td className="p-2 whitespace-nowrap">{new Date(s.created_at).toLocaleString()}</td>
+                          <td className="p-2"><Badge variant="outline">{s.snapshot_type}</Badge></td>
+                          <td className="p-2">{s.label || "—"}</td>
+                          <td className="p-2 font-mono truncate max-w-[160px]" title={s.environment || ""}>{s.environment || "—"}</td>
+                          <td className="p-2">{s.route ? `${s.route} / ${s.language || ""}` : "—"}</td>
+                          <td className="p-2">
+                            {s.snapshot_type === "route_screenshot" && s.payload?.base64 ? (
+                              <img
+                                src={`data:image/${s.payload.kind === "png" ? "png" : "svg+xml"};base64,${s.payload.base64}`}
+                                alt="route proof" className="w-20 h-12 object-cover border rounded"
+                              />
+                            ) : s.snapshot_type === "canonical_report" ? (
+                              <span>{s.payload?.rows?.length || 0} rows</span>
+                            ) : s.snapshot_type === "sitemap_baseline" ? (
+                              <span>{s.payload?.locs?.length || 0} URLs</span>
+                            ) : s.snapshot_type === "visibility_test" ? (
+                              <span>{s.payload?.checks?.length || 0} checks · +{s.payload?.diff?.added?.length || 0}/-{s.payload?.diff?.removed?.length || 0}</span>
+                            ) : "—"}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex gap-1">
+                              {s.snapshot_type === "canonical_report" && (
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => restoreSnapshot(s)} title="Load into Canonical tab">
+                                  <Share2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => deleteSnapshot(s.id)} title="Delete">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {snapshots.length === 0 && (
+                        <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">No snapshots yet. Save a canonical report or capture a route screenshot to get started.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
