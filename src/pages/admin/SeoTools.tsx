@@ -757,6 +757,84 @@ export default function SeoTools() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* === VERIFY PUBLIC BUILD === */}
+          <TabsContent value="public" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5" /> Verify Public Build
+                </CardTitle>
+                <CardDescription>
+                  One-click check that the public site loads navigation links and that no 401/403 (RLS) errors block
+                  anonymous visitors from reading menus or settings. Tests the live published URL — not the in-app preview.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2 flex-wrap items-center">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={publicBuildUrl}
+                    onChange={(e) => setPublicBuildUrl(e.target.value)}
+                    placeholder="https://genuinoinvestments.ch"
+                    className="max-w-md"
+                  />
+                  <Button onClick={runPublicBuildVerify} disabled={publicLoading}>
+                    {publicLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+                    Run verification
+                  </Button>
+                </div>
+
+                {publicChecked && (
+                  <div className="flex gap-3 text-sm">
+                    <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                      {publicIssues.filter(i => i.level === "ok").length} OK
+                    </Badge>
+                    <Badge variant="secondary">{publicIssues.filter(i => i.level === "warn").length} warnings</Badge>
+                    <Badge variant="destructive">{publicIssues.filter(i => i.level === "error").length} errors</Badge>
+                  </div>
+                )}
+
+                {publicIssues.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `public-build-${new Date().toISOString().slice(0,10)}.csv`,
+                      publicIssues.map(i => ({ level: i.level, category: i.category, message: i.message, detail: i.detail || "" }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "Public Build Verification",
+                      publicIssues.map(i => ({ level: i.level, category: i.category, message: i.message, detail: i.detail || "" }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
+                  </div>
+                )}
+
+                <div className="space-y-1 max-h-[500px] overflow-auto">
+                  {publicIssues.map((iss, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm border-b py-2">
+                      {iss.level === "error" && <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />}
+                      {iss.level === "warn"  && <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
+                      {iss.level === "ok"    && <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{iss.category}</Badge>
+                          <span className={iss.level === "error" ? "text-destructive font-medium" : ""}>{iss.message}</span>
+                        </div>
+                        {iss.detail && (
+                          <div className="font-mono text-[11px] text-muted-foreground mt-1 truncate">{iss.detail}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {publicChecked && publicIssues.filter(i => i.level === "error").length === 0 && (
+                  <p className="text-green-600 flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4" /> Public build healthy — Navbar links will load for anonymous visitors.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
