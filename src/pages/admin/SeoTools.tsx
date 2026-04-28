@@ -288,6 +288,92 @@ export default function SeoTools() {
     } catch (e: any) { setSitemapContent("Error: " + e.message); }
   };
 
+  // === LIVE STATUS BADGES for sitemaps + robots.txt ===
+  type EndpointStatus = {
+    path: string;
+    label: string;
+    status: "ok" | "warn" | "error" | "unknown";
+    httpCode?: number;
+    urlCount?: number;
+    contentType?: string;
+    lastChecked?: Date;
+    error?: string;
+  };
+  const SEO_ENDPOINTS: { path: string; label: string; isXml: boolean }[] = [
+    { path: "/robots.txt",        label: "robots.txt",        isXml: false },
+    { path: "/sitemap-index.xml", label: "sitemap-index.xml", isXml: true },
+    { path: "/sitemap.xml",       label: "sitemap.xml",       isXml: true },
+    { path: "/sitemap-pt.xml",    label: "sitemap-pt.xml",    isXml: true },
+    { path: "/sitemap-en.xml",    label: "sitemap-en.xml",    isXml: true },
+    { path: "/sitemap-fr.xml",    label: "sitemap-fr.xml",    isXml: true },
+    { path: "/sitemap-de.xml",    label: "sitemap-de.xml",    isXml: true },
+  ];
+  const [endpointStatuses, setEndpointStatuses] = useState<Record<string, EndpointStatus>>(
+    () => Object.fromEntries(SEO_ENDPOINTS.map(e => [e.path, { path: e.path, label: e.label, status: "unknown" }]))
+  );
+  const [endpointPolling, setEndpointPolling] = useState(false);
+
+  const pingEndpoint = async (e: { path: string; label: string; isXml: boolean }): Promise<EndpointStatus> => {
+    try {
+      const r = await fetch(`${ORIGIN}${e.path}`, { cache: "no-store" });
+      const ct = r.headers.get("content-type") || "";
+      const body = await r.text();
+      const httpCode = r.status;
+      if (httpCode !== 200) {
+        return { path: e.path, label: e.label, status: "error", httpCode, contentType: ct, lastChecked: new Date(), error: `HTTP ${httpCode}` };
+      }
+      if (e.isXml) {
+        const looksXml = body.trim().startsWith("<?xml") || body.includes("<urlset") || body.includes("<sitemapindex");
+        if (!looksXml) {
+          return { path: e.path, label: e.label, status: "error", httpCode, contentType: ct, lastChecked: new Date(), error: "Returned HTML instead of XML" };
+        }
+        const urlCount = (body.match(/<loc>/g) || []).length;
+        return { path: e.path, label: e.label, status: urlCount > 0 ? "ok" : "warn", httpCode, urlCount, contentType: ct, lastChecked: new Date() };
+      }
+      return { path: e.path, label: e.label, status: "ok", httpCode, contentType: ct, lastChecked: new Date() };
+    } catch (err: any) {
+      return { path: e.path, label: e.label, status: "error", lastChecked: new Date(), error: err.message || String(err) };
+    }
+  };
+
+  const refreshAllEndpoints = async () => {
+    setEndpointPolling(true);
+    const results = await Promise.all(SEO_ENDPOINTS.map(pingEndpoint));
+    setEndpointStatuses(Object.fromEntries(results.map(r => [r.path, r])));
+    setEndpointPolling(false);
+  };
+
+  // Auto-ping on mount and every 60s while the SEO Tools page is open.
+  useEffect(() => {
+    refreshAllEndpoints();
+    const id = setInterval(refreshAllEndpoints, 60_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Download a single endpoint's body as a local file. */
+  const downloadEndpoint = async (e: { path: string; label: string }) => {
+    try {
+      const r = await fetch(`${ORIGIN}${e.path}`, { cache: "no-store" });
+      const body = await r.text();
+      const blob = new Blob([body], { type: e.path.endsWith(".xml") ? "application/xml" : "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = e.label;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Download failed", err);
+    }
+  };
+
+  /** Download all sitemap files at once (no robots.txt). */
+  const downloadAllSitemaps = async () => {
+    for (const e of SEO_ENDPOINTS.filter(x => x.path.endsWith(".xml"))) {
+      await downloadEndpoint(e);
+    }
+  };
+
   // === JSON-LD validator tab ===
   const [schemaIssues, setSchemaIssues] = useState<SchemaIssue[]>([]);
   const [schemaScans, setSchemaScans] = useState(0);
