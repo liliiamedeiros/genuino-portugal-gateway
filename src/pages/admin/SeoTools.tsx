@@ -1047,6 +1047,8 @@ export default function SeoTools() {
                         hreflang_count: r.hreflangs.length,
                         missing: r.missing.join("|"),
                         duplicates: r.duplicates.join("|"),
+                        x_default_href: r.xDefaultHref || "",
+                        x_default_issue: r.xDefaultIssue || "",
                         notes: r.notes.join("; "),
                       }))
                     )}><Download className="w-4 h-4 mr-1" />CSV</Button>
@@ -1057,6 +1059,7 @@ export default function SeoTools() {
                         canonical: r.canonical || "—",
                         missing: r.missing.join("|") || "—",
                         duplicates: r.duplicates.join("|") || "—",
+                        x_default: r.xDefaultIssue || (r.xDefaultHref ? "OK" : "—"),
                       }))
                     )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
                   </div>
@@ -1072,6 +1075,7 @@ export default function SeoTools() {
                         <th className="text-left p-2">Hreflang ({LANGS.join("/")})</th>
                         <th className="text-left p-2">Missing</th>
                         <th className="text-left p-2">Duplicates</th>
+                        <th className="text-left p-2">x-default</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1088,6 +1092,13 @@ export default function SeoTools() {
                           <td className="p-2">{r.hreflangs.length}</td>
                           <td className="p-2 text-destructive">{r.missing.join(", ") || "—"}</td>
                           <td className="p-2 text-yellow-600">{r.duplicates.join(", ") || "—"}</td>
+                          <td className="p-2 text-xs">
+                            {r.xDefaultIssue
+                              ? <span className="text-destructive">{r.xDefaultIssue}</span>
+                              : r.xDefaultHref
+                                ? <Badge className="bg-green-600">OK</Badge>
+                                : <span className="text-muted-foreground">—</span>}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
