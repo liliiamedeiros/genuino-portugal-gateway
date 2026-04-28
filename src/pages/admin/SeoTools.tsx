@@ -988,6 +988,152 @@ export default function SeoTools() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* === CANONICAL & HREFLANG REPORT === */}
+          <TabsContent value="canonical" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><MapPinned className="w-5 h-5" /> Canonical & hreflang report</CardTitle>
+                <CardDescription>
+                  Lists every public route × language with its declared canonical URL and hreflang tags.
+                  Flags missing canonical, missing hreflang languages, and duplicate declarations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={runCanonicalReport} disabled={canonicalLoading}>
+                  {canonicalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Run canonical & hreflang report
+                </Button>
+                {canonicalScanned > 0 && (
+                  <div className="flex gap-3 text-sm flex-wrap">
+                    <Badge variant="outline">{canonicalScanned} URLs scanned</Badge>
+                    <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                      {canonicalRows.filter(r => r.status === "ok").length} OK
+                    </Badge>
+                    <Badge variant="secondary">{canonicalRows.filter(r => r.status === "warn").length} warnings</Badge>
+                    <Badge variant="destructive">{canonicalRows.filter(r => r.status === "error").length} errors</Badge>
+                  </div>
+                )}
+                {canonicalRows.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `canonical-hreflang-${new Date().toISOString().slice(0,10)}.csv`,
+                      canonicalRows.map(r => ({
+                        route: r.route, lang: r.lang, status: r.status,
+                        canonical: r.canonical || "",
+                        expected_canonical: r.expectedCanonical,
+                        hreflang_count: r.hreflangs.length,
+                        missing: r.missing.join("|"),
+                        duplicates: r.duplicates.join("|"),
+                        notes: r.notes.join("; "),
+                      }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "Canonical & Hreflang Report",
+                      canonicalRows.map(r => ({
+                        route: r.route, lang: r.lang, status: r.status,
+                        canonical: r.canonical || "—",
+                        missing: r.missing.join("|") || "—",
+                        duplicates: r.duplicates.join("|") || "—",
+                      }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
+                  </div>
+                )}
+                <div className="overflow-auto max-h-[500px] border rounded">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted sticky top-0">
+                      <tr>
+                        <th className="text-left p-2">Route</th>
+                        <th className="text-left p-2">Lang</th>
+                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">Canonical</th>
+                        <th className="text-left p-2">Hreflang ({LANGS.join("/")})</th>
+                        <th className="text-left p-2">Missing</th>
+                        <th className="text-left p-2">Duplicates</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {canonicalRows.map((r, i) => (
+                        <tr key={i} className="border-t">
+                          <td className="p-2 font-mono">{r.route}</td>
+                          <td className="p-2 uppercase">{r.lang}</td>
+                          <td className="p-2">
+                            {r.status === "ok" && <Badge className="bg-green-600">OK</Badge>}
+                            {r.status === "warn" && <Badge variant="secondary">WARN</Badge>}
+                            {r.status === "error" && <Badge variant="destructive">ERROR</Badge>}
+                          </td>
+                          <td className="p-2 font-mono break-all">{r.canonical || <span className="text-destructive">—</span>}</td>
+                          <td className="p-2">{r.hreflangs.length}</td>
+                          <td className="p-2 text-destructive">{r.missing.join(", ") || "—"}</td>
+                          <td className="p-2 text-yellow-600">{r.duplicates.join(", ") || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* === SEO VISIBILITY TEST === */}
+          <TabsContent value="visibility" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Activity className="w-5 h-5" /> Run SEO Visibility Test</CardTitle>
+                <CardDescription>
+                  One-click check that robots.txt, sitemap-index.xml and per-language sitemaps return valid XML,
+                  and that key pages (/, /about, /portfolio, /contact) expose title, description, canonical and hreflang for every language.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={runVisibilityTest} disabled={visibilityLoading}>
+                  {visibilityLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
+                  Run SEO visibility test
+                </Button>
+                {visibilityRan && (
+                  <div className="flex gap-3 text-sm flex-wrap">
+                    <Badge className="bg-green-600">{visibilityChecks.filter(c => c.level === "ok").length} OK</Badge>
+                    <Badge variant="secondary">{visibilityChecks.filter(c => c.level === "warn").length} warnings</Badge>
+                    <Badge variant="destructive">{visibilityChecks.filter(c => c.level === "error").length} errors</Badge>
+                  </div>
+                )}
+                {visibilityChecks.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => downloadCsv(
+                      `seo-visibility-${new Date().toISOString().slice(0,10)}.csv`,
+                      visibilityChecks.map(c => ({ level: c.level, category: c.category, url: c.url || "", message: c.message, detail: c.detail || "" }))
+                    )}><Download className="w-4 h-4 mr-1" />CSV</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(
+                      "SEO Visibility Test",
+                      visibilityChecks.map(c => ({ level: c.level, category: c.category, url: c.url || "", message: c.message }))
+                    )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
+                  </div>
+                )}
+                <div className="space-y-1 max-h-[500px] overflow-auto">
+                  {visibilityChecks.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm border-b py-2">
+                      {c.level === "error" && <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />}
+                      {c.level === "warn"  && <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
+                      {c.level === "ok"    && <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline">{c.category}</Badge>
+                          <span className={c.level === "error" ? "text-destructive font-medium" : ""}>{c.message}</span>
+                        </div>
+                        {c.url && <div className="font-mono text-[11px] text-muted-foreground mt-1 truncate">{c.url}</div>}
+                        {c.detail && <div className="text-[11px] text-muted-foreground mt-0.5">{c.detail}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {visibilityRan && visibilityChecks.filter(c => c.level === "error").length === 0 && (
+                  <p className="text-green-600 flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4" /> SEO visibility healthy — robots.txt, sitemaps and key page metadata are valid.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
