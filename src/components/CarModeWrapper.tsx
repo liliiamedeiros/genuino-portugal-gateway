@@ -117,10 +117,10 @@ export const CarModeWrapper = ({ children }: CarModeWrapperProps) => {
             <Map className="h-8 w-8 text-primary shrink-0" />
             <div>
               <p className="text-car-lg font-bold">Genuíno Investments</p>
-              <p className="text-lg text-muted-foreground">Geneva, Switzerland</p>
+              <p className="text-lg text-muted-foreground">Quai du Cheval Blanc 2, 1227 Carouge/Genève</p>
             </div>
           </div>
-          <p className="text-car-xl font-bold text-primary">+41 78 487 60 00</p>
+          <p className="text-car-xl font-bold text-primary">+41 76 487 60 00</p>
         </div>
       </nav>
 

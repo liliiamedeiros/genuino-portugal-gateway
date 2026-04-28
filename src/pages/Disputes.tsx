@@ -42,7 +42,8 @@ export default function Disputes() {
               <p>
                 Pour toute question concernant la résolution des litiges :<br />
                 <strong>Email :</strong> info@genuinoinvestments.ch<br />
-                <strong>Téléphone :</strong> +41 78 487 60 00
+                <strong>Téléphone Suisse :</strong> +41 76 487 60 00<br />
+                <strong>Téléphone Portugal :</strong> +351 21 7 580673
               </p>
             </section>
           </div>

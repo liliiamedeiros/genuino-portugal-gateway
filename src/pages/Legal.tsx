@@ -20,9 +20,11 @@ export default function Legal() {
               <h2 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-serif font-semibold mb-3 sm:mb-4 3xl:mb-6">1. Informations légales</h2>
               <p className="text-base sm:text-lg 3xl:text-xl 4xl:text-2xl leading-relaxed">
                 <strong>Raison sociale :</strong> Genuíno Investments<br />
-                <strong>Adresse :</strong> Geneva, Switzerland<br />
+                <strong>Siège (Suisse) :</strong> Quai du Cheval Blanc 2, 1227 Carouge/Genève<br />
+                <strong>Bureau (Portugal) :</strong> Rua António Stromp 12 A, 1600-411 Lumiar, Lisboa<br />
                 <strong>Email :</strong> info@genuinoinvestments.ch<br />
-                <strong>Téléphone :</strong> +41 78 487 60 00
+                <strong>Téléphone Suisse :</strong> +41 76 487 60 00<br />
+                <strong>Téléphone Portugal :</strong> +351 21 7 580673
               </p>
             </section>
 
