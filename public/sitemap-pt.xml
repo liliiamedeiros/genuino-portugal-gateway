@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://genuinoinvestments.ch</loc>
+    <loc>https://genuinoinvestments.ch?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -13,7 +13,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/about</loc>
+    <loc>https://genuinoinvestments.ch/about?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -24,7 +24,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/about"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/services</loc>
+    <loc>https://genuinoinvestments.ch/services?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -35,7 +35,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/services"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/portfolio</loc>
+    <loc>https://genuinoinvestments.ch/portfolio?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -46,7 +46,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/portfolio"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/properties</loc>
+    <loc>https://genuinoinvestments.ch/properties?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -57,7 +57,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/properties"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/vision</loc>
+    <loc>https://genuinoinvestments.ch/vision?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -68,7 +68,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/vision"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/investors</loc>
+    <loc>https://genuinoinvestments.ch/investors?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -79,7 +79,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/investors"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/contact</loc>
+    <loc>https://genuinoinvestments.ch/contact?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -90,7 +90,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/contact"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/legal</loc>
+    <loc>https://genuinoinvestments.ch/legal?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -101,7 +101,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/legal"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/privacy</loc>
+    <loc>https://genuinoinvestments.ch/privacy?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -112,7 +112,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/privacy"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/disputes</loc>
+    <loc>https://genuinoinvestments.ch/disputes?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -123,7 +123,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/disputes"/>
   </url>
   <url>
-    <loc>https://genuinoinvestments.ch/install</loc>
+    <loc>https://genuinoinvestments.ch/install?lang=pt</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
