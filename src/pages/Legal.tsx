@@ -1,10 +1,14 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 
 export default function Legal() {
   const { t } = useLanguage();
 
   return (
     <div className="min-h-screen pt-20">
+      <SEOHead title={t('footer.legal')} url="/legal" description="Mentions légales — GenuinoInvestments Switzerland." />
+      <BreadcrumbJsonLd />
       <section className="py-16 sm:py-20 3xl:py-28 4xl:py-36">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16 max-w-4xl 3xl:max-w-5xl">
           <h1 className="text-4xl sm:text-5xl 3xl:text-6xl 4xl:text-7xl font-serif font-bold mb-6 sm:mb-8 3xl:mb-10 animate-fade-in">
