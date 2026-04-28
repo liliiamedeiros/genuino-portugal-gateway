@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+type LangMap = Partial<Record<'pt' | 'en' | 'fr' | 'de', string>>;
+
 interface SEOHeadProps {
-  title?: string;
-  description?: string;
-  keywords?: string;
+  title?: string | LangMap;
+  description?: string | LangMap;
+  keywords?: string | LangMap;
   image?: string;
   url?: string;
   type?: string;
@@ -24,10 +26,29 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
   
   const baseUrl = 'https://genuinoinvestments.ch';
   const defaultImage = `${baseUrl}/og-image.jpg`;
-  
-  const fullTitle = title 
-    ? `${title} | GenuinoInvestments Switzerland` 
+
+  const pickLang = (val?: string | LangMap): string | undefined => {
+    if (!val) return undefined;
+    if (typeof val === 'string') return val;
+    return val[language] || val.pt || val.en || val.fr || val.de;
+  };
+
+  const resolvedTitle = pickLang(title);
+  const resolvedDescription = pickLang(description);
+  const resolvedKeywords = pickLang(keywords);
+
+  const defaultDescriptions: Record<string, string> = {
+    pt: 'Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo.',
+    en: 'Luxury real estate investments in Portugal and Switzerland. Exclusive holiday, beach and countryside properties.',
+    fr: 'Investissements immobiliers de luxe au Portugal et en Suisse. Propriétés exclusives pour vacances, plage et campagne.',
+    de: 'Luxuriöse Immobilieninvestitionen in Portugal und der Schweiz. Exklusive Ferien-, Strand- und Landimmobilien.',
+  };
+
+  const fullTitle = resolvedTitle 
+    ? `${resolvedTitle} | GenuinoInvestments Switzerland` 
     : 'GenuinoInvestments Switzerland | Investissements Immobiliers Portugal & Suisse';
+
+  const finalDescription = resolvedDescription || defaultDescriptions[language] || defaultDescriptions.pt;
   
   const pagePath = url || '';
   const fullUrl = `${baseUrl}${pagePath}`;
@@ -42,8 +63,8 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
     <Helmet>
       <html lang={language} />
       <title>{fullTitle}</title>
-      <meta name="description" content={description || 'Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo.'} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      <meta name="description" content={finalDescription} />
+      {resolvedKeywords && <meta name="keywords" content={resolvedKeywords} />}
       <meta httpEquiv="content-language" content={language} />
       <link rel="canonical" href={fullUrl} />
       
@@ -55,7 +76,7 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
       
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description || 'Investimentos imobiliários de luxo em Portugal e Suíça'} />
+      <meta property="og:description" content={finalDescription} />
       <meta property="og:url" content={fullUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={image || defaultImage} />
@@ -66,7 +87,7 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
       
       {/* Twitter */}
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description || 'Investimentos imobiliários de luxo em Portugal e Suíça'} />
+      <meta name="twitter:description" content={finalDescription} />
       <meta name="twitter:image" content={image || defaultImage} />
     </Helmet>
   );
