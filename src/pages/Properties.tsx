@@ -109,6 +109,8 @@ export default function Properties() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Imóveis" url="/properties" description="Propriedades exclusivas em Portugal e Suíça — apartamentos, moradias e villas de luxo." />
+      <BreadcrumbJsonLd />
       <Navbar />
       
       <main className="flex-1">
