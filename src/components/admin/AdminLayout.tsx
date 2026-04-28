@@ -100,6 +100,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         { icon: Sliders, label: 'Configuração', path: '/admin/seo/config' },
         { icon: Globe, label: 'GEO (IA)', path: '/admin/seo/geo' },
         { icon: History, label: 'Histórico', path: '/admin/seo/history' },
+        { icon: CheckCircle, label: 'SEO Tools', path: '/admin/seo/tools' },
       ]
     },
     { icon: ImageIcon, label: 'Conversor de Imagens', path: '/admin/image-converter', adminOnly: true },
