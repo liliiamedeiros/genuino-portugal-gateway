@@ -104,12 +104,18 @@ export default function SeoDebug() {
       </Helmet>
       <div className="min-h-screen bg-background pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Hreflang &amp; Canonical Debug</h1>
-            <p className="text-muted-foreground text-sm">
-              Live view of the SEO tags rendered into <code>&lt;head&gt;</code> for the current page and language.
-              This page is set to <code>noindex</code>.
-            </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-3xl font-bold">Hreflang &amp; Canonical Debug</h1>
+              <p className="text-muted-foreground text-sm">
+                Live view of the SEO tags rendered into <code>&lt;head&gt;</code> for the current page and language.
+                This page is set to <code>noindex</code>.
+              </p>
+            </div>
+            <Button onClick={copySnapshot} variant="outline" size="sm">
+              {copied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Copy className="w-4 h-4 mr-2" />}
+              {copied ? "Copied!" : "Copy JSON snapshot"}
+            </Button>
           </div>
 
           <Card>
