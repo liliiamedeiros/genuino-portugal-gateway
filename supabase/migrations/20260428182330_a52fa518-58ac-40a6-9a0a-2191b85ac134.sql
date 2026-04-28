@@ -1,0 +1,1 @@
+UPDATE public.navigation_menus SET is_active = false WHERE menu_type = 'main' AND path = '/';
