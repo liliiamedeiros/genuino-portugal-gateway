@@ -765,6 +765,165 @@ export default function SeoTools() {
     setVisibilityLoading(false);
   };
 
+  // === HREFLANG COVERAGE SCORE (derived from canonicalRows) ===
+  // Computes per-language completeness for every route audited by the
+  // Canonical & hreflang report. A language is "complete" on a route when:
+  //   - the page is reachable
+  //   - the page declares hreflang for ALL 4 languages
+  //   - x-default is present and resolves to the PT fallback
+  //   - canonical is present on the BASE_URL host
+  const coverage = (() => {
+    if (canonicalRows.length === 0) return null;
+    const perLang: Record<Lang, { total: number; complete: number; missing: string[] }> = {
+      pt: { total: 0, complete: 0, missing: [] },
+      en: { total: 0, complete: 0, missing: [] },
+      fr: { total: 0, complete: 0, missing: [] },
+      de: { total: 0, complete: 0, missing: [] },
+    };
+    for (const r of canonicalRows) {
+      const slot = perLang[r.lang];
+      slot.total++;
+      const ok = r.status === "ok" && r.missing.length === 0 && !r.xDefaultIssue && !!r.canonical;
+      if (ok) slot.complete++;
+      else {
+        const reasons: string[] = [];
+        if (!r.canonical) reasons.push("no canonical");
+        if (r.missing.length > 0) reasons.push(`missing ${r.missing.join("/")}`);
+        if (r.xDefaultIssue) reasons.push("x-default issue");
+        slot.missing.push(`${r.route} (${reasons.join(", ") || "issues"})`);
+      }
+    }
+    const totals = Object.values(perLang).reduce(
+      (acc, v) => ({ total: acc.total + v.total, complete: acc.complete + v.complete }),
+      { total: 0, complete: 0 },
+    );
+    const score = totals.total === 0 ? 0 : Math.round((totals.complete / totals.total) * 100);
+    return { perLang, score, totals };
+  })();
+
+  // === SITEMAP DIFF (compares latest sitemap-index.xml against previous saved one) ===
+  const SITEMAP_DIFF_KEY = "seo-tools.sitemap-snapshot";
+  type SitemapDiff = {
+    previousAt?: string;
+    currentAt: string;
+    added: string[];
+    removed: string[];
+    unchangedCount: number;
+  };
+  const [sitemapDiff, setSitemapDiff] = useState<SitemapDiff | null>(null);
+  const [sitemapDiffLoading, setSitemapDiffLoading] = useState(false);
+
+  const extractLocs = (xml: string): string[] => {
+    const matches = xml.match(/<loc>([^<]+)<\/loc>/g) || [];
+    return matches.map(m => m.replace(/<\/?loc>/g, "").trim());
+  };
+
+  const runSitemapDiff = async () => {
+    setSitemapDiffLoading(true);
+    try {
+      // Aggregate every per-language sitemap so the diff covers the full URL set.
+      const sitemaps = ["/sitemap-pt.xml", "/sitemap-en.xml", "/sitemap-fr.xml", "/sitemap-de.xml"];
+      const allLocs: string[] = [];
+      for (const sm of sitemaps) {
+        try {
+          const r = await fetch(`${ORIGIN}${sm}`, { cache: "no-store" });
+          if (r.status === 200) allLocs.push(...extractLocs(await r.text()));
+        } catch {/* ignore */}
+      }
+      const current = Array.from(new Set(allLocs)).sort();
+      const raw = localStorage.getItem(SITEMAP_DIFF_KEY);
+      const previous: { capturedAt: string; locs: string[] } | null = raw ? JSON.parse(raw) : null;
+      const prevSet = new Set(previous?.locs || []);
+      const currSet = new Set(current);
+      const added = current.filter(u => !prevSet.has(u));
+      const removed = (previous?.locs || []).filter(u => !currSet.has(u));
+      const unchangedCount = current.filter(u => prevSet.has(u)).length;
+      setSitemapDiff({
+        previousAt: previous?.capturedAt,
+        currentAt: new Date().toISOString(),
+        added,
+        removed,
+        unchangedCount,
+      });
+      // Persist current as new baseline for next comparison.
+      localStorage.setItem(SITEMAP_DIFF_KEY, JSON.stringify({ capturedAt: new Date().toISOString(), locs: current }));
+    } finally {
+      setSitemapDiffLoading(false);
+    }
+  };
+
+  const resetSitemapBaseline = () => {
+    localStorage.removeItem(SITEMAP_DIFF_KEY);
+    setSitemapDiff(null);
+  };
+
+  // === SHAREABLE PERMALINK FOR CANONICAL & HREFLANG REPORT ===
+  // Encodes the latest report into the URL hash (#canonical=...) so the user
+  // can copy/paste a link with timestamp + environment + per-row results.
+  const [permalinkCopied, setPermalinkCopied] = useState(false);
+  const [canonicalReportMeta, setCanonicalReportMeta] = useState<{ ranAt: string; env: string } | null>(null);
+
+  // Wrap runCanonicalReport to also stamp metadata for permalinks.
+  const runCanonicalReportWithMeta = async () => {
+    setCanonicalReportMeta(null);
+    await runCanonicalReport();
+    setCanonicalReportMeta({ ranAt: new Date().toISOString(), env: ORIGIN });
+  };
+
+  const buildPermalink = () => {
+    const payload = {
+      v: 1,
+      ranAt: canonicalReportMeta?.ranAt || new Date().toISOString(),
+      env: canonicalReportMeta?.env || ORIGIN,
+      rows: canonicalRows.map(r => ({
+        route: r.route, lang: r.lang, status: r.status,
+        canonical: r.canonical, missing: r.missing, duplicates: r.duplicates,
+        xDefaultIssue: r.xDefaultIssue, notes: r.notes,
+      })),
+    };
+    // Base64 (URL-safe) so the hash stays compact and shareable.
+    const json = JSON.stringify(payload);
+    const b64 = btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    return `${window.location.origin}${window.location.pathname}#canonical=${b64}`;
+  };
+
+  const copyPermalink = async () => {
+    try {
+      await navigator.clipboard.writeText(buildPermalink());
+      setPermalinkCopied(true);
+      setTimeout(() => setPermalinkCopied(false), 2000);
+    } catch (e) {
+      console.error("Permalink copy failed", e);
+    }
+  };
+
+  // Restore a shared report from the URL hash on first mount.
+  useEffect(() => {
+    const hash = window.location.hash;
+    const m = hash.match(/canonical=([^&]+)/);
+    if (!m) return;
+    try {
+      const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+      const json = decodeURIComponent(escape(atob(padded)));
+      const payload = JSON.parse(json);
+      if (Array.isArray(payload.rows)) {
+        setCanonicalRows(payload.rows.map((r: any) => ({
+          route: r.route, lang: r.lang, status: r.status,
+          canonical: r.canonical, expectedCanonical: `${BASE_URL}${r.route}`,
+          hreflangs: [], missing: r.missing || [], duplicates: r.duplicates || [],
+          notes: r.notes || [], xDefaultIssue: r.xDefaultIssue, xDefaultHref: undefined,
+        })));
+        setCanonicalScanned(payload.rows.length);
+        setCanonicalReportMeta({ ranAt: payload.ranAt, env: payload.env });
+      }
+    } catch (e) {
+      console.warn("Failed to restore shared report", e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
