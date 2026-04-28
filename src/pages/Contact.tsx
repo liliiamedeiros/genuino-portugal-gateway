@@ -7,7 +7,7 @@ import { StatsSection } from '@/components/StatsSection';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 
 export default function Contact() {
   const { t } = useLanguage();
@@ -33,12 +33,7 @@ export default function Contact() {
 
   return (
     <>
-      <SEOHead 
-        title="Contact"
-        description="Contactez GenuinoInvestments Switzerland. Bureaux à Carouge/Genève et Lumiar/Lisboa. Tél Suisse: +41 76 487 60 00 | Tél Portugal: +351 21 7 580673"
-        keywords="contact genuino investments, email, téléphone, bureaux, suisse, portugal"
-        url="/contact"
-      />
+      <RouteSeo route="/contact" />
       <div className="min-h-screen pt-20">
       {/* Hero */}
       <section className="relative py-24 sm:py-28 lg:py-32 3xl:py-40 4xl:py-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>

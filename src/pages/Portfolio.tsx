@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProjectCard } from '@/components/ProjectCard';
-import { SEOHead } from '@/components/SEOHead';
+import { RouteSeo } from '@/components/RouteSeo';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2 } from 'lucide-react';
@@ -104,7 +104,7 @@ export default function Portfolio() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentPage]);
 
   return (<>
-    <SEOHead title="Portfólio" description="Explore nosso portfólio de projetos imobiliários de luxo em Portugal" url="/portfolio" />
+    <RouteSeo route="/portfolio" />
     <Navbar />
     <div className="min-h-screen pt-20">
       <section className="py-12 sm:py-16 3xl:py-20 4xl:py-24 bg-gradient-to-b from-background via-secondary/5 to-background">
