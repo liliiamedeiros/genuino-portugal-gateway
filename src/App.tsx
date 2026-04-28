@@ -34,6 +34,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Disputes = lazy(() => import("./pages/Disputes"));
 const Install = lazy(() => import("./pages/Install"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SeoDebug = lazy(() => import("./pages/SeoDebug"));
 
 // Lazy-loaded admin pages (separate bundle - not loaded for public visitors)
 const Login = lazy(() => import("./pages/admin/Login"));
@@ -189,6 +190,13 @@ const App = () => {
                 <>
                   <Navbar />
                   <Install />
+                  <Footer />
+                </>
+              } />
+              <Route path="/seo-debug" element={
+                <>
+                  <Navbar />
+                  <SeoDebug />
                   <Footer />
                 </>
               } />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -70,6 +70,10 @@ interface CanonicalRow {
   duplicates: string[];
   status: "ok" | "warn" | "error";
   notes: string[];
+  /** Detected href for hreflang="x-default" */
+  xDefaultHref?: string;
+  /** Issue with x-default (missing / mismatch with PT fallback) */
+  xDefaultIssue?: string;
 }
 
 interface VisibilityCheck {
@@ -282,6 +286,92 @@ export default function SeoTools() {
       const r = await fetch(url);
       setSitemapContent(`HTTP ${r.status} – ${url}\n\n${(await r.text()).slice(0, 4000)}`);
     } catch (e: any) { setSitemapContent("Error: " + e.message); }
+  };
+
+  // === LIVE STATUS BADGES for sitemaps + robots.txt ===
+  type EndpointStatus = {
+    path: string;
+    label: string;
+    status: "ok" | "warn" | "error" | "unknown";
+    httpCode?: number;
+    urlCount?: number;
+    contentType?: string;
+    lastChecked?: Date;
+    error?: string;
+  };
+  const SEO_ENDPOINTS: { path: string; label: string; isXml: boolean }[] = [
+    { path: "/robots.txt",        label: "robots.txt",        isXml: false },
+    { path: "/sitemap-index.xml", label: "sitemap-index.xml", isXml: true },
+    { path: "/sitemap.xml",       label: "sitemap.xml",       isXml: true },
+    { path: "/sitemap-pt.xml",    label: "sitemap-pt.xml",    isXml: true },
+    { path: "/sitemap-en.xml",    label: "sitemap-en.xml",    isXml: true },
+    { path: "/sitemap-fr.xml",    label: "sitemap-fr.xml",    isXml: true },
+    { path: "/sitemap-de.xml",    label: "sitemap-de.xml",    isXml: true },
+  ];
+  const [endpointStatuses, setEndpointStatuses] = useState<Record<string, EndpointStatus>>(
+    () => Object.fromEntries(SEO_ENDPOINTS.map(e => [e.path, { path: e.path, label: e.label, status: "unknown" }]))
+  );
+  const [endpointPolling, setEndpointPolling] = useState(false);
+
+  const pingEndpoint = async (e: { path: string; label: string; isXml: boolean }): Promise<EndpointStatus> => {
+    try {
+      const r = await fetch(`${ORIGIN}${e.path}`, { cache: "no-store" });
+      const ct = r.headers.get("content-type") || "";
+      const body = await r.text();
+      const httpCode = r.status;
+      if (httpCode !== 200) {
+        return { path: e.path, label: e.label, status: "error", httpCode, contentType: ct, lastChecked: new Date(), error: `HTTP ${httpCode}` };
+      }
+      if (e.isXml) {
+        const looksXml = body.trim().startsWith("<?xml") || body.includes("<urlset") || body.includes("<sitemapindex");
+        if (!looksXml) {
+          return { path: e.path, label: e.label, status: "error", httpCode, contentType: ct, lastChecked: new Date(), error: "Returned HTML instead of XML" };
+        }
+        const urlCount = (body.match(/<loc>/g) || []).length;
+        return { path: e.path, label: e.label, status: urlCount > 0 ? "ok" : "warn", httpCode, urlCount, contentType: ct, lastChecked: new Date() };
+      }
+      return { path: e.path, label: e.label, status: "ok", httpCode, contentType: ct, lastChecked: new Date() };
+    } catch (err: any) {
+      return { path: e.path, label: e.label, status: "error", lastChecked: new Date(), error: err.message || String(err) };
+    }
+  };
+
+  const refreshAllEndpoints = async () => {
+    setEndpointPolling(true);
+    const results = await Promise.all(SEO_ENDPOINTS.map(pingEndpoint));
+    setEndpointStatuses(Object.fromEntries(results.map(r => [r.path, r])));
+    setEndpointPolling(false);
+  };
+
+  // Auto-ping on mount and every 60s while the SEO Tools page is open.
+  useEffect(() => {
+    refreshAllEndpoints();
+    const id = setInterval(refreshAllEndpoints, 60_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Download a single endpoint's body as a local file. */
+  const downloadEndpoint = async (e: { path: string; label: string }) => {
+    try {
+      const r = await fetch(`${ORIGIN}${e.path}`, { cache: "no-store" });
+      const body = await r.text();
+      const blob = new Blob([body], { type: e.path.endsWith(".xml") ? "application/xml" : "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = e.label;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Download failed", err);
+    }
+  };
+
+  /** Download all sitemap files at once (no robots.txt). */
+  const downloadAllSitemaps = async () => {
+    for (const e of SEO_ENDPOINTS.filter(x => x.path.endsWith(".xml"))) {
+      await downloadEndpoint(e);
+    }
   };
 
   // === JSON-LD validator tab ===
@@ -559,15 +649,33 @@ export default function SeoTools() {
         const notes: string[] = [];
         if (!r.canonical) notes.push("missing canonical");
         else if (!r.canonical.startsWith(BASE_URL)) notes.push(`canonical not on ${BASE_URL}`);
-        const status: "ok" | "warn" | "error" =
-          !r.canonical || missing.length > 0 ? "error" :
-          duplicates.length > 0 || notes.length > 0 ? "warn" : "ok";
+
+        // x-default validation: PT is the fallback language for this site,
+        // so x-default must point to the same href as hreflang="pt".
+        const xDefaultHref = r.hreflangs.find(h => h.lang.toLowerCase() === "x-default")?.href;
+        const ptHref = r.hreflangs.find(h => h.lang.toLowerCase() === "pt")?.href;
+        let xDefaultIssue: string | undefined;
+        if (!xDefaultHref) {
+          xDefaultIssue = "missing x-default";
+        } else if (ptHref && xDefaultHref !== ptHref) {
+          xDefaultIssue = `x-default points to "${xDefaultHref}" but PT is "${ptHref}"`;
+          notes.push("x-default ≠ PT fallback");
+        } else if (!xDefaultHref.includes(route)) {
+          xDefaultIssue = `x-default href does not include route "${route}"`;
+          notes.push("x-default route mismatch");
+        }
+
+        const hasError = !r.canonical || missing.length > 0 || (xDefaultIssue && xDefaultIssue.startsWith("x-default points"));
+        const hasWarn = duplicates.length > 0 || notes.length > 0 || !!xDefaultIssue;
+        const status: "ok" | "warn" | "error" = hasError ? "error" : hasWarn ? "warn" : "ok";
+
         rows.push({
           route, lang,
           canonical: r.canonical,
           expectedCanonical,
           hreflangs: r.hreflangs,
           missing, duplicates, status, notes,
+          xDefaultHref, xDefaultIssue,
         });
       }
     }
@@ -735,25 +843,87 @@ export default function SeoTools() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader><CardTitle className="text-base">robots.txt</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  <Button size="sm" onClick={loadRobots}>Test /robots.txt</Button>
-                  {robotsContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto">{robotsContent}</pre>}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="text-base">sitemap.xml</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center justify-between gap-2">
+                  <span>Live status — robots.txt &amp; per-language sitemaps</span>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => loadSitemap(false)}>Static /sitemap.xml</Button>
-                    <Button size="sm" variant="outline" onClick={() => loadSitemap(true)}>Edge (dynamic)</Button>
+                    <Button size="sm" variant="outline" onClick={refreshAllEndpoints} disabled={endpointPolling}>
+                      {endpointPolling ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                      Refresh now
+                    </Button>
+                    <Button size="sm" onClick={downloadAllSitemaps}>
+                      <Download className="w-4 h-4 mr-1" /> Download all sitemaps
+                    </Button>
                   </div>
-                  {sitemapContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto">{sitemapContent}</pre>}
-                </CardContent>
-              </Card>
-            </div>
+                </CardTitle>
+                <CardDescription>
+                  Auto-refreshes every 60 seconds. Each row shows reachability, HTTP code, URL count and last-checked time.
+                  Click <b>Download</b> to save the live XML to disk for local validation.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-auto border rounded">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left p-2">Endpoint</th>
+                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">HTTP</th>
+                        <th className="text-left p-2">URLs</th>
+                        <th className="text-left p-2">Content-Type</th>
+                        <th className="text-left p-2">Last checked</th>
+                        <th className="text-left p-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SEO_ENDPOINTS.map((e) => {
+                        const s = endpointStatuses[e.path];
+                        return (
+                          <tr key={e.path} className="border-t">
+                            <td className="p-2 font-mono">{e.path}</td>
+                            <td className="p-2">
+                              {s.status === "ok"      && <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Reachable</Badge>}
+                              {s.status === "warn"    && <Badge variant="secondary"><AlertTriangle className="w-3 h-3 mr-1" />Empty</Badge>}
+                              {s.status === "error"   && <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />{s.error || "Error"}</Badge>}
+                              {s.status === "unknown" && <Badge variant="outline">Pending…</Badge>}
+                            </td>
+                            <td className="p-2">{s.httpCode ?? "—"}</td>
+                            <td className="p-2">{s.urlCount ?? "—"}</td>
+                            <td className="p-2 truncate max-w-[180px]" title={s.contentType}>{s.contentType || "—"}</td>
+                            <td className="p-2 text-muted-foreground">{s.lastChecked ? s.lastChecked.toLocaleTimeString() : "—"}</td>
+                            <td className="p-2">
+                              <div className="flex gap-1">
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => downloadEndpoint(e)}>
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                                <a href={`${ORIGIN}${e.path}`} target="_blank" rel="noreferrer">
+                                  <Button size="sm" variant="ghost" className="h-7 px-2"><ExternalLink className="w-3 h-3" /></Button>
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="grid gap-2 md:grid-cols-2 mt-4">
+                  <div>
+                    <Button size="sm" variant="outline" onClick={loadRobots}>Inspect /robots.txt</Button>
+                    {robotsContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto mt-2">{robotsContent}</pre>}
+                  </div>
+                  <div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => loadSitemap(false)}>Inspect /sitemap.xml</Button>
+                      <Button size="sm" variant="outline" onClick={() => loadSitemap(true)}>Edge (dynamic)</Button>
+                    </div>
+                    {sitemapContent && <pre className="bg-muted p-2 rounded text-xs max-h-60 overflow-auto mt-2">{sitemapContent}</pre>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* === SCHEMA VALIDATOR === */}
@@ -1025,6 +1195,8 @@ export default function SeoTools() {
                         hreflang_count: r.hreflangs.length,
                         missing: r.missing.join("|"),
                         duplicates: r.duplicates.join("|"),
+                        x_default_href: r.xDefaultHref || "",
+                        x_default_issue: r.xDefaultIssue || "",
                         notes: r.notes.join("; "),
                       }))
                     )}><Download className="w-4 h-4 mr-1" />CSV</Button>
@@ -1035,6 +1207,7 @@ export default function SeoTools() {
                         canonical: r.canonical || "—",
                         missing: r.missing.join("|") || "—",
                         duplicates: r.duplicates.join("|") || "—",
+                        x_default: r.xDefaultIssue || (r.xDefaultHref ? "OK" : "—"),
                       }))
                     )}><FileText className="w-4 h-4 mr-1" />PDF</Button>
                   </div>
@@ -1050,6 +1223,7 @@ export default function SeoTools() {
                         <th className="text-left p-2">Hreflang ({LANGS.join("/")})</th>
                         <th className="text-left p-2">Missing</th>
                         <th className="text-left p-2">Duplicates</th>
+                        <th className="text-left p-2">x-default</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1066,6 +1240,13 @@ export default function SeoTools() {
                           <td className="p-2">{r.hreflangs.length}</td>
                           <td className="p-2 text-destructive">{r.missing.join(", ") || "—"}</td>
                           <td className="p-2 text-yellow-600">{r.duplicates.join(", ") || "—"}</td>
+                          <td className="p-2 text-xs">
+                            {r.xDefaultIssue
+                              ? <span className="text-destructive">{r.xDefaultIssue}</span>
+                              : r.xDefaultHref
+                                ? <Badge className="bg-green-600">OK</Badge>
+                                : <span className="text-muted-foreground">—</span>}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
