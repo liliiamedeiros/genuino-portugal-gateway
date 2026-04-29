@@ -10,6 +10,8 @@ import { Loader2, CheckCircle2, XCircle, AlertTriangle, ExternalLink, Bot, Link2
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
+import { SeoTrendChart } from "@/components/admin/SeoTrendChart";
+import { BrowserlessConfigCard } from "@/components/admin/BrowserlessConfigCard";
 
 type Lang = "pt" | "en" | "fr" | "de";
 const LANGS: Lang[] = ["pt", "en", "fr", "de"];
@@ -1132,6 +1134,12 @@ export default function SeoTools() {
             )}
           </CardContent>
         </Card>
+
+        {/* === 14-day trend chart + Browserless config === */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SeoTrendChart />
+          <BrowserlessConfigCard />
+        </div>
 
         <Tabs defaultValue="bot">
           <TabsList className="grid w-full grid-cols-8">
