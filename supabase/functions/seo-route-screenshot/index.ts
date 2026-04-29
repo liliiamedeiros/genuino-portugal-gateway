@@ -84,9 +84,19 @@ function wrap(s: string, n: number): string[] {
 }
 
 /** Try the headless-browser path via browserless.io REST API, if a token is configured. */
-async function tryBrowserlessScreenshot(url: string): Promise<string | null> {
+type BrowserlessResult =
+  | { ok: true; base64: string }
+  | { ok: false; reason: "missing_token" | "http_error" | "exception"; detail?: string; status?: number };
+
+async function tryBrowserlessScreenshot(
+  url: string,
+  viewport: { width: number; height: number } = { width: 1280, height: 800 },
+): Promise<BrowserlessResult> {
   const token = Deno.env.get("BROWSERLESS_TOKEN");
-  if (!token) return null;
+  if (!token) {
+    console.log("[seo-route-screenshot] BROWSERLESS_TOKEN missing — using SVG fallback for", url);
+    return { ok: false, reason: "missing_token" };
+  }
   try {
     const res = await fetch(`https://chrome.browserless.io/screenshot?token=${token}`, {
       method: "POST",
@@ -95,14 +105,27 @@ async function tryBrowserlessScreenshot(url: string): Promise<string | null> {
         url,
         options: { type: "png", fullPage: false },
         gotoOptions: { waitUntil: "networkidle2", timeout: 25000 },
-        viewport: { width: 1280, height: 800 },
+        viewport,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      const detail = text.slice(0, 300);
+      console.error(
+        `[seo-route-screenshot] Browserless HTTP ${res.status} for ${url} (viewport ${viewport.width}x${viewport.height}). Body: ${detail}`,
+      );
+      return { ok: false, reason: "http_error", status: res.status, detail };
+    }
     const buf = new Uint8Array(await res.arrayBuffer());
-    return btoa(String.fromCharCode(...buf));
-  } catch (_e) {
-    return null;
+    const base64 = btoa(String.fromCharCode(...buf));
+    console.log(
+      `[seo-route-screenshot] Browserless PNG OK for ${url} — ${buf.byteLength} bytes (viewport ${viewport.width}x${viewport.height})`,
+    );
+    return { ok: true, base64 };
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error(`[seo-route-screenshot] Browserless exception for ${url}: ${detail}`);
+    return { ok: false, reason: "exception", detail };
   }
 }
 
@@ -110,7 +133,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     await assertAdmin(req.headers.get("Authorization"));
-    const { url } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { url, viewport } = body as { url?: string; viewport?: { width: number; height: number } };
     if (typeof url !== "string" || !/^https?:\/\//.test(url)) {
       return new Response(JSON.stringify({ error: "url required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -132,19 +156,47 @@ Deno.serve(async (req) => {
       hreflangs,
     };
 
-    // Prefer real screenshot if available; fall back to SVG head proof.
-    const realPng = await tryBrowserlessScreenshot(url);
-    if (realPng) {
-      return new Response(JSON.stringify({
-        ok: true, kind: "png", base64: realPng, head, url,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Prefer real screenshot if available; only fall back to SVG when token is missing
+    // OR when the upstream call failed (with reason captured in the response + logs).
+    const real = await tryBrowserlessScreenshot(url, viewport);
+    if (real.ok) {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          kind: "png",
+          base64: real.base64,
+          bytes: Math.floor((real.base64.length * 3) / 4),
+          head,
+          url,
+          viewport: viewport ?? { width: 1280, height: 800 },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
     const svg = renderHeadSvg(url, head);
     const svgB64 = btoa(unescape(encodeURIComponent(svg)));
-    return new Response(JSON.stringify({
-      ok: true, kind: "svg", base64: svgB64, head, url,
-      note: "BROWSERLESS_TOKEN not set — returning SVG head proof instead of a real screenshot.",
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const note =
+      real.reason === "missing_token"
+        ? "BROWSERLESS_TOKEN not set — returning SVG head proof instead of a real screenshot."
+        : real.reason === "http_error"
+          ? `Browserless returned HTTP ${real.status ?? "?"} — falling back to SVG. Detail: ${real.detail ?? ""}`
+          : `Browserless threw an exception — falling back to SVG. Detail: ${real.detail ?? ""}`;
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        kind: "svg",
+        base64: svgB64,
+        bytes: svgB64.length,
+        head,
+        url,
+        viewport: viewport ?? { width: 1280, height: 800 },
+        fallback_reason: real.reason,
+        fallback_detail: "detail" in real ? real.detail : undefined,
+        fallback_status: "status" in real ? real.status : undefined,
+        note,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e.message || String(e) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
