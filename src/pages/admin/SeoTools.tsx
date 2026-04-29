@@ -12,6 +12,8 @@ import { FALLBACK_MAIN_MENU } from "@/data/navigationFallback";
 import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
 import { SeoTrendChart } from "@/components/admin/SeoTrendChart";
 import { BrowserlessConfigCard } from "@/components/admin/BrowserlessConfigCard";
+import { WebpServingCheck } from "@/components/admin/WebpServingCheck";
+import { Link } from "react-router-dom";
 
 type Lang = "pt" | "en" | "fr" | "de";
 const LANGS: Lang[] = ["pt", "en", "fr", "de"];
@@ -1139,6 +1141,27 @@ export default function SeoTools() {
         <div className="grid gap-4 lg:grid-cols-2">
           <SeoTrendChart />
           <BrowserlessConfigCard />
+        </div>
+
+        {/* === WebP serving check + Responsive Audit shortcut === */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <WebpServingCheck />
+          </div>
+          <div className="border rounded-lg p-4 bg-muted/30 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              <h3 className="font-semibold">Responsive Audit</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Capture screenshots por breakpoint (mobile, tablet, desktop, TV) e detecta regressões de layout.
+            </p>
+            <Button asChild size="sm" className="mt-auto">
+              <Link to="/admin/responsive-audit">
+                <Camera className="w-4 h-4 mr-1" /> Open audit
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="bot">
