@@ -1640,6 +1640,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dedupe_seo_snapshots_daily: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1656,6 +1657,15 @@ export type Database = {
           p_table_name: string
         }
         Returns: undefined
+      }
+      seo_trend_last_14_days: {
+        Args: never
+        Returns: {
+          day: string
+          errors_count: number
+          sitemap_url_count: number
+          warnings_count: number
+        }[]
       }
     }
     Enums: {
