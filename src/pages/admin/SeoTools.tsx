@@ -1144,7 +1144,7 @@ export default function SeoTools() {
         </div>
 
         {/* === WebP serving check + Responsive Audit shortcut === */}
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <WebpServingCheck />
           </div>
@@ -1154,12 +1154,27 @@ export default function SeoTools() {
               <h3 className="font-semibold">Responsive Audit</h3>
             </div>
             <p className="text-xs text-muted-foreground">
-              Capture screenshots por breakpoint (mobile, tablet, desktop, TV) e detecta regressões de layout.
+              Capture screenshots por breakpoint, persiste no histórico e audita só páginas recentes.
+            </p>
+            <div className="mt-auto flex gap-2">
+              <Button asChild size="sm" className="flex-1">
+                <Link to="/admin/responsive-audit"><Camera className="w-4 h-4 mr-1" /> Audit</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/admin/responsive-audit-history">Histórico</Link>
+              </Button>
+            </div>
+          </div>
+          <div className="border rounded-lg p-4 bg-muted/30 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Bot className="w-5 h-5" />
+              <h3 className="font-semibold">Googlebot Audit</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Crawl completo (estáticas + properties + portfolio) × PT/EN/FR/DE para validar indexabilidade e hreflang.
             </p>
             <Button asChild size="sm" className="mt-auto">
-              <Link to="/admin/responsive-audit">
-                <Camera className="w-4 h-4 mr-1" /> Open audit
-              </Link>
+              <Link to="/admin/seo-googlebot-audit"><Bot className="w-4 h-4 mr-1" /> Run audit</Link>
             </Button>
           </div>
         </div>
