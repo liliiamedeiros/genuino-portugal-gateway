@@ -301,6 +301,11 @@ const App = () => {
                 <ResponsiveAuditHistory />
               </ProtectedRoute>
             } />
+            <Route path="/admin/seo-googlebot-audit" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoGooglebotAudit />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/migrate-projects" element={
               <ProtectedRoute requiredRole="admin">
                 <MigrateProjects />
