@@ -13,6 +13,7 @@ import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
 import { SeoTrendChart } from "@/components/admin/SeoTrendChart";
 import { BrowserlessConfigCard } from "@/components/admin/BrowserlessConfigCard";
 import { WebpServingCheck } from "@/components/admin/WebpServingCheck";
+import { WeeklyAuditTriggerCard } from "@/components/admin/WeeklyAuditTriggerCard";
 import { Link } from "react-router-dom";
 
 type Lang = "pt" | "en" | "fr" | "de";
