@@ -295,6 +295,11 @@ const App = () => {
                 <ResponsiveAudit />
               </ProtectedRoute>
             } />
+            <Route path="/admin/responsive-audit-history" element={
+              <ProtectedRoute requiredRole="admin">
+                <ResponsiveAuditHistory />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/migrate-projects" element={
               <ProtectedRoute requiredRole="admin">
                 <MigrateProjects />
