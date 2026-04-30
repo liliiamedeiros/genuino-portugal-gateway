@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.send-conversion-notification]
 verify_jwt = true
+
+[functions.scheduled-weekly-audit]
+verify_jwt = false

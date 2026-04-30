@@ -13,6 +13,7 @@ import { ALL_ROUTES, BASE_URL } from "@/data/seoMeta";
 import { SeoTrendChart } from "@/components/admin/SeoTrendChart";
 import { BrowserlessConfigCard } from "@/components/admin/BrowserlessConfigCard";
 import { WebpServingCheck } from "@/components/admin/WebpServingCheck";
+import { WeeklyAuditTriggerCard } from "@/components/admin/WeeklyAuditTriggerCard";
 import { Link } from "react-router-dom";
 
 type Lang = "pt" | "en" | "fr" | "de";
@@ -1144,7 +1145,7 @@ export default function SeoTools() {
         </div>
 
         {/* === WebP serving check + Responsive Audit shortcut === */}
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className="grid gap-4 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <WebpServingCheck />
           </div>
@@ -1177,6 +1178,7 @@ export default function SeoTools() {
               <Link to="/admin/seo-googlebot-audit"><Bot className="w-4 h-4 mr-1" /> Run audit</Link>
             </Button>
           </div>
+          <WeeklyAuditTriggerCard />
         </div>
 
         <Tabs defaultValue="bot">
