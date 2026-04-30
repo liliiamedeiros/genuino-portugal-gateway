@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.recent_published_pages(timestamptz, timestamptz) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.recent_published_pages(timestamptz, timestamptz) TO authenticated;

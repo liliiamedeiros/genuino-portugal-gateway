@@ -1118,6 +1118,119 @@ export type Database = {
         }
         Relationships: []
       }
+      responsive_audit_results: {
+        Row: {
+          breakpoint_name: string
+          created_at: string
+          fallback_detail: string | null
+          fallback_reason: string | null
+          head: Json | null
+          id: string
+          language: string | null
+          notes: string | null
+          route: string
+          run_id: string
+          screenshot_base64: string | null
+          screenshot_bytes: number | null
+          screenshot_kind: string | null
+          status: string
+          viewport_height: number
+          viewport_width: number
+        }
+        Insert: {
+          breakpoint_name: string
+          created_at?: string
+          fallback_detail?: string | null
+          fallback_reason?: string | null
+          head?: Json | null
+          id?: string
+          language?: string | null
+          notes?: string | null
+          route: string
+          run_id: string
+          screenshot_base64?: string | null
+          screenshot_bytes?: number | null
+          screenshot_kind?: string | null
+          status?: string
+          viewport_height: number
+          viewport_width: number
+        }
+        Update: {
+          breakpoint_name?: string
+          created_at?: string
+          fallback_detail?: string | null
+          fallback_reason?: string | null
+          head?: Json | null
+          id?: string
+          language?: string | null
+          notes?: string | null
+          route?: string
+          run_id?: string
+          screenshot_base64?: string | null
+          screenshot_bytes?: number | null
+          screenshot_kind?: string | null
+          status?: string
+          viewport_height?: number
+          viewport_width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "responsive_audit_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "responsive_audit_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      responsive_audit_runs: {
+        Row: {
+          breakpoints: Json
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          environment: string | null
+          filters: Json
+          id: string
+          label: string | null
+          routes: Json
+          source: string
+          started_at: string
+          status: string
+          summary: Json
+        }
+        Insert: {
+          breakpoints?: Json
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string | null
+          filters?: Json
+          id?: string
+          label?: string | null
+          routes?: Json
+          source?: string
+          started_at?: string
+          status?: string
+          summary?: Json
+        }
+        Update: {
+          breakpoints?: Json
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string | null
+          filters?: Json
+          id?: string
+          label?: string | null
+          routes?: Json
+          source?: string
+          started_at?: string
+          status?: string
+          summary?: Json
+        }
+        Relationships: []
+      }
       seo_config: {
         Row: {
           category: string
@@ -1657,6 +1770,15 @@ export type Database = {
           p_table_name: string
         }
         Returns: undefined
+      }
+      recent_published_pages: {
+        Args: { p_since: string; p_until?: string }
+        Returns: {
+          label: string
+          last_updated: string
+          path: string
+          source: string
+        }[]
       }
       seo_trend_last_14_days: {
         Args: never
