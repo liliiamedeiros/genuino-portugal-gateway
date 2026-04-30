@@ -66,6 +66,7 @@ const SeoGeoModule = lazy(() => import("./pages/admin/SeoGeoModule"));
 const SeoTools = lazy(() => import("./pages/admin/SeoTools"));
 const ResponsiveAudit = lazy(() => import("./pages/admin/ResponsiveAudit"));
 const ResponsiveAuditHistory = lazy(() => import("./pages/admin/ResponsiveAuditHistory"));
+const SeoGooglebotAudit = lazy(() => import("./pages/admin/SeoGooglebotAudit"));
 
 // Loading fallback shown while route chunks are fetched
 const RouteLoader = () => (
