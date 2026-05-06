@@ -129,6 +129,10 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
+        <Helmet>
+          <meta name="robots" content="noindex,follow" />
+          <title>404 — Imóvel não encontrado | GenuinoInvestments</title>
+        </Helmet>
         <div className="text-center">
           <h1 className="text-4xl font-serif font-bold mb-4">
             {language === 'pt' && 'Imóvel não encontrado'}

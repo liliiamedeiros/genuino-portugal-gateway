@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,12 @@ export default function Login() {
   };
 
   return (
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+        <title>Admin Login — GenuinoInvestments</title>
+        <link rel="canonical" href="https://genuinoinvestments.ch/admin/login" />
+      </Helmet>
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #877350 0%, #6d5d42 100%)' }}>
       <div className="w-full max-w-md p-8 bg-card rounded-lg shadow-lg">
         <div className="flex justify-center mb-8">
@@ -94,5 +101,6 @@ export default function Login() {
         </form>
       </div>
     </div>
+    </>
   );
 }
