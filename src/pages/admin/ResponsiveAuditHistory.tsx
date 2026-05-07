@@ -8,6 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
+interface AuditEvent {
+  id: string;
+  event_type: string;
+  route: string | null;
+  breakpoint_name: string | null;
+  status: string | null;
+  message: string | null;
+  details: any;
+  created_at: string;
+}
+
 interface Run {
   id: string;
   label: string | null;
@@ -37,6 +48,7 @@ export default function ResponsiveAuditHistory() {
   const [selected, setSelected] = useState<Run | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
+  const [events, setEvents] = useState<AuditEvent[]>([]);
   const { toast } = useToast();
 
   const load = async () => {
@@ -62,6 +74,14 @@ export default function ResponsiveAuditHistory() {
       .eq("run_id", run.id)
       .order("route", { ascending: true });
     setResults((data as Result[]) || []);
+    // Load weekly audit events (only present for scheduled_weekly runs)
+    const { data: ev } = await (supabase as any)
+      .from("weekly_audit_events")
+      .select("id,event_type,route,breakpoint_name,status,message,details,created_at")
+      .eq("run_id", run.id)
+      .order("created_at", { ascending: true })
+      .limit(500);
+    setEvents((ev as AuditEvent[]) || []);
     setLoadingResults(false);
   };
 
@@ -157,6 +177,45 @@ export default function ResponsiveAuditHistory() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {selected && events.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Eventos detalhados ({events.length})</CardTitle>
+              <CardDescription>Progresso por rota e breakpoint, alertas e falhas.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-96 overflow-auto border rounded">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted sticky top-0">
+                    <tr>
+                      <th className="text-left p-2">Hora</th>
+                      <th className="text-left p-2">Evento</th>
+                      <th className="text-left p-2">Rota</th>
+                      <th className="text-left p-2">Breakpoint</th>
+                      <th className="text-left p-2">Detalhes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {events.map((e) => (
+                      <tr key={e.id} className="border-t">
+                        <td className="p-2 font-mono whitespace-nowrap">{new Date(e.created_at).toLocaleTimeString()}</td>
+                        <td className="p-2">
+                          <Badge variant={e.event_type.includes("error") ? "destructive" : e.event_type === "alert_sent" ? "secondary" : "outline"} className="text-[10px]">
+                            {e.event_type}
+                          </Badge>
+                        </td>
+                        <td className="p-2 font-mono truncate max-w-[160px]">{e.route || "—"}</td>
+                        <td className="p-2">{e.breakpoint_name || "—"}</td>
+                        <td className="p-2 font-mono text-[10px] truncate max-w-[260px]">{e.message || (e.details && JSON.stringify(e.details))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         )}
