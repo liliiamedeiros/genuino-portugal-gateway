@@ -58,6 +58,9 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
     const separator = pagePath.includes('?') ? '&' : '?';
     return `${baseUrl}${pagePath}${separator}lang=${lang}`;
   };
+
+  // x-default must point to the canonical fallback (PT) per Google guidelines
+  const xDefaultUrl = buildLangUrl('pt');
   
   return (
     <Helmet>
@@ -72,7 +75,7 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
       {SUPPORTED_LANGUAGES.map(lang => (
         <link key={lang} rel="alternate" hrefLang={lang} href={buildLangUrl(lang)} />
       ))}
-      <link rel="alternate" hrefLang="x-default" href={fullUrl} />
+      <link rel="alternate" hrefLang="x-default" href={xDefaultUrl} />
       
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
