@@ -1748,6 +1748,42 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_audit_events: {
+        Row: {
+          breakpoint_name: string | null
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          message: string | null
+          route: string | null
+          run_id: string
+          status: string | null
+        }
+        Insert: {
+          breakpoint_name?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          message?: string | null
+          route?: string | null
+          run_id: string
+          status?: string | null
+        }
+        Update: {
+          breakpoint_name?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          route?: string | null
+          run_id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
