@@ -17,7 +17,7 @@ interface PortfolioSettings {
 }
 
 export default function Portfolio() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -111,7 +111,7 @@ export default function Portfolio() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
           <div className="max-w-4xl 3xl:max-w-5xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl 3xl:text-6xl 4xl:text-7xl font-serif font-bold mb-6 bg-gradient-to-r from-primary via-[#887350] to-primary bg-clip-text text-transparent">
-              {language === 'pt' ? 'Portfólio' : 'Portfolio'}
+              {t('portfolio.title')}
             </h1>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function Portfolio() {
           )}
         </>) : (
           <div className="text-center py-12 3xl:py-16">
-            <p className="text-muted-foreground 3xl:text-xl 4xl:text-2xl">{language === 'pt' ? 'Nenhum projeto encontrado' : 'No projects found'}</p>
+            <p className="text-muted-foreground 3xl:text-xl 4xl:text-2xl">{t('portfolio.noProjects')}</p>
           </div>
         )}
       </div>

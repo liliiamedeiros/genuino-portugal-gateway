@@ -23,11 +23,11 @@ export default function Contact() {
     e.preventDefault();
     
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.message) {
-      toast.error('Veuillez remplir tous les champs');
+      toast.error(t('contact.fillAll'));
       return;
     }
 
-    toast.success('Message envoyé avec succès !');
+    toast.success(t('contact.success'));
     setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
   };
 
@@ -53,12 +53,12 @@ export default function Contact() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 3xl:gap-16 max-w-6xl 3xl:max-w-7xl mx-auto">
             {/* Contact Form */}
             <div className="animate-slide-up">
-              <h2 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">Envoyez-nous un message</h2>
+              <h2 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">{t('contact.formTitle')}</h2>
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 3xl:space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 3xl:gap-8">
                   <div>
                     <label htmlFor="firstName" className="block text-sm 3xl:text-base 4xl:text-lg font-medium mb-2 3xl:mb-3">
-                      Prénom
+                      {t('contact.firstName')}
                     </label>
                     <Input
                       id="firstName"
@@ -70,7 +70,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <label htmlFor="lastName" className="block text-sm 3xl:text-base 4xl:text-lg font-medium mb-2 3xl:mb-3">
-                      {t('contact.name')}
+                      {t('contact.lastName')}
                     </label>
                     <Input
                       id="lastName"
@@ -95,7 +95,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm 3xl:text-base 4xl:text-lg font-medium mb-2 3xl:mb-3">
-                    Téléphone
+                    {t('contact.phone')}
                   </label>
                   <Input
                     id="phone"
@@ -132,7 +132,7 @@ export default function Contact() {
                   <CardContent className="p-4 sm:p-6 3xl:p-8">
                     <h3 className="font-semibold mb-3 text-base 3xl:text-lg 4xl:text-xl flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-primary" />
-                      Siège Suisse
+                      {t('contact.swissOffice')}
                     </h3>
                     <div className="space-y-2 text-sm sm:text-base 3xl:text-lg text-muted-foreground ml-7">
                       <p>Quai du Cheval Blanc, 2</p>
@@ -154,7 +154,7 @@ export default function Contact() {
                   <CardContent className="p-4 sm:p-6 3xl:p-8">
                     <h3 className="font-semibold mb-3 text-base 3xl:text-lg 4xl:text-xl flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-primary" />
-                      Escritório Portugal
+                      {t('contact.portugalOffice')}
                     </h3>
                     <div className="space-y-2 text-sm sm:text-base 3xl:text-lg text-muted-foreground ml-7">
                       <p>Rua António Stromp 12 A</p>

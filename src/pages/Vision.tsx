@@ -31,30 +31,30 @@ export default function Vision() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 3xl:gap-16 4xl:gap-20 mt-12 sm:mt-16 3xl:mt-20">
               <div className="animate-fade-in">
-                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">Architecture Intemporelle</h3>
+                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">{t('vision.timeless.title')}</h3>
                 <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground leading-relaxed">
-                  Nous créons des espaces qui transcendent les tendances passagères, en nous concentrant sur des designs qui restent pertinents et beaux au fil des décennies.
+                  {t('vision.timeless.text')}
                 </p>
               </div>
 
               <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">Durabilité</h3>
+                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">{t('vision.sustainability.title')}</h3>
                 <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground leading-relaxed">
-                  Nous intégrons des pratiques durables dans chaque projet, minimisant notre impact environnemental tout en maximisant la valeur à long terme.
+                  {t('vision.sustainability.text')}
                 </p>
               </div>
 
               <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">Innovation</h3>
+                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">{t('vision.innovation.title')}</h3>
                 <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground leading-relaxed">
-                  Nous embrassons les nouvelles technologies et méthodologies pour offrir des solutions innovantes qui améliorent la qualité de vie.
+                  {t('vision.innovation.text')}
                 </p>
               </div>
 
               <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">Héritage Positif</h3>
+                <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-3 sm:mb-4 3xl:mb-6">{t('vision.legacy.title')}</h3>
                 <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground leading-relaxed">
-                  Chaque projet est conçu pour enrichir son environnement et sa communauté, laissant une empreinte positive pour les générations futures.
+                  {t('vision.legacy.text')}
                 </p>
               </div>
             </div>
