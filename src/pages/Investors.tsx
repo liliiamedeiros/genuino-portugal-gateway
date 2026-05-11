@@ -9,26 +9,10 @@ export default function Investors() {
   const { t } = useLanguage();
 
   const benefits = [
-    {
-      icon: TrendingUp,
-      title: 'Rendement Attractif',
-      description: 'Des projets soigneusement sélectionnés offrant des rendements compétitifs.',
-    },
-    {
-      icon: Shield,
-      title: 'Sécurité & Transparence',
-      description: 'Une gestion transparente et des garanties solides pour votre investissement.',
-    },
-    {
-      icon: Award,
-      title: 'Expertise Reconnue',
-      description: 'Plus de 10 ans d\'expérience dans le développement immobilier.',
-    },
-    {
-      icon: Target,
-      title: 'Projets Stratégiques',
-      description: 'Des emplacements premium au Portugal avec fort potentiel de valorisation.',
-    },
+    { icon: TrendingUp, title: t('investors.benefits.return.title'), description: t('investors.benefits.return.text') },
+    { icon: Shield, title: t('investors.benefits.security.title'), description: t('investors.benefits.security.text') },
+    { icon: Award, title: t('investors.benefits.expertise.title'), description: t('investors.benefits.expertise.text') },
+    { icon: Target, title: t('investors.benefits.strategic.title'), description: t('investors.benefits.strategic.text') },
   ];
 
   return (
@@ -51,7 +35,7 @@ export default function Investors() {
       <section className="py-16 sm:py-20 3xl:py-28 4xl:py-36">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
           <h2 className="text-3xl sm:text-4xl 3xl:text-5xl 4xl:text-6xl font-serif font-bold text-center mb-8 sm:mb-12 3xl:mb-16">
-            Pourquoi investir avec nous ?
+            {t('investors.whyTitle')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 3xl:gap-10 4xl:gap-12">
             {benefits.map((benefit, index) => (
@@ -71,7 +55,7 @@ export default function Investors() {
       <section className="py-16 sm:py-20 3xl:py-28 4xl:py-36 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
           <h2 className="text-3xl sm:text-4xl 3xl:text-5xl 4xl:text-6xl font-serif font-bold text-center mb-8 sm:mb-12 3xl:mb-16">
-            Notre Processus d'Investissement
+            {t('investors.processTitle')}
           </h2>
           <div className="max-w-4xl 3xl:max-w-5xl mx-auto space-y-6 sm:space-y-8 3xl:space-y-10">
             <div className="flex gap-4 sm:gap-6 3xl:gap-8 animate-fade-in">
@@ -79,10 +63,8 @@ export default function Investors() {
                 1
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">Consultation Initiale</h3>
-                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">
-                  Nous discutons de vos objectifs d'investissement et vous présentons nos opportunités actuelles.
-                </p>
+                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">{t('investors.process.step1.title')}</h3>
+                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">{t('investors.process.step1.text')}</p>
               </div>
             </div>
 
@@ -91,10 +73,8 @@ export default function Investors() {
                 2
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">Due Diligence</h3>
-                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">
-                  Accès complet à la documentation du projet, analyses financières et projections.
-                </p>
+                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">{t('investors.process.step2.title')}</h3>
+                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">{t('investors.process.step2.text')}</p>
               </div>
             </div>
 
@@ -103,10 +83,8 @@ export default function Investors() {
                 3
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">Structuration</h3>
-                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">
-                  Mise en place d'une structure d'investissement adaptée à votre profil.
-                </p>
+                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">{t('investors.process.step3.title')}</h3>
+                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">{t('investors.process.step3.text')}</p>
               </div>
             </div>
 
@@ -115,10 +93,8 @@ export default function Investors() {
                 4
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">Suivi & Reporting</h3>
-                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">
-                  Rapports réguliers sur l'avancement du projet et la performance de votre investissement.
-                </p>
+                <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-semibold mb-1 sm:mb-2 3xl:mb-3">{t('investors.process.step4.title')}</h3>
+                <p className="text-sm sm:text-base 3xl:text-lg 4xl:text-xl text-muted-foreground">{t('investors.process.step4.text')}</p>
               </div>
             </div>
           </div>
@@ -134,7 +110,7 @@ export default function Investors() {
           </p>
           <Link to="/contact">
             <Button size="lg" className="min-h-touch 3xl:min-h-touch-lg bg-primary hover:bg-accent text-base sm:text-lg 3xl:text-xl px-6 sm:px-8 3xl:px-10 py-4 sm:py-6 3xl:py-8">
-              Nous contacter
+              {t('investors.contactBtn')}
             </Button>
           </Link>
         </div>
