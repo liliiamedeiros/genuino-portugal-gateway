@@ -165,7 +165,8 @@ Deno.serve(async (req) => {
         if (!res.ok) {
           const errorData = await res.json();
           console.error(`Erro ao enviar lembrete para ${client.email}:`, errorData);
-          errors.push({ email: client.email, error: JSON.stringify(errorData) });
+          // Do not include client PII (email) in the response body.
+          errors.push({ appointmentId: appointment.id, error: 'send_failed' });
         } else {
           // Marcar como enviado
           await supabaseClient
