@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
         if (!res.ok) {
           const errorData = await res.json();
           console.error(`Erro ao enviar para ${subscriber.email}:`, errorData);
-          errors.push({ email: subscriber.email, error: JSON.stringify(errorData) });
+          errors.push({ subscriberId: subscriber.id, error: 'send_failed' });
         } else {
           sentCount++;
           console.log(`Email enviado com sucesso para ${subscriber.email}`);
@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
         
       } catch (error) {
         console.error(`Erro ao enviar para ${subscriber.email}:`, error);
-        errors.push({ email: subscriber.email, error: String(error) });
+        errors.push({ subscriberId: subscriber.id, error: 'send_failed' });
       }
     }
     
