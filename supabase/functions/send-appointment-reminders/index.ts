@@ -11,6 +11,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Internal/cron-only: require the service role key as the bearer token.
+    const authHeader = req.headers.get('Authorization') || '';
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -155,7 +165,8 @@ Deno.serve(async (req) => {
         if (!res.ok) {
           const errorData = await res.json();
           console.error(`Erro ao enviar lembrete para ${client.email}:`, errorData);
-          errors.push({ email: client.email, error: JSON.stringify(errorData) });
+          // Do not include client PII (email) in the response body.
+          errors.push({ appointmentId: appointment.id, error: 'send_failed' });
         } else {
           // Marcar como enviado
           await supabaseClient

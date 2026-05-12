@@ -197,6 +197,15 @@ function renderEmail(checks: Check[], diff: { previousAt?: string; currentCount:
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  // Internal/cron-only: require the service role key as the bearer token.
+  const authHeader = req.headers.get("Authorization") || "";
+  const expected = `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+  if (authHeader !== expected) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
