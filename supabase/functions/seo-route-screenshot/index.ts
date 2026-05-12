@@ -17,6 +17,53 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SITE_URL = Deno.env.get("SITE_URL") || "";
+
+const BLOCKED_HOST_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+  /^169\.254\./,
+  /^0\./,
+  /^\[?::1\]?$/,
+  /^\[?fc[0-9a-f]{2}:/i,
+  /^\[?fe80:/i,
+  /metadata\.google\.internal$/i,
+];
+
+function isUrlAllowed(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    const host = u.hostname;
+    if (BLOCKED_HOST_PATTERNS.some((r) => r.test(host))) return false;
+    // If SITE_URL is configured, require same host
+    if (SITE_URL) {
+      try {
+        const allowedHost = new URL(SITE_URL).hostname;
+        const allowedHosts = new Set([
+          allowedHost,
+          "genuino-portugal-gateway.lovable.app",
+        ]);
+        // Allow lovable preview subdomains
+        if (
+          !allowedHosts.has(host) &&
+          !/\.lovable\.app$/i.test(host) &&
+          !/\.lovableproject\.com$/i.test(host)
+        ) {
+          return false;
+        }
+      } catch {
+        // ignore SITE_URL parse error
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function assertAdmin(authHeader: string | null) {
   if (!authHeader) throw new Error("Missing Authorization header");
@@ -135,8 +182,8 @@ Deno.serve(async (req) => {
     await assertAdmin(req.headers.get("Authorization"));
     const body = await req.json().catch(() => ({}));
     const { url, viewport } = body as { url?: string; viewport?: { width: number; height: number } };
-    if (typeof url !== "string" || !/^https?:\/\//.test(url)) {
-      return new Response(JSON.stringify({ error: "url required" }), {
+    if (typeof url !== "string" || !/^https?:\/\//.test(url) || !isUrlAllowed(url)) {
+      return new Response(JSON.stringify({ error: "url not allowed" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

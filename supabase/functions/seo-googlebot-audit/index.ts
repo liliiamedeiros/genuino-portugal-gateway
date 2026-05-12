@@ -15,6 +15,47 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SITE_URL = Deno.env.get("SITE_URL") || "";
+
+const BLOCKED_HOST_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+  /^169\.254\./,
+  /^0\./,
+  /^\[?::1\]?$/,
+  /^\[?fc[0-9a-f]{2}:/i,
+  /^\[?fe80:/i,
+  /metadata\.google\.internal$/i,
+];
+
+function isOriginAllowed(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    const host = u.hostname;
+    if (BLOCKED_HOST_PATTERNS.some((r) => r.test(host))) return false;
+    if (SITE_URL) {
+      try {
+        const allowedHost = new URL(SITE_URL).hostname;
+        if (
+          host !== allowedHost &&
+          !/\.lovable\.app$/i.test(host) &&
+          !/\.lovableproject\.com$/i.test(host)
+        ) {
+          return false;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 const LANGS = ["pt", "en", "fr", "de"] as const;
 const STATIC_ROUTES = ["/", "/about", "/services", "/portfolio", "/properties", "/contact", "/vision", "/investors", "/legal", "/privacy"];
 const GOOGLEBOT_UA =
@@ -127,8 +168,8 @@ Deno.serve(async (req) => {
     const supa = await assertAdmin(req.headers.get("Authorization"));
     const body = await req.json().catch(() => ({}));
     const { origin, depth = "full", concurrency = 4 } = body as { origin?: string; depth?: "shallow" | "full"; concurrency?: number };
-    if (!origin || !/^https?:\/\//.test(origin)) {
-      return new Response(JSON.stringify({ error: "origin required" }), {
+    if (!origin || !/^https?:\/\//.test(origin) || !isOriginAllowed(origin)) {
+      return new Response(JSON.stringify({ error: "origin not allowed" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
