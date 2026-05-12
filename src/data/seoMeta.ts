@@ -24,7 +24,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     },
     description: {
       pt: 'Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo. Escritórios em Lisboa e Genebra.',
-      en: 'Luxury real estate investments in Portugal and Switzerland. Exclusive holiday, beach and countryside properties. Offices in Lisbon and Geneva.',
+      en: 'Swiss-managed luxury real estate in Portugal. Exclusive beach, city and countryside properties for international investors from Europe, China and the Middle East. Offices in Geneva and Lisbon.',
       fr: 'Investissements immobiliers de luxe au Portugal et en Suisse. Propriétés exclusives pour vacances, plage et campagne. Bureaux à Lisbonne et Genève.',
       de: 'Luxusimmobilieninvestitionen in Portugal und der Schweiz. Exklusive Ferien-, Strand- und Landimmobilien. Büros in Lissabon und Genf.',
     },

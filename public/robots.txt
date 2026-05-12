@@ -22,6 +22,18 @@ Allow: /
 User-agent: Baiduspider
 Allow: /
 
+# Sogou (China)
+User-agent: Sogou web spider
+Allow: /
+
+# Yandex (Russia/CIS, used by some Middle East users)
+User-agent: YandexBot
+Allow: /
+
+# Naver (Korea, often used by Asian investors)
+User-agent: Yeti
+Allow: /
+
 # Social Media Crawlers
 User-agent: facebookexternalhit
 Allow: /
