@@ -13,8 +13,8 @@ Deno.serve(async (req) => {
   try {
     // Internal/cron-only: require the service role key as the bearer token.
     const authHeader = req.headers.get('Authorization') || '';
-    const expected = `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`;
-    if (!expected.endsWith(' ') === false && authHeader !== expected) {
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!serviceKey || authHeader !== `Bearer ${serviceKey}`) {
       return new Response(
         JSON.stringify({ error: 'Forbidden' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
