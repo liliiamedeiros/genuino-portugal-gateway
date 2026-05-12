@@ -11,6 +11,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Internal/cron-only: require the service role key as the bearer token.
+    const authHeader = req.headers.get('Authorization') || '';
+    const expected = `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`;
+    if (!expected.endsWith(' ') === false && authHeader !== expected) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
