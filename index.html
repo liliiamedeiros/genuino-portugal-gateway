@@ -28,25 +28,16 @@
     <link rel="alternate" hreflang="de" href="https://genuinoinvestments.ch?lang=de" />
     <link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch" />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Twitter:
+         per-route og:title, og:description, og:url, twitter:* are emitted by
+         react-helmet-async (see SEOHead.tsx) so each page shares its own URL
+         and copy. Only the truly sitewide / image-fallback fields stay here. -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://genuinoinvestments.ch" />
-    <meta property="og:title" content="Genuíno Investments — Imobiliário Portugal & Suíça" />
-    <meta property="og:description" content="Imobiliária suíça de luxo em Portugal. Investidores internacionais, Genebra & Lisboa." />
+    <meta property="og:site_name" content="Genuíno Investments" />
     <meta property="og:image" content="https://genuinoinvestments.ch/logo.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content="pt_PT" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:locale:alternate" content="fr_FR" />
-    <meta property="og:locale:alternate" content="de_CH" />
-    
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://genuinoinvestments.ch" />
-    <meta name="twitter:title" content="GenuinoInvestments Switzerland | Imobiliária Internacional" />
-    <meta name="twitter:description" content="Investimentos imobiliários de luxo em Portugal e Suíça" />
-    <meta name="twitter:image" content="https://genuinoinvestments.ch/logo.png" />
     
     <!-- PWA / Mobile -->
     <link rel="manifest" href="/manifest.webmanifest" />
