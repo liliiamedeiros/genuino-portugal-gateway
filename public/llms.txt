@@ -1,0 +1,23 @@
+# Genuíno Investments Switzerland
+
+> Swiss-managed luxury real estate firm developing and selling premium properties in Portugal. Offices in Carouge/Geneva (Switzerland) and Lumiar/Lisbon (Portugal). Serving international investors from Europe, China and the Middle East. Site available in Portuguese, English, French and German.
+
+The site presents the company, its development portfolio (completed projects) and a live catalogue of properties currently for sale, with multilingual contact and investor information.
+
+## Pages
+
+- [Home](/): Brand overview, featured properties and portfolio highlights.
+- [About](/about): Company story, mission, values and team.
+- [Services](/services): Real estate development, management, sales and consulting services.
+- [Portfolio](/portfolio): Completed real estate projects developed by Genuíno Investments in Portugal.
+- [Properties](/properties): Properties currently for sale in Portugal (apartments, villas, premium investments).
+- [Vision](/vision): Long-term vision for sustainable, timeless real estate development.
+- [Investors](/investors): Investment opportunities, returns and the Swiss management approach.
+- [Contact](/contact): Geneva HQ (+41 76 487 60 00) and Lisbon office (+351 21 758 06 73), email info@genuinoinvestments.ch.
+- [Legal Notice](/legal): Legal terms of use.
+- [Privacy Policy](/privacy): Privacy and personal data protection.
+- [Disputes](/disputes): Alternative dispute resolution.
+
+## Optional
+
+- [Install PWA](/install): Instructions to install the site as a Progressive Web App.
