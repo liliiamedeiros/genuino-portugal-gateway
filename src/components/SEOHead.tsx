@@ -44,9 +44,11 @@ export const SEOHead = ({ title, description, keywords, image, url, type = 'webs
     de: 'Luxuriöse Immobilieninvestitionen in Portugal und der Schweiz. Exklusive Ferien-, Strand- und Landimmobilien.',
   };
 
-  const fullTitle = resolvedTitle 
-    ? `${resolvedTitle} | GenuinoInvestments Switzerland` 
-    : 'GenuinoInvestments Switzerland | Investissements Immobiliers Portugal & Suisse';
+  // Keep total title under 60 chars for SEO. Suffix is short brand only.
+  const BRAND_SUFFIX = 'Genuíno Investments';
+  const fullTitle = resolvedTitle
+    ? `${resolvedTitle} | ${BRAND_SUFFIX}`
+    : 'Genuíno Investments — Imobiliário Portugal & Suíça';
 
   const finalDescription = resolvedDescription || defaultDescriptions[language] || defaultDescriptions.pt;
   
