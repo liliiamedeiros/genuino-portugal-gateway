@@ -67,6 +67,7 @@ const SeoTools = lazy(() => import("./pages/admin/SeoTools"));
 const ResponsiveAudit = lazy(() => import("./pages/admin/ResponsiveAudit"));
 const ResponsiveAuditHistory = lazy(() => import("./pages/admin/ResponsiveAuditHistory"));
 const SeoGooglebotAudit = lazy(() => import("./pages/admin/SeoGooglebotAudit"));
+const SeoMetaAudit = lazy(() => import("./pages/admin/SeoMetaAudit"));
 
 // Loading fallback shown while route chunks are fetched
 const RouteLoader = () => (
@@ -364,6 +365,11 @@ const App = () => {
             <Route path="/admin/seo/tools" element={
               <ProtectedRoute requiredRole="admin">
                 <SeoTools />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/seo/meta-audit" element={
+              <ProtectedRoute requiredRole="admin">
+                <SeoMetaAudit />
               </ProtectedRoute>
             } />
 
