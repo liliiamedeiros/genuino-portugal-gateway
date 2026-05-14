@@ -17,10 +17,10 @@ export interface RouteMeta {
 export const ROUTE_META: Record<string, RouteMeta> = {
   '/': {
     title: {
-      pt: 'Imobiliária Internacional Portugal & Suíça',
-      en: 'International Real Estate Portugal & Switzerland',
-      fr: 'Immobilier International Portugal & Suisse',
-      de: 'Internationale Immobilien Portugal & Schweiz',
+      pt: 'Imobiliário Portugal & Suíça',
+      en: 'Real Estate Portugal & Switzerland',
+      fr: 'Immobilier Portugal & Suisse',
+      de: 'Immobilien Portugal & Schweiz',
     },
     description: {
       pt: 'Investimentos imobiliários de luxo em Portugal e Suíça. Propriedades exclusivas para férias, praia e campo. Escritórios em Lisboa e Genebra.',
