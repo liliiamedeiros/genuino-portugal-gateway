@@ -13,7 +13,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ROUTE_META, LANGS, BASE_URL, type Lang } from '@/data/seoMeta';
-import { ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, AlertTriangle, CheckCircle2, Code2, Copy } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const BRAND_SUFFIX = 'Genuíno Investments';
 const TITLE_MAX = 60;
@@ -34,6 +35,7 @@ interface RouteRow {
   fullTitle: string;
   description: string;
   url: string;
+  canonical: string;
   ogLocale: string;
   issues: string[];
 }
@@ -47,6 +49,7 @@ function buildRows(): RouteRow[] {
       const description = meta.description[lang] || meta.description.pt;
       const fullTitle = `${title} | ${BRAND_SUFFIX}`;
       const url = `${BASE_URL}${route}?lang=${lang}`;
+      const canonical = `${BASE_URL}${route}`;
       const issues: string[] = [];
       if (!title) issues.push('og:title vazio');
       if (fullTitle.length > TITLE_MAX) issues.push(`title >${TITLE_MAX}c (${fullTitle.length})`);
@@ -54,6 +57,16 @@ function buildRows(): RouteRow[] {
       else if (description.length < DESC_MIN) issues.push(`desc <${DESC_MIN}c`);
       else if (description.length > DESC_MAX) issues.push(`desc >${DESC_MAX}c (${description.length})`);
       if (!url.startsWith('https://')) issues.push('og:url não absoluto');
+      try {
+        const cHost = new URL(canonical).host;
+        const oHost = new URL(url).host;
+        const expected = new URL(BASE_URL).host;
+        if (cHost !== expected) issues.push(`canonical host ≠ ${expected}`);
+        if (oHost !== expected) issues.push(`og:url host ≠ ${expected}`);
+        if (cHost !== oHost) issues.push('canonical ≠ og:url host');
+      } catch {
+        issues.push('URL inválido');
+      }
       rows.push({
         route,
         lang,
@@ -61,12 +74,44 @@ function buildRows(): RouteRow[] {
         fullTitle,
         description,
         url,
+        canonical,
         ogLocale: LOCALE_MAP[lang],
         issues,
       });
     }
   }
   return rows;
+}
+
+function buildHelmetHtml(r: RouteRow): string {
+  const altLangs = LANGS.filter((l) => l !== r.lang);
+  const hreflangs = LANGS.map(
+    (l) => `<link rel="alternate" hreflang="${l}" href="${BASE_URL}${r.route}?lang=${l}" />`
+  ).join('\n');
+  const ogAlt = altLangs
+    .map((l) => `<meta property="og:locale:alternate" content="${LOCALE_MAP[l]}" />`)
+    .join('\n');
+  return [
+    `<html lang="${r.lang}">`,
+    `<title>${r.fullTitle}</title>`,
+    `<meta name="description" content="${r.description}" />`,
+    `<meta http-equiv="content-language" content="${r.lang}" />`,
+    `<link rel="canonical" href="${r.canonical}" />`,
+    hreflangs,
+    `<link rel="alternate" hreflang="x-default" href="${BASE_URL}${r.route}?lang=pt" />`,
+    ``,
+    `<!-- Open Graph -->`,
+    `<meta property="og:title" content="${r.fullTitle}" />`,
+    `<meta property="og:description" content="${r.description}" />`,
+    `<meta property="og:url" content="${r.canonical}" />`,
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:locale" content="${r.ogLocale}" />`,
+    ogAlt,
+    ``,
+    `<!-- Twitter -->`,
+    `<meta name="twitter:title" content="${r.fullTitle}" />`,
+    `<meta name="twitter:description" content="${r.description}" />`,
+  ].join('\n');
 }
 
 function checkSitemapsAndRobots() {
@@ -84,6 +129,7 @@ function checkSitemapsAndRobots() {
 
 export default function SeoMetaAudit() {
   const [filter, setFilter] = useState('');
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
   const rows = useMemo(buildRows, []);
   const sitemaps = useMemo(checkSitemapsAndRobots, []);
 
@@ -96,6 +142,15 @@ export default function SeoMetaAudit() {
   const totalIssues = rows.reduce((acc, r) => acc + r.issues.length, 0);
   const expectedHost = new URL(BASE_URL).host;
   const allHostsOk = sitemaps.every((s) => s.host === expectedHost);
+
+  const previewRow = previewKey ? rows.find((r) => `${r.route}-${r.lang}` === previewKey) : null;
+  const previewHtml = previewRow ? buildHelmetHtml(previewRow) : '';
+
+  const copyHtml = async () => {
+    if (!previewHtml) return;
+    await navigator.clipboard.writeText(previewHtml);
+    toast({ title: 'HTML copiado', description: 'Meta tags coladas para o clipboard.' });
+  };
 
   return (
     <AdminLayout>
@@ -226,6 +281,14 @@ export default function SeoMetaAudit() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="h-7 text-[10px] justify-start"
+                            onClick={() => setPreviewKey(`${r.route}-${r.lang}`)}
+                          >
+                            <Code2 className="h-3 w-3 mr-1" />HTML
+                          </Button>
                         <Button asChild size="sm" variant="outline" className="h-7 text-[10px] justify-start">
                           <a href={`https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(r.url)}`} target="_blank" rel="noreferrer">Facebook</a>
                         </Button>
@@ -243,6 +306,31 @@ export default function SeoMetaAudit() {
             </Table>
           </CardContent>
         </Card>
+
+        {previewRow && (
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base">
+                Preview HTML — <span className="font-mono text-sm">{previewRow.route}</span>
+                {' · '}
+                <Badge variant="outline">{previewRow.lang}</Badge>
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={copyHtml}>
+                  <Copy className="h-3 w-3 mr-1" />Copiar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setPreviewKey(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs bg-muted p-4 rounded overflow-x-auto whitespace-pre-wrap break-all">
+                <code>{previewHtml}</code>
+              </pre>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader><CardTitle>Notas</CardTitle></CardHeader>

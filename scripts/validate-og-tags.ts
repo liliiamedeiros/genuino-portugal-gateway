@@ -12,6 +12,7 @@ const BRAND_SUFFIX = 'Genuíno Investments';
 const TITLE_MAX = 60;
 const DESC_MIN = 50;
 const DESC_MAX = 160;
+const EXPECTED_HOST = new URL(BASE_URL).host;
 
 const LOCALE_MAP: Record<Lang, string> = {
   pt: 'pt_PT', en: 'en_US', fr: 'fr_FR', de: 'de_CH',
@@ -26,6 +27,9 @@ function check(route: string, lang: Lang) {
   const description = meta.description[lang] || meta.description.pt;
   const fullTitle = title ? `${title} | ${BRAND_SUFFIX}` : '';
   const ogUrl = `${BASE_URL}${route}?lang=${lang}`;
+  // SEOHead.tsx builds canonical as `${baseUrl}${pagePath}` (no lang param).
+  // og:url uses the same construction. Both must share host with BASE_URL.
+  const canonical = `${BASE_URL}${route}`;
   const ogLocale = LOCALE_MAP[lang];
 
   // Mirror SEOHead output shape (Helmet-emitted tags)
@@ -54,6 +58,24 @@ function check(route: string, lang: Lang) {
   }
   if (!ogUrl.startsWith('https://')) {
     failures.push({ route, lang, field: 'og:url', reason: 'not absolute https://' });
+  }
+  if (!canonical.startsWith('https://')) {
+    failures.push({ route, lang, field: 'canonical', reason: 'not absolute https://' });
+  }
+  try {
+    const cHost = new URL(canonical).host;
+    const oHost = new URL(ogUrl).host;
+    if (cHost !== EXPECTED_HOST) {
+      failures.push({ route, lang, field: 'canonical', reason: `host ${cHost} ≠ ${EXPECTED_HOST}` });
+    }
+    if (oHost !== EXPECTED_HOST) {
+      failures.push({ route, lang, field: 'og:url', reason: `host ${oHost} ≠ ${EXPECTED_HOST}` });
+    }
+    if (cHost !== oHost) {
+      failures.push({ route, lang, field: 'canonical/og:url', reason: `host mismatch ${cHost} vs ${oHost}` });
+    }
+  } catch {
+    failures.push({ route, lang, field: 'canonical/og:url', reason: 'invalid URL' });
   }
 }
 
