@@ -223,7 +223,7 @@ Pergunta do cliente: ${sanitizedMessage}`;
     };
 
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Chatbot error',
+      error: 'Service temporarily unavailable',
       reply: fallbackMessages.pt
     }), {
       status: 500,
