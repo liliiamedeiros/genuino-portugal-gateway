@@ -15,9 +15,14 @@ const PUBLIC_DIR = resolve('public');
 interface Issue { file: string; url: string; reason: string; }
 const issues: Issue[] = [];
 
+const IGNORED_HOSTS = new Set(['www.sitemaps.org', 'www.w3.org']);
+
 function extractUrls(content: string): string[] {
+  // Strip xmlns="..." and xmlns:xxx="..." declarations before scanning,
+  // so XML schema namespace URIs don't get flagged as content URLs.
+  const stripped = content.replace(/xmlns(:[a-zA-Z0-9]+)?="[^"]*"/g, '');
   const re = /https?:\/\/[^\s"'<>)]+/g;
-  return content.match(re) || [];
+  return stripped.match(re) || [];
 }
 
 function checkFile(file: string) {
@@ -31,6 +36,7 @@ function checkFile(file: string) {
   for (const u of urls) {
     let host: string;
     try { host = new URL(u).host; } catch { continue; }
+    if (IGNORED_HOSTS.has(host)) continue;
     if (host !== EXPECTED_HOST) {
       issues.push({ file, url: u, reason: `host ${host} ≠ ${EXPECTED_HOST}` });
     }
