@@ -53,6 +53,29 @@ serve(async (req) => {
 
     console.log('Action:', action, 'User:', email);
 
+    const callerRole = roleData.role;
+
+    // Privilege escalation guard: admins can only manage editor accounts.
+    // Only super_admins can grant/modify admin or super_admin roles.
+    const isPrivilegedRole = (r?: string) => r === 'admin' || r === 'super_admin';
+
+    if (callerRole === 'admin') {
+      if ((action === 'create' || action === 'update') && role && role !== 'editor') {
+        throw new Error('Admins can only assign the editor role');
+      }
+      if (action === 'update' || action === 'delete') {
+        // Prevent admins from modifying/deleting privileged users (including themselves escalating)
+        const { data: targetRole } = await supabaseAdmin
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (targetRole && isPrivilegedRole(targetRole.role)) {
+          throw new Error('Admins cannot modify or delete admin or super_admin users');
+        }
+      }
+    }
+
     // CREATE USER
     if (action === 'create') {
       // Create user with admin client
