@@ -205,6 +205,60 @@ serve(async (req) => {
 
     throw new Error('Invalid action');
 
+    // RESET PASSWORD
+    if (action === 'reset_password') {
+      // Mode 'manual': admin sets a new password directly
+      if (mode === 'manual') {
+        if (!password || typeof password !== 'string' || password.length < 8) {
+          throw new Error('Password must be at least 8 characters');
+        }
+        const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
+        if (updErr) {
+          console.error('Manual reset error:', updErr);
+          throw updErr;
+        }
+        return new Response(
+          JSON.stringify({ success: true, mode: 'manual' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Mode 'email' (default): generate a recovery link / send recovery email
+      // Need target email — look it up if not provided
+      let targetEmail = email;
+      if (!targetEmail) {
+        const { data: prof } = await supabaseAdmin
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .maybeSingle();
+        targetEmail = prof?.email;
+      }
+      if (!targetEmail) throw new Error('Target user email not found');
+
+      const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'recovery',
+        email: targetEmail,
+        options: redirectTo ? { redirectTo } : undefined,
+      });
+      if (linkErr) {
+        console.error('Recovery link error:', linkErr);
+        throw linkErr;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: 'email',
+          email: targetEmail,
+          action_link: linkData?.properties?.action_link ?? null,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    throw new Error('Invalid action');
+
   } catch (error) {
     console.error('Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
