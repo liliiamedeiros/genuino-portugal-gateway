@@ -394,6 +394,93 @@ export default function Users() {
           </DialogContent>
         </Dialog>
 
+        {/* Reset Password Dialog */}
+        <Dialog open={resetDialogOpen} onOpenChange={(o) => { setResetDialogOpen(o); if (!o) { setResetLink(null); setResetPassword(''); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Redefinir senha</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Utilizador: <span className="font-medium text-foreground">{resetUser?.email}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={resetMode === 'email' ? 'default' : 'outline'}
+                  onClick={() => { setResetMode('email'); setResetLink(null); }}
+                  className="min-h-touch"
+                >
+                  <Mail className="h-4 w-4 mr-2" /> Enviar link
+                </Button>
+                <Button
+                  type="button"
+                  variant={resetMode === 'manual' ? 'default' : 'outline'}
+                  onClick={() => { setResetMode('manual'); setResetLink(null); }}
+                  className="min-h-touch"
+                >
+                  <KeyRound className="h-4 w-4 mr-2" /> Definir senha
+                </Button>
+              </div>
+
+              {resetMode === 'manual' ? (
+                <div>
+                  <Label htmlFor="newPassword">Nova senha</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    minLength={8}
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A nova senha será aplicada imediatamente. Partilhe-a de forma segura com o utilizador.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Será gerado um link de recuperação. O utilizador poderá definir uma nova senha.
+                  </p>
+                  {resetLink && (
+                    <div className="space-y-2 rounded-md border p-3 bg-muted/30">
+                      <Label className="text-xs">Link de recuperação</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={resetLink} readOnly className="text-xs" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText(resetLink);
+                            toast({ title: 'Link copiado' });
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                className="w-full min-h-touch"
+                disabled={resetPasswordMutation.isPending || (resetMode === 'manual' && resetPassword.length < 8)}
+                onClick={() => resetPasswordMutation.mutate()}
+              >
+                {resetPasswordMutation.isPending
+                  ? 'A processar...'
+                  : resetMode === 'manual'
+                  ? 'Redefinir senha'
+                  : 'Gerar link de recuperação'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {isLoading ? (
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 3xl:h-16 3xl:w-16 border-b-2 border-primary"></div>
