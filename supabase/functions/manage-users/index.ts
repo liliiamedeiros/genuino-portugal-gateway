@@ -63,7 +63,7 @@ serve(async (req) => {
       if ((action === 'create' || action === 'update') && role && role !== 'editor') {
         throw new Error('Admins can only assign the editor role');
       }
-      if (action === 'update' || action === 'delete') {
+      if (action === 'update' || action === 'delete' || action === 'reset_password') {
         // Prevent admins from modifying/deleting privileged users (including themselves escalating)
         const { data: targetRole } = await supabaseAdmin
           .from('user_roles')
@@ -71,7 +71,7 @@ serve(async (req) => {
           .eq('user_id', userId)
           .maybeSingle();
         if (targetRole && isPrivilegedRole(targetRole.role)) {
-          throw new Error('Admins cannot modify or delete admin or super_admin users');
+          throw new Error('Admins cannot modify, delete or reset admin or super_admin users');
         }
       }
     }
