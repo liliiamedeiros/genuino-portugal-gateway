@@ -456,6 +456,15 @@ export default function Users() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Redefinir senha"
+                            onClick={() => openResetDialog(user)}
+                            className="min-h-touch min-w-[44px] 3xl:min-h-touch-lg 3xl:min-w-[56px]"
+                          >
+                            <KeyRound className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => {
                               if (confirm('Tem certeza que deseja remover este usuário?')) {
                                 deleteUserMutation.mutate(user.id);
