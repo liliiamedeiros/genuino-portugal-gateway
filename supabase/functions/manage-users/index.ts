@@ -49,7 +49,7 @@ serve(async (req) => {
       throw new Error('Insufficient permissions');
     }
 
-    const { action, email, password, fullName, role, userId } = await req.json();
+    const { action, email, password, fullName, role, userId, mode, redirectTo } = await req.json();
 
     console.log('Action:', action, 'User:', email);
 
@@ -63,7 +63,7 @@ serve(async (req) => {
       if ((action === 'create' || action === 'update') && role && role !== 'editor') {
         throw new Error('Admins can only assign the editor role');
       }
-      if (action === 'update' || action === 'delete') {
+      if (action === 'update' || action === 'delete' || action === 'reset_password') {
         // Prevent admins from modifying/deleting privileged users (including themselves escalating)
         const { data: targetRole } = await supabaseAdmin
           .from('user_roles')
@@ -71,7 +71,7 @@ serve(async (req) => {
           .eq('user_id', userId)
           .maybeSingle();
         if (targetRole && isPrivilegedRole(targetRole.role)) {
-          throw new Error('Admins cannot modify or delete admin or super_admin users');
+          throw new Error('Admins cannot modify, delete or reset admin or super_admin users');
         }
       }
     }
@@ -199,6 +199,58 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // RESET PASSWORD
+    if (action === 'reset_password') {
+      // Mode 'manual': admin sets a new password directly
+      if (mode === 'manual') {
+        if (!password || typeof password !== 'string' || password.length < 8) {
+          throw new Error('Password must be at least 8 characters');
+        }
+        const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
+        if (updErr) {
+          console.error('Manual reset error:', updErr);
+          throw updErr;
+        }
+        return new Response(
+          JSON.stringify({ success: true, mode: 'manual' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Mode 'email' (default): generate a recovery link / send recovery email
+      // Need target email — look it up if not provided
+      let targetEmail = email;
+      if (!targetEmail) {
+        const { data: prof } = await supabaseAdmin
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .maybeSingle();
+        targetEmail = prof?.email;
+      }
+      if (!targetEmail) throw new Error('Target user email not found');
+
+      const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'recovery',
+        email: targetEmail,
+        options: redirectTo ? { redirectTo } : undefined,
+      });
+      if (linkErr) {
+        console.error('Recovery link error:', linkErr);
+        throw linkErr;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: 'email',
+          email: targetEmail,
+          action_link: linkData?.properties?.action_link ?? null,
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

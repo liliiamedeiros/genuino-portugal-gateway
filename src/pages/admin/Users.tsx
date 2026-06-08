@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash, Shield, ShieldAlert, User2, Edit } from 'lucide-react';
+import { Plus, Trash, Shield, ShieldAlert, User2, Edit, KeyRound, Mail, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -37,12 +37,71 @@ export default function Users() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetUser, setResetUser] = useState<any>(null);
+  const [resetMode, setResetMode] = useState<'email' | 'manual'>('email');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetLink, setResetLink] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
     role: 'editor' as 'super_admin' | 'admin' | 'editor',
   });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!resetUser) throw new Error('No user selected');
+      const body: any = {
+        action: 'reset_password',
+        userId: resetUser.id,
+        email: resetUser.email,
+        mode: resetMode,
+      };
+      if (resetMode === 'manual') {
+        body.password = resetPassword;
+      } else {
+        body.redirectTo = `${window.location.origin}/admin/login`;
+      }
+      const { data, error } = await supabase.functions.invoke('manage-users', { body });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (resetMode === 'email') {
+        setResetLink(data?.action_link ?? null);
+        toast({
+          title: 'Link de recuperação gerado',
+          description: 'Partilhe o link com o utilizador ou copie-o abaixo.',
+        });
+      } else {
+        toast({
+          title: 'Senha redefinida',
+          description: 'A nova senha foi definida com sucesso.',
+        });
+        setResetDialogOpen(false);
+        setResetUser(null);
+        setResetPassword('');
+      }
+    },
+    onError: (error: any) => {
+      console.error('Reset password error:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível redefinir a senha',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const openResetDialog = (user: any) => {
+    setResetUser(user);
+    setResetMode('email');
+    setResetPassword('');
+    setResetLink(null);
+    setResetDialogOpen(true);
+  };
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -335,6 +394,93 @@ export default function Users() {
           </DialogContent>
         </Dialog>
 
+        {/* Reset Password Dialog */}
+        <Dialog open={resetDialogOpen} onOpenChange={(o) => { setResetDialogOpen(o); if (!o) { setResetLink(null); setResetPassword(''); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Redefinir senha</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Utilizador: <span className="font-medium text-foreground">{resetUser?.email}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={resetMode === 'email' ? 'default' : 'outline'}
+                  onClick={() => { setResetMode('email'); setResetLink(null); }}
+                  className="min-h-touch"
+                >
+                  <Mail className="h-4 w-4 mr-2" /> Enviar link
+                </Button>
+                <Button
+                  type="button"
+                  variant={resetMode === 'manual' ? 'default' : 'outline'}
+                  onClick={() => { setResetMode('manual'); setResetLink(null); }}
+                  className="min-h-touch"
+                >
+                  <KeyRound className="h-4 w-4 mr-2" /> Definir senha
+                </Button>
+              </div>
+
+              {resetMode === 'manual' ? (
+                <div>
+                  <Label htmlFor="newPassword">Nova senha</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    minLength={8}
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A nova senha será aplicada imediatamente. Partilhe-a de forma segura com o utilizador.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Será gerado um link de recuperação. O utilizador poderá definir uma nova senha.
+                  </p>
+                  {resetLink && (
+                    <div className="space-y-2 rounded-md border p-3 bg-muted/30">
+                      <Label className="text-xs">Link de recuperação</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={resetLink} readOnly className="text-xs" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText(resetLink);
+                            toast({ title: 'Link copiado' });
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                className="w-full min-h-touch"
+                disabled={resetPasswordMutation.isPending || (resetMode === 'manual' && resetPassword.length < 8)}
+                onClick={() => resetPasswordMutation.mutate()}
+              >
+                {resetPasswordMutation.isPending
+                  ? 'A processar...'
+                  : resetMode === 'manual'
+                  ? 'Redefinir senha'
+                  : 'Gerar link de recuperação'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {isLoading ? (
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 3xl:h-16 3xl:w-16 border-b-2 border-primary"></div>
@@ -393,6 +539,15 @@ export default function Users() {
                             className="min-h-touch min-w-[44px] 3xl:min-h-touch-lg 3xl:min-w-[56px]"
                           >
                             <Edit className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Redefinir senha"
+                            onClick={() => openResetDialog(user)}
+                            className="min-h-touch min-w-[44px] 3xl:min-h-touch-lg 3xl:min-w-[56px]"
+                          >
+                            <KeyRound className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
                           </Button>
                           <Button
                             variant="ghost"
