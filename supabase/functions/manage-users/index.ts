@@ -203,8 +203,6 @@ serve(async (req) => {
       );
     }
 
-    throw new Error('Invalid action');
-
     // RESET PASSWORD
     if (action === 'reset_password') {
       // Mode 'manual': admin sets a new password directly
