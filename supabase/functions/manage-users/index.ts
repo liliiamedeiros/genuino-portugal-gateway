@@ -49,7 +49,7 @@ serve(async (req) => {
       throw new Error('Insufficient permissions');
     }
 
-    const { action, email, password, fullName, role, userId } = await req.json();
+    const { action, email, password, fullName, role, userId, mode, redirectTo } = await req.json();
 
     console.log('Action:', action, 'User:', email);
 
