@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash, Shield, ShieldAlert, User2, Edit } from 'lucide-react';
+import { Plus, Trash, Shield, ShieldAlert, User2, Edit, KeyRound, Mail, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -37,12 +37,71 @@ export default function Users() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetUser, setResetUser] = useState<any>(null);
+  const [resetMode, setResetMode] = useState<'email' | 'manual'>('email');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetLink, setResetLink] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
     role: 'editor' as 'super_admin' | 'admin' | 'editor',
   });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!resetUser) throw new Error('No user selected');
+      const body: any = {
+        action: 'reset_password',
+        userId: resetUser.id,
+        email: resetUser.email,
+        mode: resetMode,
+      };
+      if (resetMode === 'manual') {
+        body.password = resetPassword;
+      } else {
+        body.redirectTo = `${window.location.origin}/admin/login`;
+      }
+      const { data, error } = await supabase.functions.invoke('manage-users', { body });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (resetMode === 'email') {
+        setResetLink(data?.action_link ?? null);
+        toast({
+          title: 'Link de recuperação gerado',
+          description: 'Partilhe o link com o utilizador ou copie-o abaixo.',
+        });
+      } else {
+        toast({
+          title: 'Senha redefinida',
+          description: 'A nova senha foi definida com sucesso.',
+        });
+        setResetDialogOpen(false);
+        setResetUser(null);
+        setResetPassword('');
+      }
+    },
+    onError: (error: any) => {
+      console.error('Reset password error:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível redefinir a senha',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const openResetDialog = (user: any) => {
+    setResetUser(user);
+    setResetMode('email');
+    setResetPassword('');
+    setResetLink(null);
+    setResetDialogOpen(true);
+  };
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
