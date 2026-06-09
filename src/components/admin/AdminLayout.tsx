@@ -24,7 +24,8 @@ import {
   ChevronRight,
   ListChecks,
   Sliders,
-  History
+  History,
+  Stethoscope
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
@@ -114,6 +115,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Mail, label: 'Newsletter', path: '/admin/newsletter', adminOnly: true },
     { icon: Settings, label: 'Configurações', path: '/admin/settings', adminOnly: true },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
+    { icon: Stethoscope, label: 'Diagnóstico', path: '/admin/diagnostics', adminOnly: true },
   ];
 
   const visibleMenuItems = menuItems.filter(item => {
