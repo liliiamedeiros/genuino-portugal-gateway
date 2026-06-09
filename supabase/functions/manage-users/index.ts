@@ -209,16 +209,33 @@ serve(async (req) => {
 
     // RESET PASSWORD
     if (action === 'reset_password') {
+      const logAttempt = async (status: 'success' | 'error', extra: Record<string, unknown> = {}) => {
+        try {
+          await supabaseAdmin.from('audit_access_logs').insert({
+            user_id: user.id,
+            action: 'reset_password',
+            table_name: 'auth.users',
+            record_id: userId ?? null,
+            details: { mode: mode ?? 'email', status, target_email: email ?? null, ...extra },
+          });
+        } catch (e) {
+          console.error('Audit log failed:', e);
+        }
+      };
+
       // Mode 'manual': admin sets a new password directly
       if (mode === 'manual') {
         if (!password || typeof password !== 'string' || password.length < 8) {
+          await logAttempt('error', { reason: 'invalid_password_length' });
           throw new Error('Password must be at least 8 characters');
         }
         const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
         if (updErr) {
           console.error('Manual reset error:', updErr);
+          await logAttempt('error', { reason: updErr.message });
           throw updErr;
         }
+        await logAttempt('success');
         return new Response(
           JSON.stringify({ success: true, mode: 'manual' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -245,8 +262,10 @@ serve(async (req) => {
       });
       if (linkErr) {
         console.error('Recovery link error:', linkErr);
+        await logAttempt('error', { reason: linkErr.message, target_email: targetEmail });
         throw linkErr;
       }
+      await logAttempt('success', { target_email: targetEmail });
 
       return new Response(
         JSON.stringify({

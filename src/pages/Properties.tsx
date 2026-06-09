@@ -10,7 +10,8 @@ import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Home, MapPin, X } from 'lucide-react';
+import { Search, Home, MapPin, X, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Feature definitions with translations and icons
 const FEATURES_CONFIG = {
@@ -51,7 +52,7 @@ export default function Properties() {
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
-  const { data: properties, isLoading } = useQuery({
+  const { data: properties, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['public-properties'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -63,6 +64,10 @@ export default function Properties() {
       if (error) throw error;
       return data;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   const toggleFeature = (feature: string) => {
@@ -250,6 +255,23 @@ export default function Properties() {
                   {language === 'en' && 'Loading properties...'}
                   {language === 'de' && 'Immobilien werden geladen...'}
                 </p>
+              </div>
+            ) : isError ? (
+              <div className="max-w-xl mx-auto text-center py-12 3xl:py-16 space-y-4">
+                <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
+                <h2 className="text-xl font-semibold">
+                  {language === 'pt' && 'Não foi possível carregar os imóveis'}
+                  {language === 'fr' && 'Impossible de charger les biens'}
+                  {language === 'en' && 'Could not load properties'}
+                  {language === 'de' && 'Immobilien konnten nicht geladen werden'}
+                </h2>
+                <p className="text-muted-foreground text-sm break-words">
+                  {(error as Error)?.message || 'Erro de ligação à base de dados.'}
+                </p>
+                <Button onClick={() => refetch()} disabled={isFetching} className="min-h-touch">
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+                  {language === 'pt' ? 'Tentar novamente' : language === 'fr' ? 'Réessayer' : language === 'de' ? 'Erneut versuchen' : 'Retry'}
+                </Button>
               </div>
             ) : filteredProperties && filteredProperties.length > 0 ? (
               <>

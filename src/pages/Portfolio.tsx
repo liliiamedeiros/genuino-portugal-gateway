@@ -7,7 +7,8 @@ import { ProjectCard } from '@/components/ProjectCard';
 import { RouteSeo } from '@/components/RouteSeo';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
@@ -64,7 +65,7 @@ export default function Portfolio() {
   }, [settings?.default_sort]);
 
   // Fetch projects from portfolio_projects table
-  const { data: queryResult, isLoading } = useQuery({
+  const { data: queryResult, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['portfolio-projects', currentPage, sortBy, PROJECTS_PER_PAGE],
     queryFn: async () => {
       let query = supabase.from('portfolio_projects').select('*', { count: 'exact' }).eq('status', 'active');
@@ -85,6 +86,10 @@ export default function Portfolio() {
       return { projects: data || [], total: count || 0 };
     },
     enabled: !!settings,
+    staleTime: 5 * 60 * 1000,        // 5 min — stale-while-revalidate
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   const projects = queryResult?.projects || [];
@@ -121,6 +126,18 @@ export default function Portfolio() {
         {isLoading ? (
           <div className="flex justify-center py-12 3xl:py-16">
             <Loader2 className="h-8 w-8 3xl:h-12 3xl:w-12 4xl:h-16 4xl:w-16 animate-spin text-primary" />
+          </div>
+        ) : isError ? (
+          <div className="max-w-xl mx-auto text-center py-12 3xl:py-16 space-y-4">
+            <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
+            <h2 className="text-xl font-semibold">{t('portfolio.errorTitle') || 'Não foi possível carregar o portefólio'}</h2>
+            <p className="text-muted-foreground text-sm break-words">
+              {(error as Error)?.message || 'Erro de ligação à base de dados.'}
+            </p>
+            <Button onClick={() => refetch()} disabled={isFetching} className="min-h-touch">
+              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+              Tentar novamente
+            </Button>
           </div>
         ) : displayProjects.length > 0 ? (<>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 3xl:gap-10">
