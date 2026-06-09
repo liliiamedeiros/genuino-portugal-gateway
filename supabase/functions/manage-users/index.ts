@@ -38,22 +38,26 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Check if user has admin or super_admin role
-    const { data: roleData } = await supabaseAdmin
+    // Check if user has admin or super_admin role (a user may have multiple roles)
+    const { data: rolesData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
 
-    if (!roleData || (roleData.role !== 'admin' && roleData.role !== 'super_admin')) {
+    const roles = (rolesData ?? []).map((r: any) => r.role);
+    const callerRole = roles.includes('super_admin')
+      ? 'super_admin'
+      : roles.includes('admin')
+      ? 'admin'
+      : null;
+
+    if (!callerRole) {
       throw new Error('Insufficient permissions');
     }
 
     const { action, email, password, fullName, role, userId, mode, redirectTo } = await req.json();
 
     console.log('Action:', action, 'User:', email);
-
-    const callerRole = roleData.role;
 
     // Privilege escalation guard: admins can only manage editor accounts.
     // Only super_admins can grant/modify admin or super_admin roles.
