@@ -15,11 +15,8 @@ describe("escapeHtml", () => {
 
   it.each(INJECTION_VECTORS)("neutralises injection vector: %s", (payload) => {
     const out = escapeHtml(payload);
-    expect(out).not.toMatch(/<script/i);
-    expect(out).not.toMatch(/<iframe/i);
-    expect(out).not.toMatch(/<img\s/i);
-    expect(out).not.toMatch(/<svg/i);
-    expect(out).not.toMatch(/ on[a-z]+\s*=/i);
+    // Once `<` and `>` are encoded, the browser renders the payload as
+    // inert text — `onerror=` inside a string is harmless without a tag.
     expect(out).not.toContain("<");
     expect(out).not.toContain(">");
     // Quote characters that could break out of attributes must be encoded
