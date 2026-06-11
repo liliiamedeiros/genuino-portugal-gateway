@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Facebook, Instagram, Linkedin, MapPin, Phone } from 'lucide-react';
-import logo from '@/assets/logo-switzerland.png';
+import logo from '@/assets/logo-switzerland.webp';
 import { NewsletterForm } from '@/components/NewsletterForm';
 import { CarModeToggle } from '@/components/CarModeWrapper';
 
