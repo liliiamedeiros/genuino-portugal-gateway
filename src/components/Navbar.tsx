@@ -6,8 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Menu, X, LogIn } from 'lucide-react';
-import logo from '@/assets/logo-switzerland.png';
-import logoWhite from '@/assets/logo-white.png';
+import logo from '@/assets/logo-switzerland.webp';
+import logoWhite from '@/assets/logo-white.webp';
 import { FALLBACK_MAIN_MENU, resolveLabel } from '@/data/navigationFallback';
 
 export const Navbar = () => {

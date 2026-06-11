@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, Home, Building2, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logo from '@/assets/logo-switzerland.png';
+import logo from '@/assets/logo-switzerland.webp';
 
 interface CarModeWrapperProps {
   children: ReactNode;

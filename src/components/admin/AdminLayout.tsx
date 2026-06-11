@@ -27,7 +27,7 @@ import {
   History,
   Stethoscope
 } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/logo.webp';
 
 interface AdminLayoutProps {
   children: ReactNode;
