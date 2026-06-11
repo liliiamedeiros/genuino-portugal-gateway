@@ -1231,6 +1231,63 @@ export type Database = {
         }
         Relationships: []
       }
+      security_findings: {
+        Row: {
+          created_at: string
+          description: string | null
+          details: Json
+          first_seen_at: string
+          id: string
+          internal_id: string
+          last_seen_at: string
+          notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          scanner_name: string
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          details?: Json
+          first_seen_at?: string
+          id?: string
+          internal_id: string
+          last_seen_at?: string
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scanner_name: string
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          details?: Json
+          first_seen_at?: string
+          id?: string
+          internal_id?: string
+          last_seen_at?: string
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scanner_name?: string
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       seo_config: {
         Row: {
           category: string
