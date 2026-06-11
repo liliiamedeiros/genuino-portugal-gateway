@@ -152,7 +152,7 @@ function renderEmail(checks: Check[], diff: { previousAt?: string; currentCount:
   const err = checks.filter((c) => c.level === "error").length;
   const errorRows = checks.filter((c) => c.level !== "ok").slice(0, 30);
 
-  const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
+  const esc = (s: unknown) => String(s ?? '').replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]!));
 
   return `<!doctype html><html><body style="font-family:-apple-system,sans-serif;background:#f6f7fb;padding:24px;color:#0f172a">
     <div style="max-width:680px;margin:0 auto;background:#fff;border-radius:12px;padding:24px">
