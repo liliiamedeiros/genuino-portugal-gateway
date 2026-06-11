@@ -116,6 +116,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Settings, label: 'Configurações', path: '/admin/settings', adminOnly: true },
     { icon: Users, label: 'Usuários', path: '/admin/users', adminOnly: true },
     { icon: Stethoscope, label: 'Diagnóstico', path: '/admin/diagnostics', adminOnly: true },
+    { icon: Shield, label: 'Security Findings', path: '/admin/security-findings', adminOnly: true },
   ];
 
   const visibleMenuItems = menuItems.filter(item => {
