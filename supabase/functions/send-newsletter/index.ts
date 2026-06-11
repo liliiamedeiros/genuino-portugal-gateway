@@ -114,6 +114,13 @@ function sanitizeNode(node: Element): void {
   }
 }
 
+// HTML-escape helper for personalization values (applied AFTER sanitization)
+function escapeHtml(s: unknown): string {
+  return String(s ?? '').replace(/[<>&"']/g, (c) => ({
+    '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+  }[c]!));
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -238,10 +245,10 @@ Deno.serve(async (req) => {
       
       // Personalizar conteúdo
       const personalizedContent = sanitizedContent
-        .replace(/\{\{nome\}\}/g, subscriber.full_name || 'Assinante')
-        .replace(/\{\{email\}\}/g, subscriber.email)
+        .replace(/\{\{nome\}\}/g, escapeHtml(subscriber.full_name || 'Assinante'))
+        .replace(/\{\{email\}\}/g, escapeHtml(subscriber.email))
         .replace(/\{\{unsubscribe_link\}\}/g, 
-          `${Deno.env.get('SITE_URL')}/unsubscribe?token=${subscriber.id}`);
+          `${Deno.env.get('SITE_URL')}/unsubscribe?token=${encodeURIComponent(subscriber.id)}`);
       
       // Wrap content in HTML document with CSP headers for XSS protection
       const emailHtml = `<!DOCTYPE html>

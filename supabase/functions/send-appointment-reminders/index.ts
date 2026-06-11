@@ -10,6 +10,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // HTML escape helper to prevent injection via DB-sourced values
+  const esc = (s: unknown): string =>
+    String(s ?? '').replace(/[<>&"']/g, (c) => ({
+      '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+    }[c]!));
+
   try {
     // Internal/cron-only: require the service role key as the bearer token.
     const authHeader = req.headers.get('Authorization') || '';
@@ -115,20 +121,20 @@ Deno.serve(async (req) => {
               <h1>Lembrete de Agendamento</h1>
             </div>
             <div class="content">
-              <p>Olá ${client.full_name},</p>
+              <p>Olá ${esc(client.full_name)},</p>
               <p>Este é um lembrete do seu agendamento marcado para <strong>amanhã</strong>:</p>
               
               <div class="info-box">
-                <h3>${appointment.title}</h3>
-                <p><strong>Tipo:</strong> ${typeLabels[appointment.appointment_type] || appointment.appointment_type}</p>
-                <p><strong>Data:</strong> ${formattedDate}</p>
-                <p><strong>Hora:</strong> ${formattedTime}</p>
-                <p><strong>Duração:</strong> ${appointment.duration_minutes} minutos</p>
-                ${project ? `<p><strong>Imóvel:</strong> ${project.title_pt}</p>` : ''}
-                ${appointment.location ? `<p><strong>Local:</strong> ${appointment.location}</p>` : ''}
+                <h3>${esc(appointment.title)}</h3>
+                <p><strong>Tipo:</strong> ${esc(typeLabels[appointment.appointment_type] || appointment.appointment_type)}</p>
+                <p><strong>Data:</strong> ${esc(formattedDate)}</p>
+                <p><strong>Hora:</strong> ${esc(formattedTime)}</p>
+                <p><strong>Duração:</strong> ${esc(appointment.duration_minutes)} minutos</p>
+                ${project ? `<p><strong>Imóvel:</strong> ${esc(project.title_pt)}</p>` : ''}
+                ${appointment.location ? `<p><strong>Local:</strong> ${esc(appointment.location)}</p>` : ''}
               </div>
               
-              ${appointment.description ? `<p><strong>Detalhes:</strong><br/>${appointment.description}</p>` : ''}
+              ${appointment.description ? `<p><strong>Detalhes:</strong><br/>${esc(appointment.description)}</p>` : ''}
               
               <p>Se precisar reagendar ou cancelar, por favor entre em contacto connosco.</p>
               
