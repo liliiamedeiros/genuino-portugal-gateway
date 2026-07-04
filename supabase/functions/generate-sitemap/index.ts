@@ -80,7 +80,7 @@ ${sitemaps}
     let urls = ''
     for (const page of STATIC_PAGES) {
       urls += urlEntry(
-        `${BASE}${page.path}?lang=${langParam}`,
+        `${BASE}${page.path}`,
         today, page.changefreq, page.priority,
         hreflangBlock(page.path)
       )
@@ -88,7 +88,7 @@ ${sitemaps}
     for (const p of projects || []) {
       const lastmod = p.updated_at ? p.updated_at.split('T')[0] : today
       urls += urlEntry(
-        `${BASE}/project/${p.id}?lang=${langParam}`,
+        `${BASE}/project/${p.id}`,
         lastmod, 'weekly', '0.8',
         hreflangBlock(`/project/${p.id}`)
       )
@@ -96,7 +96,7 @@ ${sitemaps}
     for (const p of portfolio || []) {
       const lastmod = p.updated_at ? p.updated_at.split('T')[0] : today
       urls += urlEntry(
-        `${BASE}/portfolio/${p.id}?lang=${langParam}`,
+        `${BASE}/portfolio/${p.id}`,
         lastmod, 'weekly', '0.7',
         hreflangBlock(`/portfolio/${p.id}`)
       )
