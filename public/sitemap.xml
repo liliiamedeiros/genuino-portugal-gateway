@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://genuinoinvestments.ch</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch?lang=pt"/>
@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/about</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/about?lang=pt"/>
@@ -25,7 +25,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/services</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/services?lang=pt"/>
@@ -36,7 +36,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/portfolio</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/portfolio?lang=pt"/>
@@ -47,7 +47,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/properties</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/properties?lang=pt"/>
@@ -58,7 +58,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/vision</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/vision?lang=pt"/>
@@ -69,7 +69,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/investors</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/investors?lang=pt"/>
@@ -80,7 +80,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/contact</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/contact?lang=pt"/>
@@ -91,7 +91,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/legal</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/legal?lang=pt"/>
@@ -102,7 +102,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/privacy</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/privacy?lang=pt"/>
@@ -113,7 +113,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/disputes</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/disputes?lang=pt"/>
@@ -124,7 +124,7 @@
   </url>
   <url>
     <loc>https://genuinoinvestments.ch/install</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-07-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://genuinoinvestments.ch/install?lang=pt"/>
@@ -134,25 +134,25 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://genuinoinvestments.ch/install"/>
   </url>
   <!-- Dynamic: active properties (/project/:id) -->
-  <url><loc>https://genuinoinvestments.ch/project/cerca-colegio</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/villa-a-almancil-terraco-piscina-e-jardim-privativo-1768673121495</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/villa-b-almancil-terraco-piscina-e-jardim-privativo-1768673410869</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/villa-c-almancil-terraco-piscina-e-jardim-privativo-1768673684598</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/villa-d-almancil-terraco-piscina-e-jardim-privativo-1768673830301</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/villa-e-almancil-terraco-piscina-e-jardim-privativo-1768673984726</loc><lastmod>2026-01-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/apartamento-t3-centro-de-portimao-oportunidade-unica-1767022808029</loc><lastmod>2025-12-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/1000000010-olhao</loc><lastmod>2025-12-20</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://genuinoinvestments.ch/project/moradia-v4-independente-3-suites-6-lugares-de-estacionamento-1765798914126</loc><lastmod>2025-12-20</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/cerca-colegio</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/villa-a-almancil-terraco-piscina-e-jardim-privativo-1768673121495</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/villa-b-almancil-terraco-piscina-e-jardim-privativo-1768673410869</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/villa-c-almancil-terraco-piscina-e-jardim-privativo-1768673684598</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/villa-d-almancil-terraco-piscina-e-jardim-privativo-1768673830301</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/villa-e-almancil-terraco-piscina-e-jardim-privativo-1768673984726</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/apartamento-t3-centro-de-portimao-oportunidade-unica-1767022808029</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/1000000010-olhao</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://genuinoinvestments.ch/project/moradia-v4-independente-3-suites-6-lugares-de-estacionamento-1765798914126</loc><lastmod>2026-07-04</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <!-- Dynamic: active portfolio projects (/portfolio/:id) -->
-  <url><loc>https://genuinoinvestments.ch/portfolio/3a5733fa-5577-453b-a061-49141fba98f5</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/ff9b1018-0d2e-4a78-a9d8-9bcf4ee7d502</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/e513f5a7-a219-4413-a8ad-95314cea0202</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/b3d54546-de0c-47a2-874b-d5c99853fffd</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/60b85a16-592a-4bcd-9382-27959b98b15d</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/1e00ec3f-c31e-4bb0-9b70-5a6138b15684</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/9a314e44-86ef-41d3-a65f-004fac4d0f51</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/24a884dc-fad6-48d6-8d05-e440ecf05475</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/d60ed146-1c79-4b4b-b734-5ae9fc646a40</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/358b92a9-2c6f-4a18-8446-95039cc56be4</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://genuinoinvestments.ch/portfolio/eae29fca-9a1e-4c77-9ea9-656c1c5037de</loc><lastmod>2025-12-14</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/3a5733fa-5577-453b-a061-49141fba98f5</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/ff9b1018-0d2e-4a78-a9d8-9bcf4ee7d502</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/e513f5a7-a219-4413-a8ad-95314cea0202</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/b3d54546-de0c-47a2-874b-d5c99853fffd</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/60b85a16-592a-4bcd-9382-27959b98b15d</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/1e00ec3f-c31e-4bb0-9b70-5a6138b15684</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/9a314e44-86ef-41d3-a65f-004fac4d0f51</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/24a884dc-fad6-48d6-8d05-e440ecf05475</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/d60ed146-1c79-4b4b-b734-5ae9fc646a40</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/358b92a9-2c6f-4a18-8446-95039cc56be4</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://genuinoinvestments.ch/portfolio/eae29fca-9a1e-4c77-9ea9-656c1c5037de</loc><lastmod>2026-07-04</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
