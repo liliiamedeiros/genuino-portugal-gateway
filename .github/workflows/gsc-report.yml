@@ -1,0 +1,48 @@
+name: GSC URL status report
+
+# Weekly export of Google Search Console indexing status for every URL
+# in the shipped sitemaps. Publishes reports/gsc-status-<date>.{md,csv}
+# as a build artifact so the team can track which URLs are still stuck
+# as "N/A" (never crawled).
+#
+# Exit code 2 from the script (= there are still N/A URLs) is treated as
+# a warning, not a failure — the artifact is what matters. Real errors
+# (missing creds, gateway failure) return 1 and fail the job.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install tsx
+        run: npm install --no-save tsx
+
+      - name: Generate GSC status report
+        env:
+          LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
+          GOOGLE_SEARCH_CONSOLE_API_KEY: ${{ secrets.GOOGLE_SEARCH_CONSOLE_API_KEY }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL || 'https://genuinoinvestments.ch/' }}
+        run: |
+          set +e
+          npx tsx scripts/gsc-url-status-report.ts
+          code=$?
+          if [ "$code" -eq 1 ]; then exit 1; fi
+          exit 0
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gsc-status-report
+          path: reports/gsc-status-*.*
+          if-no-files-found: warn
