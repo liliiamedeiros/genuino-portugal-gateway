@@ -11,7 +11,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "security:scan": "tsx scripts/run-security-scan.ts"
+    "security:scan": "tsx scripts/run-security-scan.ts",
+    "seo:validate": "tsx scripts/validate-hreflang.ts && tsx scripts/validate-sitemap-host.ts",
+    "seo:sitemap:refresh": "tsx scripts/refresh-sitemap-lastmod.ts",
+    "seo:gsc:report": "tsx scripts/gsc-url-status-report.ts",
+    "prebuild": "tsx scripts/validate-hreflang.ts && tsx scripts/validate-sitemap-host.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
