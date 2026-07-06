@@ -699,6 +699,7 @@ export type Database = {
           status: string | null
           subscribed_at: string | null
           tags: string[] | null
+          unsubscribe_token: string
           unsubscribed_at: string | null
         }
         Insert: {
@@ -711,6 +712,7 @@ export type Database = {
           status?: string | null
           subscribed_at?: string | null
           tags?: string[] | null
+          unsubscribe_token?: string
           unsubscribed_at?: string | null
         }
         Update: {
@@ -723,6 +725,7 @@ export type Database = {
           status?: string | null
           subscribed_at?: string | null
           tags?: string[] | null
+          unsubscribe_token?: string
           unsubscribed_at?: string | null
         }
         Relationships: []

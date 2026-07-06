@@ -247,8 +247,8 @@ Deno.serve(async (req) => {
       const personalizedContent = sanitizedContent
         .replace(/\{\{nome\}\}/g, escapeHtml(subscriber.full_name || 'Assinante'))
         .replace(/\{\{email\}\}/g, escapeHtml(subscriber.email))
-        .replace(/\{\{unsubscribe_link\}\}/g, 
-          `${Deno.env.get('SITE_URL')}/unsubscribe?token=${encodeURIComponent(subscriber.id)}`);
+        .replace(/\{\{unsubscribe_link\}\}/g,
+          `${Deno.env.get('SITE_URL')}/unsubscribe?token=${encodeURIComponent(subscriber.unsubscribe_token)}`);
       
       // Wrap content in HTML document with CSP headers for XSS protection
       const emailHtml = `<!DOCTYPE html>
