@@ -13,6 +13,7 @@ import { OptimizedImage } from '@/components/OptimizedImage';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
+import { safeEmbedUrl } from '@/lib/embedUrlAllowlist';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -558,7 +559,15 @@ export default function ProjectDetail() {
             )}
 
             {/* Vídeo e Tour Virtual */}
-            {(project.video_url || project.virtual_tour_url) && (
+            {(() => {
+              const safeVideo = safeEmbedUrl(
+                project.video_url?.includes('youtube')
+                  ? project.video_url.replace('watch?v=', 'embed/')
+                  : project.video_url,
+                'video'
+              );
+              const safeTour = safeEmbedUrl(project.virtual_tour_url, 'tour');
+              return (safeVideo || safeTour) && (
               <div className="mb-8 sm:mb-12">
                 <h3 className="text-xl sm:text-2xl 3xl:text-3xl font-semibold mb-4 3xl:mb-6">
                   {language === 'pt' && 'Vídeo e Tour Virtual'}
@@ -567,7 +576,7 @@ export default function ProjectDetail() {
                   {language === 'de' && 'Video und virtueller Rundgang'}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4 sm:gap-6 3xl:gap-8">
-                  {project.video_url && (
+                  {safeVideo && (
                     <div className="space-y-2 3xl:space-y-3">
                       <h4 className="font-semibold 3xl:text-lg flex items-center gap-2">
                         <span className="3xl:text-xl">🎥</span> {language === 'pt' && 'Vídeo do Imóvel'}
@@ -577,20 +586,20 @@ export default function ProjectDetail() {
                       </h4>
                       <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
                         <iframe
-                          src={project.video_url.includes('youtube') 
-                            ? project.video_url.replace('watch?v=', 'embed/') 
-                            : project.video_url}
+                          src={safeVideo}
                           width="100%"
                           height="100%"
                           style={{ border: 0 }}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
+                          sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                          referrerPolicy="no-referrer-when-downgrade"
                           title="Property Video"
                         />
                       </div>
                     </div>
                   )}
-                  {project.virtual_tour_url && (
+                  {safeTour && (
                     <div className="space-y-2 3xl:space-y-3">
                       <h4 className="font-semibold 3xl:text-lg flex items-center gap-2">
                         <span className="3xl:text-xl">🌐</span> {language === 'pt' && 'Tour Virtual 360°'}
@@ -600,11 +609,13 @@ export default function ProjectDetail() {
                       </h4>
                       <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
                         <iframe
-                          src={project.virtual_tour_url}
+                          src={safeTour}
                           width="100%"
                           height="100%"
                           style={{ border: 0 }}
                           allowFullScreen
+                          sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                          referrerPolicy="no-referrer-when-downgrade"
                           title="Virtual Tour"
                         />
                       </div>
@@ -612,7 +623,8 @@ export default function ProjectDetail() {
                   )}
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Mapa de Localização */}
             {project.city && (

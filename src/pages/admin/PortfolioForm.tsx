@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { isAllowedEmbedUrl, ALLOWED_HOSTS_HINT } from '@/lib/embedUrlAllowlist';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -40,9 +41,15 @@ const portfolioSchema = z.object({
   bathrooms: z.coerce.number().optional(),
   area_sqm: z.coerce.number().optional(),
   parking_spaces: z.coerce.number().optional(),
-  video_url: z.string().optional().or(z.literal('')),
-  virtual_tour_url: z.string().optional().or(z.literal('')),
-  map_embed_url: z.string().optional().or(z.literal('')),
+  video_url: z.string().optional().or(z.literal(''))
+    .refine((v) => !v || isAllowedEmbedUrl(v, 'video'),
+      { message: `URL não permitido. Apenas: ${ALLOWED_HOSTS_HINT.video}` }),
+  virtual_tour_url: z.string().optional().or(z.literal(''))
+    .refine((v) => !v || isAllowedEmbedUrl(v, 'tour'),
+      { message: `URL não permitido. Apenas: ${ALLOWED_HOSTS_HINT.tour}` }),
+  map_embed_url: z.string().optional().or(z.literal(''))
+    .refine((v) => !v || isAllowedEmbedUrl(v, 'map'),
+      { message: `URL não permitido. Apenas: ${ALLOWED_HOSTS_HINT.map}` }),
   status: z.string().default('active'),
   featured: z.boolean().default(false),
 });

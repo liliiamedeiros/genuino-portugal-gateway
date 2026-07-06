@@ -13,6 +13,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
+import { safeEmbedUrl } from '@/lib/embedUrlAllowlist';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
@@ -507,7 +508,12 @@ export default function PortfolioDetail() {
               </div>
 
               {/* Video */}
-              {project.video_url && (
+              {(() => {
+                const safeVideo = safeEmbedUrl(
+                  project.video_url?.replace('watch?v=', 'embed/'),
+                  'video'
+                );
+                return safeVideo && (
                 <div className="mt-8 sm:mt-12 3xl:mt-16">
                   <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">
                     {language === 'pt' && 'Vídeo'}
@@ -517,16 +523,21 @@ export default function PortfolioDetail() {
                   </h3>
                   <div className="rounded-lg overflow-hidden shadow-lg h-[250px] sm:h-[350px] lg:h-[450px] 3xl:h-[550px] 4xl:h-[650px]">
                     <iframe
-                      src={project.video_url.replace('watch?v=', 'embed/')}
+                      src={safeVideo}
                       className="w-full h-full"
                       allowFullScreen
+                      sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Virtual Tour */}
-              {project.virtual_tour_url && (
+              {(() => {
+                const safeTour = safeEmbedUrl(project.virtual_tour_url, 'tour');
+                return safeTour && (
                 <div className="mt-8 sm:mt-12 3xl:mt-16">
                   <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">
                     {language === 'pt' && 'Tour Virtual 360°'}
@@ -536,16 +547,21 @@ export default function PortfolioDetail() {
                   </h3>
                   <div className="rounded-lg overflow-hidden shadow-lg h-[250px] sm:h-[350px] lg:h-[450px] 3xl:h-[550px] 4xl:h-[650px]">
                     <iframe
-                      src={project.virtual_tour_url}
+                      src={safeTour}
                       className="w-full h-full"
                       allowFullScreen
+                      sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Mapa */}
-              {project.map_embed_url && (
+              {(() => {
+                const safeMap = safeEmbedUrl(project.map_embed_url, 'map');
+                return safeMap && (
                 <div className="mt-8 sm:mt-12 3xl:mt-16">
                   <h3 className="text-xl sm:text-2xl 3xl:text-3xl 4xl:text-4xl font-serif font-bold mb-4 sm:mb-6 3xl:mb-8">
                     {language === 'pt' && 'Localização'}
@@ -555,14 +571,17 @@ export default function PortfolioDetail() {
                   </h3>
                   <div className="rounded-lg overflow-hidden shadow-lg h-[300px] sm:h-[400px] 3xl:h-[500px] 4xl:h-[600px]">
                     <iframe
-                      src={project.map_embed_url}
+                      src={safeMap}
                       className="w-full h-full border-0"
                       allowFullScreen
                       loading="lazy"
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         </section>
