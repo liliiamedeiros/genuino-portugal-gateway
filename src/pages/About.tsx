@@ -1,7 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
-import gardensBuilding2 from '@/assets/gardens-building-2.jpeg';
-import sesmariasGarden from '@/assets/sesmarias-garden.jpg';
+import gardensBuilding2 from '@/assets/gardens-building-2.webp';
+import sesmariasGarden from '@/assets/sesmarias-garden.webp';
 import { RouteSeo } from '@/components/RouteSeo';
 
 export default function About() {
