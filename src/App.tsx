@@ -7,7 +7,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { Suspense, lazy, useEffect } from "react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
@@ -36,40 +35,10 @@ const Install = lazy(() => import("./pages/Install"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SeoDebug = lazy(() => import("./pages/SeoDebug"));
 
-// Lazy-loaded admin pages (separate bundle - not loaded for public visitors)
-const Login = lazy(() => import("./pages/admin/Login"));
-const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const AdminProperties = lazy(() => import("./pages/admin/Properties"));
-const PropertyForm = lazy(() => import("./pages/admin/PropertyForm"));
-const Users = lazy(() => import("./pages/admin/Users"));
-const Clients = lazy(() => import("./pages/admin/Clients"));
-const ClientDetail = lazy(() => import("./pages/admin/ClientDetail"));
-const Appointments = lazy(() => import("./pages/admin/Appointments"));
-const Newsletter = lazy(() => import("./pages/admin/Newsletter"));
-const NewCampaign = lazy(() => import("./pages/admin/NewCampaign"));
-const Reports = lazy(() => import("./pages/admin/Reports"));
-const Settings = lazy(() => import("./pages/admin/Settings"));
-const JsonLdValidator = lazy(() => import("./pages/admin/JsonLdValidator"));
-const JsonLdSystem = lazy(() => import("./pages/admin/JsonLdSystem"));
-const ImageConverter = lazy(() => import("./pages/admin/ImageConverter"));
-const ImageManager = lazy(() => import("./pages/admin/ImageManager"));
-const MigrateProjects = lazy(() => import("./pages/admin/MigrateProjects"));
-const MenuManager = lazy(() => import("./pages/admin/MenuManager"));
-const PortfolioList = lazy(() => import("./pages/admin/PortfolioList"));
-const PortfolioForm = lazy(() => import("./pages/admin/PortfolioForm"));
-const AuditLogPage = lazy(() => import("./pages/admin/AuditLogPage"));
-const SeoGeo = lazy(() => import("./pages/admin/SeoGeo"));
-const SeoChecklist = lazy(() => import("./pages/admin/SeoChecklist"));
-const SeoConfig = lazy(() => import("./pages/admin/SeoConfig"));
-const SeoHistory = lazy(() => import("./pages/admin/SeoHistory"));
-const SeoGeoModule = lazy(() => import("./pages/admin/SeoGeoModule"));
-const SeoTools = lazy(() => import("./pages/admin/SeoTools"));
-const ResponsiveAudit = lazy(() => import("./pages/admin/ResponsiveAudit"));
-const ResponsiveAuditHistory = lazy(() => import("./pages/admin/ResponsiveAuditHistory"));
-const SeoGooglebotAudit = lazy(() => import("./pages/admin/SeoGooglebotAudit"));
-const SeoMetaAudit = lazy(() => import("./pages/admin/SeoMetaAudit"));
-const Diagnostics = lazy(() => import("./pages/admin/Diagnostics"));
-const SecurityFindings = lazy(() => import("./pages/admin/SecurityFindings"));
+// Admin area is a single lazy-loaded bundle. No admin code is included
+// in the public site bundle — the chunk is only fetched when the user
+// navigates to /admin/*.
+const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 
 // Loading fallback shown while route chunks are fetched
 const RouteLoader = () => (
