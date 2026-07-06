@@ -142,7 +142,6 @@ export default function Settings() {
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="general" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Geral</TabsTrigger>
-            <TabsTrigger value="email" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Email</TabsTrigger>
             <TabsTrigger value="notifications" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Notificações</TabsTrigger>
             <TabsTrigger value="system" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Sistema</TabsTrigger>
             <TabsTrigger value="security" className="min-h-touch text-xs sm:text-sm 3xl:text-base">Segurança</TabsTrigger>
@@ -220,84 +219,6 @@ export default function Settings() {
                   />
                 </div>
                 <Button onClick={handleSaveGeneral} className="min-h-touch 3xl:min-h-touch-lg">Salvar Alterações</Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Email Settings */}
-          <TabsContent value="email">
-            <Card>
-              <CardHeader className="3xl:p-8">
-                <CardTitle className="3xl:text-2xl 4xl:text-3xl">Configurações de Email</CardTitle>
-                <CardDescription className="3xl:text-base 4xl:text-lg">
-                  Configure o servidor SMTP para envio de emails
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 3xl:space-y-6 3xl:p-8">
-                <div className="space-y-2">
-                  <Label htmlFor="smtp_host">Servidor SMTP</Label>
-                  <Input
-                    id="smtp_host"
-                    value={settings.smtp_host || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, smtp_host: e.target.value })
-                    }
-                    placeholder="smtp.example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtp_port">Porta SMTP</Label>
-                  <Input
-                    id="smtp_port"
-                    type="number"
-                    value={settings.smtp_port || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, smtp_port: parseInt(e.target.value) })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtp_user">Usuário SMTP</Label>
-                  <Input
-                    id="smtp_user"
-                    value={settings.smtp_user || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, smtp_user: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtp_password">Senha SMTP</Label>
-                  <Input
-                    id="smtp_password"
-                    type="password"
-                    value={settings.smtp_password || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, smtp_password: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email_from">Email Remetente</Label>
-                  <Input
-                    id="email_from"
-                    type="email"
-                    value={settings.email_from || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, email_from: e.target.value })
-                    }
-                    placeholder="noreply@example.com"
-                  />
-                </div>
-                <Button className="min-h-touch 3xl:min-h-touch-lg" onClick={() => {
-                  updateSettingMutation.mutate({ key: "smtp_host", value: settings.smtp_host });
-                  updateSettingMutation.mutate({ key: "smtp_port", value: settings.smtp_port });
-                  updateSettingMutation.mutate({ key: "smtp_user", value: settings.smtp_user });
-                  updateSettingMutation.mutate({ key: "smtp_password", value: settings.smtp_password });
-                  updateSettingMutation.mutate({ key: "email_from", value: settings.email_from });
-                }}>
-                  Salvar Alterações
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
