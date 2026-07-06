@@ -13,6 +13,7 @@ import { OptimizedImage } from '@/components/OptimizedImage';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 import { generatePropertyJsonLd } from '@/utils/jsonLdUtils';
+import { safeEmbedUrl } from '@/lib/embedUrlAllowlist';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
