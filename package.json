@@ -15,7 +15,7 @@
     "seo:validate": "tsx scripts/validate-hreflang.ts && tsx scripts/validate-sitemap-host.ts",
     "seo:sitemap:refresh": "tsx scripts/refresh-sitemap-lastmod.ts",
     "seo:gsc:report": "tsx scripts/gsc-url-status-report.ts",
-    "prebuild": "tsx scripts/validate-hreflang.ts && tsx scripts/validate-sitemap-host.ts"
+    "prebuild": "npx -y tsx scripts/validate-hreflang.ts && npx -y tsx scripts/validate-sitemap-host.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
