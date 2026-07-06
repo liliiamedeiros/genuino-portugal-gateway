@@ -1,5 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
-import santaMarinha from '@/assets/santa-marinha.jpg';
+import santaMarinha from '@/assets/santa-marinha.webp';
 import { RouteSeo } from '@/components/RouteSeo';
 
 export default function Vision() {
