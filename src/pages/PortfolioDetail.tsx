@@ -13,6 +13,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
+import { safeEmbedUrl } from '@/lib/embedUrlAllowlist';
 
 const translatePropertyType = (type: string | null, lang: string) => {
   if (!type) return '';
