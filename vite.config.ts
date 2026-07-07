@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => ({
         // service worker downloads admin-only JavaScript during the first
         // public visit, defeating React.lazy route isolation.
         globPatterns: ['**/*.{html,css,ico,png,svg,webmanifest}'],
+        globIgnores: ['admin/**'],
         runtimeCaching: [
           {
             urlPattern: /\/assets\/.*\.js$/i,
