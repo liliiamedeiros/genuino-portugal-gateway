@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Suspense, lazy, useEffect } from "react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OrganizationSchema } from "@/components/OrganizationSchema";
@@ -35,11 +34,6 @@ const Install = lazy(() => import("./pages/Install"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SeoDebug = lazy(() => import("./pages/SeoDebug"));
 
-// Admin area is a single lazy-loaded bundle. No admin code is included
-// in the public site bundle — the chunk is only fetched when the user
-// navigates to /admin/*.
-const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
-
 // Loading fallback shown while route chunks are fetched
 const RouteLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -58,7 +52,6 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <LanguageProvider>
-            <AuthProvider>
               <TooltipProvider>
                 <CarModeWrapper>
                   <OrganizationSchema />
@@ -175,10 +168,6 @@ const App = () => {
                   <Footer />
                 </>
               } />
-
-              {/* Admin Routes — single lazy chunk, not fetched for public visitors */}
-              <Route path="/admin/*" element={<AdminRoutes />} />
-
               <Route path="*" element={
                 <>
                   <Navbar />
@@ -191,7 +180,6 @@ const App = () => {
                 </CarModeWrapper>
                 <ResponsiveDebugPanel />
               </TooltipProvider>
-            </AuthProvider>
           </LanguageProvider>
         </BrowserRouter>
       </QueryClientProvider>
