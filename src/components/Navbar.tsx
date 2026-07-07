@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.webp';
 import logoWhite from '@/assets/logo-white.webp';
 import { FALLBACK_MAIN_MENU, resolveLabel } from '@/data/navigationFallback';
@@ -115,35 +115,10 @@ export const Navbar = () => {
                 </Link>
               ))}
               <LanguageSwitcher />
-              <Button 
-                asChild
-                variant="ghost"
-                size="sm"
-                className={`gap-2 min-h-touch 3xl:min-h-touch-lg 3xl:text-base 4xl:text-lg ${
-                  isScrolled 
-                    ? 'text-white hover:bg-white/10' 
-                    : 'text-primary hover:bg-primary/10'
-                }`}
-              >
-                <Link to="/admin/login">
-                  <LogIn className="h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6" />
-                  <span>Entrar</span>
-                </Link>
-              </Button>
             </div>
 
             {/* Mobile/Tablet Menu Button */}
             <div className="lg:hidden flex items-center gap-1 sm:gap-2">
-              <Button 
-                asChild
-                variant="ghost"
-                size="sm"
-                className={`h-11 w-11 p-0 ${isScrolled ? 'text-white hover:text-white/80' : ''}`}
-              >
-                <Link to="/admin/login" aria-label="Entrar">
-                  <LogIn className="h-5 w-5" />
-                </Link>
-              </Button>
               <LanguageSwitcher />
               <Button 
                 variant="ghost" 
