@@ -51,6 +51,7 @@ export default defineConfig(({ mode }) => ({
         // public visit, defeating React.lazy route isolation.
         globPatterns: ['**/*.{html,css,ico,png,svg,webmanifest}'],
         globIgnores: ['admin/**'],
+        navigateFallbackDenylist: [/^\/admin(?:\/|$)/],
         runtimeCaching: [
           {
             urlPattern: /\/assets\/.*\.js$/i,
