@@ -24,6 +24,32 @@ const SITE_URL = process.env.GSC_SITE_URL || 'https://genuinoinvestments.ch/';
 const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
 const GSC_KEY = process.env.GOOGLE_SEARCH_CONSOLE_API_KEY;
 
+// Rate limiting / retry knobs. GSC URL inspection quota is ~600 req/min per
+// property (2000/day). Stay well below with a token-bucket-style pacing and
+// exponential backoff on 429/5xx.
+const MIN_INTERVAL_MS = Number(process.env.GSC_MIN_INTERVAL_MS || 300); // ~200 req/min
+const MAX_RETRIES = Number(process.env.GSC_MAX_RETRIES || 5);
+const BASE_BACKOFF_MS = Number(process.env.GSC_BASE_BACKOFF_MS || 1000);
+const MAX_BACKOFF_MS = Number(process.env.GSC_MAX_BACKOFF_MS || 30_000);
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+let lastCallAt = 0;
+async function pace() {
+  const wait = lastCallAt + MIN_INTERVAL_MS - Date.now();
+  if (wait > 0) await sleep(wait);
+  lastCallAt = Date.now();
+}
+
+function backoffMs(attempt: number, retryAfterHeader?: string | null): number {
+  if (retryAfterHeader) {
+    const n = Number(retryAfterHeader);
+    if (!Number.isNaN(n) && n > 0) return Math.min(n * 1000, MAX_BACKOFF_MS);
+  }
+  const exp = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+  return Math.floor(exp * (0.5 + Math.random() * 0.5)); // full jitter
+}
+
 if (!LOVABLE_API_KEY || !GSC_KEY) {
   console.error(
     '❌ Missing credentials. Set LOVABLE_API_KEY and GOOGLE_SEARCH_CONSOLE_API_KEY ' +
@@ -57,17 +83,37 @@ function collectUrlsFromSitemaps(): string[] {
 }
 
 async function inspect(url: string): Promise<Row> {
-  try {
-    const res = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': GSC_KEY!,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ inspectionUrl: url, siteUrl: SITE_URL }),
-    });
+  let lastErr = '';
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    await pace();
+    let res: Response;
+    try {
+      res = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          'X-Connection-Api-Key': GSC_KEY!,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inspectionUrl: url, siteUrl: SITE_URL }),
+      });
+    } catch (e) {
+      lastErr = `network: ${String(e)}`;
+      const wait = backoffMs(attempt);
+      console.warn(`  ↻ ${url} network error, retry in ${wait}ms (${attempt + 1}/${MAX_RETRIES})`);
+      await sleep(wait);
+      continue;
+    }
     const text = await res.text();
+    // Retry on 429 and 5xx
+    if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
+      lastErr = `HTTP ${res.status}: ${text.slice(0, 200)}`;
+      if (attempt === MAX_RETRIES) break;
+      const wait = backoffMs(attempt, res.headers.get('retry-after'));
+      console.warn(`  ↻ ${url} HTTP ${res.status}, retry in ${wait}ms (${attempt + 1}/${MAX_RETRIES})`);
+      await sleep(wait);
+      continue;
+    }
     if (!res.ok) {
       return {
         url,
@@ -80,7 +126,10 @@ async function inspect(url: string): Promise<Row> {
         error: `HTTP ${res.status}: ${text.slice(0, 200)}`,
       };
     }
-    const data = JSON.parse(text);
+    let data: any;
+    try { data = JSON.parse(text); } catch {
+      return { url, coverageState: 'ERROR', verdict: 'ERROR', lastCrawlTime: '', googleCanonical: '', userCanonical: '', isNA: true, error: 'invalid JSON response' };
+    }
     const idx = data?.inspectionResult?.indexStatusResult || {};
     const lastCrawl = idx.lastCrawlTime || '';
     const coverage = idx.coverageState || 'N/A';
@@ -94,18 +143,17 @@ async function inspect(url: string): Promise<Row> {
       userCanonical: idx.userCanonical || '',
       isNA: !lastCrawl,
     };
-  } catch (e) {
-    return {
-      url,
-      coverageState: 'ERROR',
-      verdict: 'ERROR',
-      lastCrawlTime: '',
-      googleCanonical: '',
-      userCanonical: '',
-      isNA: true,
-      error: String(e),
-    };
   }
+  return {
+    url,
+    coverageState: 'ERROR',
+    verdict: 'ERROR',
+    lastCrawlTime: '',
+    googleCanonical: '',
+    userCanonical: '',
+    isNA: true,
+    error: `retries exhausted — ${lastErr}`,
+  };
 }
 
 function esc(v: string): string {
@@ -118,12 +166,11 @@ async function main() {
   console.log(`Inspecting ${urls.length} URL(s) via GSC connector...`);
   const rows: Row[] = [];
 
-  // Serialize to be gentle with rate limits (~600 req/min GSC quota).
+  // Paced serial calls (see MIN_INTERVAL_MS) with per-call retry + backoff.
   for (const url of urls) {
     const r = await inspect(url);
     rows.push(r);
     console.log(`  ${r.isNA ? '⚠ N/A' : '✓    '} ${r.coverageState.padEnd(24)} ${url}`);
-    await new Promise((r) => setTimeout(r, 120));
   }
 
   const today = new Date().toISOString().slice(0, 10);
