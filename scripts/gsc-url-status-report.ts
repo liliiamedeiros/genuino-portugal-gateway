@@ -217,6 +217,27 @@ async function main() {
   console.log(`\n📄 reports/gsc-status-${today}.md`);
   console.log(`📄 reports/gsc-status-${today}.csv`);
   console.log(`\n${na.length} URL(s) still N/A out of ${rows.length}.`);
+
+  // Publish machine-readable counters for the workflow (Slack/email alerts).
+  const errors = rows.filter((r) => r.coverageState === 'ERROR').length;
+  const errorRate = rows.length > 0 ? errors / rows.length : 0;
+  const errorThreshold = Number(process.env.GSC_ERROR_RATE_THRESHOLD || '0.1');
+  const naLimit = Number(process.env.NA_ALERT_LIMIT || '0');
+  console.log(
+    `GSC_INSPECT_SUMMARY total=${rows.length} na=${na.length} errors=${errors} error_rate=${errorRate.toFixed(3)} threshold=${errorThreshold} na_limit=${naLimit}`,
+  );
+  if (process.env.GITHUB_OUTPUT) {
+    writeFileSync(process.env.GITHUB_OUTPUT, [
+      `total=${rows.length}`,
+      `na=${na.length}`,
+      `errors=${errors}`,
+      `error_rate=${errorRate.toFixed(3)}`,
+      `over_error_threshold=${errorRate > errorThreshold ? 'true' : 'false'}`,
+      `over_na_limit=${naLimit > 0 && na.length > naLimit ? 'true' : 'false'}`,
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
+
   // Non-zero exit if any URL is stuck as N/A so CI surfaces it as a warning
   // (dedicated workflow decides whether to fail hard or just publish artifact).
   process.exit(na.length > 0 ? 2 : 0);
