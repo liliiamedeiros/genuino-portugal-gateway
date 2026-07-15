@@ -14,12 +14,18 @@ on:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -38,6 +44,25 @@ jobs:
           code=$?
           if [ "$code" -eq 1 ]; then exit 1; fi
           exit 0
+
+      - name: Track stale N/A URLs & open GitHub issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          STALE_DAYS: "14"
+        run: npx tsx scripts/gsc-track-na-urls.ts
+
+      - name: Commit updated N/A history
+        run: |
+          if [ -z "$(git status --porcelain reports/gsc-na-history.json)" ]; then
+            echo "No history changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/gsc-na-history.json
+          git commit -m "chore(seo): update GSC N/A history [skip ci]"
+          git push
 
       - name: Upload report artifact
         if: always()
