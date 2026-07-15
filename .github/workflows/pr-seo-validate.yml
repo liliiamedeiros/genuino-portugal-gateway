@@ -34,6 +34,15 @@ jobs:
       - name: Install tsx
         run: npm install --no-save tsx
 
+      - name: Fetch base ref for diff
+        run: git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Generate sitemap/hreflang diff summary
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx tsx scripts/pr-sitemap-diff.ts
+
       - name: Run seo:validate
         id: seo
         run: |
@@ -67,6 +76,7 @@ jobs:
             const marker = '<!-- seo-validate-report -->';
             const status = '${{ steps.seo.outputs.status }}';
             const raw = fs.readFileSync('reports/seo-validate.log', 'utf8');
+            const diff = fs.existsSync('reports/seo-diff.md') ? fs.readFileSync('reports/seo-diff.md', 'utf8') : '';
 
             const failureLines = raw
               .split('\n')
@@ -98,7 +108,7 @@ jobs:
                   '</details>',
                 ].join('\n');
 
-            const body = `${marker}\n${header}\n${details}`;
+            const body = [marker, header, details, '', diff].filter(Boolean).join('\n');
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;
             const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
