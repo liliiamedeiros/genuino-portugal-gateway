@@ -18,6 +18,7 @@
  */
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
+import { backoffMs as computeBackoff, isRetryableStatus } from './lib/gsc-helpers';
 
 const GATEWAY = 'https://connector-gateway.lovable.dev/google_search_console';
 const SITE_URL = process.env.GSC_SITE_URL || 'https://genuinoinvestments.ch/';
@@ -42,12 +43,10 @@ async function pace() {
 }
 
 function backoffMs(attempt: number, retryAfterHeader?: string | null): number {
-  if (retryAfterHeader) {
-    const n = Number(retryAfterHeader);
-    if (!Number.isNaN(n) && n > 0) return Math.min(n * 1000, MAX_BACKOFF_MS);
-  }
-  const exp = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
-  return Math.floor(exp * (0.5 + Math.random() * 0.5)); // full jitter
+  return computeBackoff(attempt, retryAfterHeader, {
+    baseMs: BASE_BACKOFF_MS,
+    maxMs: MAX_BACKOFF_MS,
+  });
 }
 
 if (!LOVABLE_API_KEY || !GSC_KEY) {
@@ -106,7 +105,7 @@ async function inspect(url: string): Promise<Row> {
     }
     const text = await res.text();
     // Retry on 429 and 5xx
-    if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
+    if (isRetryableStatus(res.status)) {
       lastErr = `HTTP ${res.status}: ${text.slice(0, 200)}`;
       if (attempt === MAX_RETRIES) break;
       const wait = backoffMs(attempt, res.headers.get('retry-after'));
