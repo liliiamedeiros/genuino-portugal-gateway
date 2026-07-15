@@ -34,10 +34,13 @@ jobs:
         run: npm install --no-save tsx
 
       - name: Generate GSC status report
+        id: report
         env:
           LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
           GOOGLE_SEARCH_CONSOLE_API_KEY: ${{ secrets.GOOGLE_SEARCH_CONSOLE_API_KEY }}
           GSC_SITE_URL: ${{ vars.GSC_SITE_URL || 'https://genuinoinvestments.ch/' }}
+          GSC_ERROR_RATE_THRESHOLD: ${{ vars.GSC_ERROR_RATE_THRESHOLD || '0.1' }}
+          NA_ALERT_LIMIT: ${{ vars.NA_ALERT_LIMIT || '25' }}
         run: |
           set +e
           npx tsx scripts/gsc-url-status-report.ts
@@ -46,11 +49,59 @@ jobs:
           exit 0
 
       - name: Track stale N/A URLs & open GitHub issues
+        id: track
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           STALE_DAYS: "14"
+          NA_ALERT_LIMIT: ${{ vars.NA_ALERT_LIMIT || '25' }}
         run: npx tsx scripts/gsc-track-na-urls.ts
+
+      - name: Slack alert on threshold breach
+        if: >
+          always() &&
+          (steps.report.outputs.over_error_threshold == 'true' ||
+           steps.report.outputs.over_na_limit == 'true' ||
+           steps.track.outputs.over_limit == 'true')
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not set — skipping Slack alert."
+            exit 0
+          fi
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TEXT=":rotating_light: *GSC threshold breached* — errors=${{ steps.report.outputs.errors }} error_rate=${{ steps.report.outputs.error_rate }} na=${{ steps.report.outputs.na }} (limit ${{ vars.NA_ALERT_LIMIT || '25' }})\n<${RUN_URL}|View run>"
+          curl -sS -X POST -H 'Content-Type: application/json' \
+            --data "$(jq -nc --arg t "$TEXT" '{text:$t}')" \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Email alert on threshold breach
+        if: >
+          always() &&
+          (steps.report.outputs.over_error_threshold == 'true' ||
+           steps.report.outputs.over_na_limit == 'true' ||
+           steps.track.outputs.over_limit == 'true')
+        uses: dawidd6/action-send-mail@v3
+        continue-on-error: true
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          from: ${{ secrets.SMTP_FROM || secrets.SMTP_USER }}
+          to: ${{ vars.SEO_ALERT_EMAIL }}
+          subject: "[GSC alert] N/A or error threshold breached"
+          body: |
+            The weekly Google Search Console inspection breached configured thresholds.
+
+            errors=${{ steps.report.outputs.errors }}
+            error_rate=${{ steps.report.outputs.error_rate }}
+            na=${{ steps.report.outputs.na }} (limit ${{ vars.NA_ALERT_LIMIT || '25' }})
+            over_error_threshold=${{ steps.report.outputs.over_error_threshold }}
+            over_na_limit=${{ steps.report.outputs.over_na_limit }}
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Commit updated N/A history
         run: |
