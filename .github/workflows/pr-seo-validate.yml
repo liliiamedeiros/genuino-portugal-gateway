@@ -1,0 +1,112 @@
+name: PR SEO validate
+
+# Runs `bun run seo:validate` (hreflang + sitemap host checks) on every PR
+# that touches SEO-relevant files, and posts a comment with the exact
+# failing URLs / hreflang issues. The comment is upserted on re-runs so
+# the PR keeps a single, up-to-date status marker.
+
+on:
+  pull_request:
+    paths:
+      - "public/sitemap*.xml"
+      - "public/robots.txt"
+      - "index.html"
+      - "src/data/**"
+      - "src/pages/**"
+      - "scripts/validate-hreflang.ts"
+      - "scripts/validate-sitemap-host.ts"
+      - ".github/workflows/pr-seo-validate.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  seo-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install tsx
+        run: npm install --no-save tsx
+
+      - name: Run seo:validate
+        id: seo
+        run: |
+          set +e
+          mkdir -p reports
+          {
+            echo "### hreflang validator"
+            npx tsx scripts/validate-hreflang.ts
+            hlf=$?
+            echo ""
+            echo "### sitemap host validator"
+            npx tsx scripts/validate-sitemap-host.ts
+            sh=$?
+            echo ""
+            echo "hreflang_exit=$hlf"
+            echo "sitemap_exit=$sh"
+          } > reports/seo-validate.log 2>&1
+          cat reports/seo-validate.log
+          if grep -q '^hreflang_exit=0' reports/seo-validate.log && grep -q '^sitemap_exit=0' reports/seo-validate.log; then
+            echo "status=pass" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment results on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- seo-validate-report -->';
+            const status = '${{ steps.seo.outputs.status }}';
+            const raw = fs.readFileSync('reports/seo-validate.log', 'utf8');
+
+            const failureLines = raw
+              .split('\n')
+              .filter((l) => /^\s*\[[^\]]+\].*→/.test(l))
+              .slice(0, 100);
+
+            const header = status === 'pass'
+              ? '✅ **SEO validate passed** — no hreflang or sitemap issues detected.'
+              : `❌ **SEO validate failed** — ${failureLines.length} issue(s) below.`;
+
+            const details = status === 'pass'
+              ? ''
+              : [
+                  '',
+                  '<details><summary>Failing URLs / hreflang issues</summary>',
+                  '',
+                  '```',
+                  failureLines.join('\n') || '(no per-line failures parsed — see full log below)',
+                  '```',
+                  '',
+                  '</details>',
+                  '',
+                  '<details><summary>Full validator output</summary>',
+                  '',
+                  '```',
+                  raw.slice(0, 60000),
+                  '```',
+                  '',
+                  '</details>',
+                ].join('\n');
+
+            const body = `${marker}\n${header}\n${details}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+            if (status !== 'pass') core.setFailed('seo:validate failed — see PR comment for details.');
