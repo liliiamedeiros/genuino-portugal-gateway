@@ -15,6 +15,7 @@
     "seo:validate": "tsx scripts/validate-hreflang.ts && tsx scripts/validate-sitemap-host.ts",
     "seo:sitemap:refresh": "tsx scripts/refresh-sitemap-lastmod.ts",
     "seo:gsc:report": "tsx scripts/gsc-url-status-report.ts",
+    "seo:gsc:track-na": "tsx scripts/gsc-track-na-urls.ts",
     "prebuild": "npx -y tsx scripts/validate-hreflang.ts && npx -y tsx scripts/validate-sitemap-host.ts"
   },
   "dependencies": {
