@@ -18,6 +18,7 @@
  */
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
+import { backoffMs as computeBackoff, isRetryableStatus } from './lib/gsc-helpers';
 
 const GATEWAY = 'https://connector-gateway.lovable.dev/google_search_console';
 const SITE_URL = process.env.GSC_SITE_URL || 'https://genuinoinvestments.ch/';
@@ -42,12 +43,10 @@ async function pace() {
 }
 
 function backoffMs(attempt: number, retryAfterHeader?: string | null): number {
-  if (retryAfterHeader) {
-    const n = Number(retryAfterHeader);
-    if (!Number.isNaN(n) && n > 0) return Math.min(n * 1000, MAX_BACKOFF_MS);
-  }
-  const exp = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
-  return Math.floor(exp * (0.5 + Math.random() * 0.5)); // full jitter
+  return computeBackoff(attempt, retryAfterHeader, {
+    baseMs: BASE_BACKOFF_MS,
+    maxMs: MAX_BACKOFF_MS,
+  });
 }
 
 if (!LOVABLE_API_KEY || !GSC_KEY) {
@@ -106,7 +105,7 @@ async function inspect(url: string): Promise<Row> {
     }
     const text = await res.text();
     // Retry on 429 and 5xx
-    if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
+    if (isRetryableStatus(res.status)) {
       lastErr = `HTTP ${res.status}: ${text.slice(0, 200)}`;
       if (attempt === MAX_RETRIES) break;
       const wait = backoffMs(attempt, res.headers.get('retry-after'));
@@ -218,6 +217,27 @@ async function main() {
   console.log(`\n📄 reports/gsc-status-${today}.md`);
   console.log(`📄 reports/gsc-status-${today}.csv`);
   console.log(`\n${na.length} URL(s) still N/A out of ${rows.length}.`);
+
+  // Publish machine-readable counters for the workflow (Slack/email alerts).
+  const errors = rows.filter((r) => r.coverageState === 'ERROR').length;
+  const errorRate = rows.length > 0 ? errors / rows.length : 0;
+  const errorThreshold = Number(process.env.GSC_ERROR_RATE_THRESHOLD || '0.1');
+  const naLimit = Number(process.env.NA_ALERT_LIMIT || '0');
+  console.log(
+    `GSC_INSPECT_SUMMARY total=${rows.length} na=${na.length} errors=${errors} error_rate=${errorRate.toFixed(3)} threshold=${errorThreshold} na_limit=${naLimit}`,
+  );
+  if (process.env.GITHUB_OUTPUT) {
+    writeFileSync(process.env.GITHUB_OUTPUT, [
+      `total=${rows.length}`,
+      `na=${na.length}`,
+      `errors=${errors}`,
+      `error_rate=${errorRate.toFixed(3)}`,
+      `over_error_threshold=${errorRate > errorThreshold ? 'true' : 'false'}`,
+      `over_na_limit=${naLimit > 0 && na.length > naLimit ? 'true' : 'false'}`,
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
+
   // Non-zero exit if any URL is stuck as N/A so CI surfaces it as a warning
   // (dedicated workflow decides whether to fail hard or just publish artifact).
   process.exit(na.length > 0 ? 2 : 0);
