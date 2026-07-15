@@ -15,6 +15,12 @@
  */
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
+import {
+  parseGscCsv,
+  issueMarkerFor,
+  buildIssueBody,
+  buildIssueTitle,
+} from './lib/gsc-helpers';
 
 const STALE_DAYS = Number(process.env.STALE_DAYS || 14);
 const REPO = process.env.GITHUB_REPOSITORY || '';
@@ -50,32 +56,7 @@ function findLatestCsv(): string | null {
 }
 
 function parseCsv(path: string): { url: string; isNa: boolean; coverage: string }[] {
-  const raw = readFileSync(path, 'utf8').split(/\r?\n/).filter(Boolean);
-  const header = raw.shift();
-  if (!header) return [];
-  const cols = header.split(',');
-  const iUrl = cols.indexOf('url');
-  const iCov = cols.indexOf('coverage_state');
-  const iNa = cols.indexOf('is_na');
-  return raw.map((line) => {
-    // Simple CSV split respecting quoted fields.
-    const cells: string[] = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (inQ) {
-        if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
-        else if (c === '"') inQ = false;
-        else cur += c;
-      } else {
-        if (c === ',') { cells.push(cur); cur = ''; }
-        else if (c === '"') inQ = true;
-        else cur += c;
-      }
-    }
-    cells.push(cur);
-    return { url: cells[iUrl] || '', coverage: cells[iCov] || '', isNa: (cells[iNa] || '') === 'true' };
-  }).filter((r) => r.url);
+  return parseGscCsv(readFileSync(path, 'utf8'));
 }
 
 const GH = 'https://api.github.com';
@@ -95,11 +76,37 @@ async function gh(path: string, init: RequestInit = {}): Promise<any> {
   return text ? JSON.parse(text) : null;
 }
 
-async function findExistingIssueByTitle(title: string): Promise<{ number: number; state: string } | null> {
-  const q = encodeURIComponent(`repo:${REPO} is:issue in:title "${title}" label:${ISSUE_LABEL}`);
-  const data = await gh(`/search/issues?q=${q}`);
-  const hit = (data.items || []).find((i: any) => i.title === title);
-  return hit ? { number: hit.number, state: hit.state } : null;
+/**
+ * Locate an auto-managed issue for a URL by scanning body for a stable
+ * HTML-comment marker. Title-based search is unreliable (title changes when
+ * `STALE_DAYS` is tuned, plus GitHub search is eventually consistent), so the
+ * marker-in-body approach is the source of truth for dedup and open-issue
+ * updates across reruns. Prefers open issues; falls back to a closed one so
+ * we reopen instead of duplicating.
+ */
+async function findExistingIssueForUrl(
+  url: string,
+  hint?: number,
+): Promise<{ number: number; state: string } | null> {
+  if (hint) {
+    try {
+      const issue = await gh(`/repos/${REPO}/issues/${hint}`);
+      if (issue && typeof issue.body === 'string' && issue.body.includes(issueMarkerFor(url))) {
+        return { number: issue.number, state: issue.state };
+      }
+    } catch { /* fall through to search */ }
+  }
+  // Search open first, then closed. `in:body` matches the HTML comment marker.
+  const marker = issueMarkerFor(url);
+  const base = `repo:${REPO} is:issue label:${ISSUE_LABEL} in:body "${marker}"`;
+  for (const state of ['is:open', 'is:closed']) {
+    const q = encodeURIComponent(`${base} ${state}`);
+    const data = await gh(`/search/issues?q=${q}`);
+    const items = (data.items || []) as { number: number; state: string; body?: string }[];
+    const hit = items.find((i) => (i.body || '').includes(marker));
+    if (hit) return { number: hit.number, state: hit.state };
+  }
+  return null;
 }
 
 async function ensureLabel() {
@@ -113,29 +120,22 @@ async function ensureLabel() {
 }
 
 async function upsertIssue(url: string, entry: HistoryEntry, daysStuck: number): Promise<number> {
-  const title = `[SEO] GSC N/A > ${STALE_DAYS}d: ${url}`;
-  const body = [
-    `Google Search Console reports this URL as **never crawled (N/A)** for **${daysStuck} days**.`,
-    ``,
-    `- URL: ${url}`,
-    `- First seen N/A: \`${entry.firstSeenNa}\``,
-    `- Last confirmed N/A: \`${entry.lastSeenNa}\``,
-    `- Threshold: ${STALE_DAYS} days`,
-    ``,
-    `## Suggested actions`,
-    `1. Verify the URL is in \`public/sitemap-*.xml\` and returns 200.`,
-    `2. Confirm it is not blocked by \`robots.txt\` or a \`noindex\` tag.`,
-    `3. Request indexing manually in Search Console → URL Inspection.`,
-    `4. Check for canonical mismatch (\`googleCanonical\` vs \`userCanonical\`) in the latest \`reports/gsc-status-*.csv\`.`,
-    ``,
-    `_This issue is auto-managed by \`scripts/gsc-track-na-urls.ts\` and will be closed automatically once Google crawls the URL._`,
-  ].join('\n');
+  const title = buildIssueTitle(url, STALE_DAYS);
+  const body = buildIssueBody({
+    url,
+    firstSeenNa: entry.firstSeenNa,
+    lastSeenNa: entry.lastSeenNa,
+    daysStuck,
+    staleDays: STALE_DAYS,
+  });
 
-  const existing = await findExistingIssueByTitle(title);
+  const existing = await findExistingIssueForUrl(url, entry.issueNumber);
   if (existing) {
-    if (existing.state === 'closed') {
-      await gh(`/repos/${REPO}/issues/${existing.number}`, { method: 'PATCH', body: JSON.stringify({ state: 'open' }) });
-    }
+    // Update in place — never open a duplicate for the same URL.
+    await gh(`/repos/${REPO}/issues/${existing.number}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title, body, state: 'open' }),
+    });
     await gh(`/repos/${REPO}/issues/${existing.number}/comments`, {
       method: 'POST',
       body: JSON.stringify({ body: `Still N/A after ${daysStuck} days (checked ${entry.lastSeenNa}).` }),
@@ -150,6 +150,13 @@ async function upsertIssue(url: string, entry: HistoryEntry, daysStuck: number):
 }
 
 async function closeIssue(num: number, url: string) {
+  // Be defensive: only close if this issue really is ours (marker match). Prevents
+  // accidentally closing an unrelated issue if the history file gets corrupted.
+  try {
+    const issue = await gh(`/repos/${REPO}/issues/${num}`);
+    if (!issue?.body?.includes(issueMarkerFor(url))) return;
+    if (issue.state === 'closed') return;
+  } catch { return; }
   await gh(`/repos/${REPO}/issues/${num}/comments`, {
     method: 'POST',
     body: JSON.stringify({ body: `✅ Google has crawled \`${url}\`. Auto-closing.` }),
@@ -178,7 +185,9 @@ async function main() {
       if (days >= STALE_DAYS) {
         try {
           const num = await upsertIssue(r.url, entry, days);
-          if (entry.issueNumber !== num) opened++; else updated++;
+          if (!entry.issueNumber) opened++;
+          else if (entry.issueNumber !== num) opened++;
+          else updated++;
           entry.issueNumber = num;
         } catch (e) {
           console.error(`  ✗ issue upsert failed for ${r.url}:`, e);
@@ -196,6 +205,20 @@ async function main() {
 
   saveHistory(history);
   console.log(`\nDone. opened=${opened} updated=${updated} closed=${closed} tracked=${Object.keys(history).length}`);
+
+  // Emit a summary line CI can grep to fire threshold alerts (Slack/email).
+  const naCount = Object.keys(history).length;
+  const alertLimit = Number(process.env.NA_ALERT_LIMIT || 0);
+  console.log(`GSC_NA_SUMMARY na_total=${naCount} opened=${opened} closed=${closed} limit=${alertLimit}`);
+  if (process.env.GITHUB_OUTPUT) {
+    writeFileSync(process.env.GITHUB_OUTPUT, [
+      `na_total=${naCount}`,
+      `opened=${opened}`,
+      `closed=${closed}`,
+      `over_limit=${alertLimit > 0 && naCount > alertLimit ? 'true' : 'false'}`,
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
 }
 
 main().catch((e) => { console.error('Fatal:', e); process.exit(1); });
