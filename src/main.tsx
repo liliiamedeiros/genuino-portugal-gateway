@@ -9,12 +9,13 @@ const schedulePwaRegistration = () => {
     void registerPwa();
   };
 
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(startRegistration, { timeout: 4000 });
+  const requestIdleCallback = window.requestIdleCallback;
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(startRegistration, { timeout: 4000 });
     return;
   }
 
-  window.setTimeout(startRegistration, 2500);
+  globalThis.setTimeout(startRegistration, 2500);
 };
 
 if (document.readyState === "complete") {
