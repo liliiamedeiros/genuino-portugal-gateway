@@ -111,7 +111,7 @@ export const HeroSlider = () => {
   return (
     <section className="relative h-[100svh] overflow-hidden">
       <Helmet>
-        <link rel="preload" as="image" href={slides[0].image} fetchpriority="high" />
+        <link rel="preload" as="image" href={slides[0].image} />
       </Helmet>
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
