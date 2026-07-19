@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -109,6 +110,9 @@ export const HeroSlider = () => {
 
   return (
     <section className="relative h-[100svh] overflow-hidden">
+      <Helmet>
+        <link rel="preload" as="image" href={slides[0].image} fetchpriority="high" />
+      </Helmet>
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
           {slides.map((slide, index) => (
@@ -121,7 +125,7 @@ export const HeroSlider = () => {
                 height={1080}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                fetchPriority={index === currentSlide ? 'high' : 'auto'}
+                fetchPriority={index === 0 ? 'high' : 'auto'}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
             </div>
