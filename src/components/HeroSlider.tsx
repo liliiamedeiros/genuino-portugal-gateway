@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { useImagePreloader } from '@/hooks/useImagePreloader';
 import slider1 from '@/assets/slider-1.webp';
 import slider2 from '@/assets/slider-2.webp';
 import slider3 from '@/assets/slider-3.webp';
 import slider4 from '@/assets/slider-4.webp';
+
+const TRANSPARENT_PIXEL =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
 interface Slide {
   image: string;
@@ -55,34 +57,48 @@ const slides: Slide[] = [{
   }
 }];
 
+const getNextIndex = (index: number) => (index === slides.length - 1 ? 0 : index + 1);
+const getPrevIndex = (index: number) => (index === 0 ? slides.length - 1 : index - 1);
+
 export const HeroSlider = () => {
   const { t, language } = useLanguage();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { preloadMultiple, isLoaded } = useImagePreloader({ maxConcurrent: 2 });
+  const [requestedSlides, setRequestedSlides] = useState<Set<number>>(() => new Set([0]));
+
+  const requestSlide = useCallback((index: number) => {
+    setRequestedSlides((previous) => {
+      if (previous.has(index)) return previous;
+      const next = new Set(previous);
+      next.add(index);
+      return next;
+    });
+  }, []);
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
+    if (!emblaApi) return;
+    requestSlide(getPrevIndex(currentSlide));
+    emblaApi.scrollPrev();
+  }, [currentSlide, emblaApi, requestSlide]);
 
   const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
+    if (!emblaApi) return;
+    requestSlide(getNextIndex(currentSlide));
+    emblaApi.scrollNext();
+  }, [currentSlide, emblaApi, requestSlide]);
 
   const scrollTo = useCallback((index: number) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  }, [emblaApi]);
+    if (!emblaApi) return;
+    requestSlide(index);
+    emblaApi.scrollTo(index);
+  }, [emblaApi, requestSlide]);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     const index = emblaApi.selectedScrollSnap();
     setCurrentSlide(index);
-    
-    // Preload adjacent slides
-    const prevIndex = index === 0 ? slides.length - 1 : index - 1;
-    const nextIndex = index === slides.length - 1 ? 0 : index + 1;
-    preloadMultiple([slides[prevIndex].image, slides[nextIndex].image]);
-  }, [emblaApi, preloadMultiple]);
+    requestSlide(index);
+  }, [emblaApi, requestSlide]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -96,17 +112,11 @@ export const HeroSlider = () => {
   useEffect(() => {
     if (!emblaApi) return;
     const timer = setInterval(() => {
+      requestSlide(getNextIndex(emblaApi.selectedScrollSnap()));
       emblaApi.scrollNext();
     }, 3000);
     return () => clearInterval(timer);
-  }, [emblaApi]);
-
-  // Preload first slide on mount
-  useEffect(() => {
-    if (slides.length > 0) {
-      preloadMultiple([slides[0].image, slides[1]?.image].filter(Boolean));
-    }
-  }, [preloadMultiple]);
+  }, [emblaApi, requestSlide]);
 
   return (
     <section className="relative h-[100svh] overflow-hidden">
@@ -115,21 +125,24 @@ export const HeroSlider = () => {
       </Helmet>
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
-          {slides.map((slide, index) => (
+          {slides.map((slide, index) => {
+            const shouldLoadImage = requestedSlides.has(index);
+            return (
             <div key={index} className="embla__slide relative min-w-0 flex-[0_0_100%]">
               <img 
-                src={slide.image} 
+                src={shouldLoadImage ? slide.image : TRANSPARENT_PIXEL} 
                 alt={slide.caption[language]} 
                 className="w-full h-full object-cover"
                 width={1920}
                 height={1080}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                fetchPriority={index === 0 ? 'high' : 'auto'}
+                fetchPriority={index === 0 ? 'high' : 'low'}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

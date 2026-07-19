@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: null,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
         name: 'Genuíno Investments',
@@ -51,8 +52,26 @@ export default defineConfig(({ mode }) => ({
         // public visit, defeating React.lazy route isolation.
         globPatterns: ['**/*.{html,css,ico,png,svg,webmanifest}'],
         globIgnores: ['admin/**'],
-        navigateFallbackDenylist: [/^\/admin(?:\/|$)/],
+        navigateFallbackDenylist: [/^\/admin(?:\/|$)/, /^\/~oauth(?:\/|$)/],
         runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) =>
+              request.mode === 'navigate' &&
+              !url.pathname.startsWith('/admin') &&
+              !url.pathname.startsWith('/~oauth'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'public-navigation-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 40,
+                maxAgeSeconds: 60 * 60 * 24
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             urlPattern: /\/assets\/.*\.js$/i,
             handler: 'StaleWhileRevalidate',
