@@ -13,7 +13,7 @@ export const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 3xl:gap-12 4xl:gap-16 mb-8 3xl:mb-12">
           <div>
-            <img src={logo} alt="GenuinoInvestments Switzerland" className="h-14 sm:h-16 3xl:h-20 4xl:h-24 w-auto mb-4 3xl:mb-6" />
+            <img src={logo} alt="GenuinoInvestments Switzerland" width={700} height={200} loading="lazy" decoding="async" className="h-14 sm:h-16 3xl:h-20 4xl:h-24 w-auto mb-4 3xl:mb-6" />
             <p className="text-sm 3xl:text-base 4xl:text-lg text-muted-foreground leading-relaxed">
               Entreprise suisse, nous sommes spécialisés dans la promotion et le développement de projets immobiliers au Portugal, où nous allions innovation, fonctionnalité et design intemporel.
             </p>
