@@ -4,6 +4,27 @@
 /__l5e/assets-v1/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Static images shipped in /public — safe to cache aggressively.
+# Update the filename (or add a query string) when the asset content changes.
+*.webp
+  Cache-Control: public, max-age=31536000, immutable
+*.avif
+  Cache-Control: public, max-age=31536000, immutable
+*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+*.png
+  Cache-Control: public, max-age=31536000, immutable
+*.svg
+  Cache-Control: public, max-age=31536000, immutable
+*.ico
+  Cache-Control: public, max-age=604800
+*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
 /registerSW.js
   Cache-Control: no-cache, no-store, must-revalidate
 
