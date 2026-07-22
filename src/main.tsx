@@ -9,13 +9,15 @@ const schedulePwaRegistration = () => {
     void registerPwa();
   };
 
-  const requestIdleCallback = window.requestIdleCallback;
-  if (typeof requestIdleCallback === "function") {
-    requestIdleCallback(startRegistration, { timeout: 4000 });
+  const ric = (window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  }).requestIdleCallback;
+  if (typeof ric === "function") {
+    ric(startRegistration, { timeout: 4000 });
     return;
   }
 
-  globalThis.setTimeout(startRegistration, 2500);
+  window.setTimeout(startRegistration, 2500);
 };
 
 if (document.readyState === "complete") {
