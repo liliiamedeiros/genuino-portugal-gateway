@@ -6,15 +6,28 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import slider1 from '@/assets/slider-1.webp';
+import slider1_640 from '@/assets/slider-1-640.webp';
+import slider1_1024 from '@/assets/slider-1-1024.webp';
+import slider1_1920 from '@/assets/slider-1-1920.webp';
 import slider2 from '@/assets/slider-2.webp';
+import slider2_640 from '@/assets/slider-2-640.webp';
+import slider2_1024 from '@/assets/slider-2-1024.webp';
+import slider2_1920 from '@/assets/slider-2-1920.webp';
 import slider3 from '@/assets/slider-3.webp';
+import slider3_640 from '@/assets/slider-3-640.webp';
+import slider3_1024 from '@/assets/slider-3-1024.webp';
+import slider3_1920 from '@/assets/slider-3-1920.webp';
 import slider4 from '@/assets/slider-4.webp';
+import slider4_640 from '@/assets/slider-4-640.webp';
+import slider4_1024 from '@/assets/slider-4-1024.webp';
+import slider4_1920 from '@/assets/slider-4-1920.webp';
 
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
 interface Slide {
   image: string;
+  srcset: string;
   caption: {
     fr: string;
     en: string;
@@ -25,6 +38,7 @@ interface Slide {
 
 const slides: Slide[] = [{
   image: slider1,
+  srcset: `${slider1_640} 640w, ${slider1_1024} 1024w, ${slider1_1920} 1920w`,
   caption: {
     fr: "Acheter maison avec piscine au Portugal - Villa de luxe avec piscine privée et vue panoramique",
     en: "Buy house with pool in Portugal - Luxury villa with private pool and panoramic views",
@@ -33,6 +47,7 @@ const slides: Slide[] = [{
   }
 }, {
   image: slider2,
+  srcset: `${slider2_640} 640w, ${slider2_1024} 1024w, ${slider2_1920} 1920w`,
   caption: {
     fr: "Acheter maison plage Portugal - Propriété de luxe en bord de mer Algarve",
     en: "Buy beachfront house Portugal - Luxury beachfront property in Algarve",
@@ -41,6 +56,7 @@ const slides: Slide[] = [{
   }
 }, {
   image: slider3,
+  srcset: `${slider3_640} 640w, ${slider3_1024} 1024w, ${slider3_1920} 1920w`,
   caption: {
     fr: "Acheter maison au Portugal - Villa moderne avec jardin et architecture contemporaine",
     en: "Buy house in Portugal - Modern villa with garden and contemporary architecture",
@@ -49,6 +65,7 @@ const slides: Slide[] = [{
   }
 }, {
   image: slider4,
+  srcset: `${slider4_640} 640w, ${slider4_1024} 1024w, ${slider4_1920} 1920w`,
   caption: {
     fr: "Acheter maison Porto Portugal - Immobilier de prestige avec vue mer à Vila Nova de Gaia",
     en: "Buy house Porto Portugal - Prestige real estate with sea view in Vila Nova de Gaia",
@@ -121,7 +138,16 @@ export const HeroSlider = () => {
   return (
     <section className="relative h-[100svh] overflow-hidden">
       <Helmet>
-        <link rel="preload" as="image" href={slides[0].image} {...({ fetchpriority: "high" } as Record<string, string>)} />
+        <link
+          rel="preload"
+          as="image"
+          href={slides[0].image}
+          {...({
+            fetchpriority: 'high',
+            imagesrcset: slides[0].srcset,
+            imagesizes: '100vw',
+          } as Record<string, string>)}
+        />
       </Helmet>
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
@@ -131,6 +157,8 @@ export const HeroSlider = () => {
             <div key={index} className="embla__slide relative min-w-0 flex-[0_0_100%]">
               <img 
                 src={shouldLoadImage ? slide.image : TRANSPARENT_PIXEL} 
+                srcSet={shouldLoadImage ? slide.srcset : undefined}
+                sizes="100vw"
                 alt={slide.caption[language]} 
                 className="w-full h-full object-cover"
                 width={1920}
