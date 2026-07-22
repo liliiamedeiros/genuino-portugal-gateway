@@ -25,8 +25,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        serif: ['"Playfair Display Variable"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
+        sans: ['"Inter Variable"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       fontSize: {
         'tv-sm': ['1.125rem', { lineHeight: '1.75rem' }],
