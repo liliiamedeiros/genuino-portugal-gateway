@@ -1,3 +1,8 @@
+/* Self-hosted variable fonts (no Google Fonts request, font-display: swap
+   is set by the @fontsource-variable packages by default). */
+@import "@fontsource-variable/playfair-display/index.css";
+@import "@fontsource-variable/inter/index.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
