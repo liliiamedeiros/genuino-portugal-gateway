@@ -189,9 +189,10 @@ export const HeroSlider = () => {
                 className="w-full h-full object-cover"
                 width={1920}
                 height={1080}
-                loading={index === 0 ? 'eager' : 'lazy'}
+                loading={shouldLoadImage ? 'eager' : 'lazy'}
                 decoding="async"
-                fetchPriority={index === 0 ? 'high' : 'low'}
+                fetchPriority={index === 0 ? 'high' : 'auto'}
+
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
             </div>
