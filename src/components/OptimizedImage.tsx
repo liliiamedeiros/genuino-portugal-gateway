@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { getResponsiveSrcSet } from '@/lib/responsiveAssets';
 
 interface OptimizedImageProps {
   src: string;
@@ -36,6 +37,7 @@ export function OptimizedImage({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const srcSet = getResponsiveSrcSet(src);
 
   // Check if image is already cached/loaded
   useEffect(() => {
@@ -102,6 +104,7 @@ export function OptimizedImage({
         <img
           ref={imgRef}
           src={src}
+          srcSet={srcSet}
           alt={alt}
           width={width}
           height={height}
