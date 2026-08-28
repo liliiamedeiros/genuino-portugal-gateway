@@ -56,9 +56,9 @@ export const StatsSection = () => {
                   <div className="text-3xl sm:text-4xl md:text-5xl 3xl:text-6xl 4xl:text-7xl font-serif font-bold text-primary mb-2 sm:mb-3 3xl:mb-4">
                     <AnimatedCounter end={stat.value} suffix={stat.suffix} duration={2500} />
                   </div>
-                  <h3 className="text-base sm:text-lg 3xl:text-xl 4xl:text-2xl font-medium text-muted-foreground uppercase tracking-wide">
+<p className="text-base sm:text-lg 3xl:text-xl 4xl:text-2xl font-medium text-muted-foreground uppercase tracking-wide">
                     {t(stat.titleKey)}
-                  </h3>
+                  </p>
                 </CardContent>
               </Card>
             );
