@@ -20,20 +20,20 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 3xl:mb-6 text-base 3xl:text-lg 4xl:text-xl">
+<h3 className="font-semibold mb-4 3xl:mb-6 text-base 3xl:text-lg 4xl:text-xl">
               <MapPin className="inline h-4 w-4 mr-1" />
               Suisse
-            </h4>
+            </h3>
             <div className="space-y-2 3xl:space-y-3 text-sm 3xl:text-base 4xl:text-lg text-muted-foreground">
               <p>Quai du Cheval Blanc, 2</p>
               <p>1227 Carouge/Genève</p>
               <p className="flex items-center gap-1"><Phone className="h-3 w-3" /> +41 76 487 60 00</p>
               <p>info@genuinoinvestments.ch</p>
             </div>
-            <h4 className="font-semibold mt-4 mb-2 3xl:mb-3 text-base 3xl:text-lg 4xl:text-xl">
+<h3 className="font-semibold mt-4 mb-2 3xl:mb-3 text-base 3xl:text-lg 4xl:text-xl">
               <MapPin className="inline h-4 w-4 mr-1" />
               Portugal
-            </h4>
+            </h3>
             <div className="space-y-2 3xl:space-y-3 text-sm 3xl:text-base 4xl:text-lg text-muted-foreground">
               <p>Rua António Stromp 12 A</p>
               <p>1600-411 Lumiar, Lisboa</p>
@@ -42,7 +42,7 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-serif font-semibold mb-4 3xl:mb-6 uppercase text-primary text-base 3xl:text-lg 4xl:text-xl">Suivez-nous</h4>
+            <h3 className="font-serif font-semibold mb-4 3xl:mb-6 uppercase text-primary text-base 3xl:text-lg 4xl:text-xl">Suivez-nous</h3>
             <div className="flex gap-4 3xl:gap-6">
               <a 
                 href="#" 
@@ -76,16 +76,16 @@ export const Footer = () => {
         {/* Seção Institucional */}
         <div className="border-t border-border pt-6 sm:pt-8 3xl:pt-12 mt-6 sm:mt-8 3xl:mt-12">
           <div className="max-w-3xl 3xl:max-w-4xl mx-auto text-center">
-            <h3 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-bold mb-3 sm:mb-4 text-primary">
+<h2 className="text-lg sm:text-xl 3xl:text-2xl 4xl:text-3xl font-serif font-bold mb-3 sm:mb-4 text-primary">
               GenuinoInvestments Switzerland
-            </h3>
+            </h2>
             <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg mb-2 sm:mb-3 text-muted-foreground">
               Carouge/Genève (Suisse) | Lumiar/Lisboa (Portugal)
             </p>
             <p className="text-xs sm:text-sm 3xl:text-base 4xl:text-lg mb-3 sm:mb-4 text-muted-foreground">
               Investissements Immobiliers – Vacances, Plage et Campagne
             </p>
-            <div className="flex justify-center gap-2 sm:gap-3 text-xs sm:text-sm 3xl:text-base text-muted-foreground/75 flex-wrap">
+            <div className="flex justify-center gap-2 sm:gap-3 text-xs sm:text-sm 3xl:text-base text-muted-foreground flex-wrap">
               <span>Português</span>
               <span>•</span>
               <span>English</span>
