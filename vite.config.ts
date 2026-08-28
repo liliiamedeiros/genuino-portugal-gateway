@@ -45,7 +45,9 @@ export default defineConfig(({ mode }) => ({
     // image import (Vite appends `?import` in dev), which crashes the dev
     // server on any file sharp cannot decode.
     imagetools({ include: /[?&](w|format|as)=/ }),
+    inlineCriticalCss(),
     mode === "development" && componentTagger(),
+
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,
