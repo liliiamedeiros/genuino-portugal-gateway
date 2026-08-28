@@ -15,7 +15,7 @@ export const DynamicFavicon = () => {
         .from('system_settings')
         .select('value')
         .eq('key', 'favicon_url')
-        .single();
+        .maybeSingle();
       
       if (error || !data) return null;
       
