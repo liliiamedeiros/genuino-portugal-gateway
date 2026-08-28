@@ -15,28 +15,33 @@ const originals = import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
   query: { url: '' },
 }) as UrlMap;
 
-const variantWidths = [480, 768, 1024, 1440] as const;
+const variantWidths = [480, 640, 768, 1024, 1440] as const;
 
 const variantMaps: Record<number, UrlMap> = {
   480: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 480, format: 'webp', quality: 58 },
+    query: { w: 480, format: 'webp', quality: 46 },
+  }) as UrlMap,
+  640: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
+    eager: true,
+    import: 'default',
+    query: { w: 640, format: 'webp', quality: 46 },
   }) as UrlMap,
   768: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 768, format: 'webp', quality: 58 },
+    query: { w: 768, format: 'webp', quality: 46 },
   }) as UrlMap,
   1024: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1024, format: 'webp', quality: 58 },
+    query: { w: 1024, format: 'webp', quality: 46 },
   }) as UrlMap,
   1440: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1440, format: 'webp', quality: 58 },
+    query: { w: 1440, format: 'webp', quality: 46 },
   }) as UrlMap,
 };
 
