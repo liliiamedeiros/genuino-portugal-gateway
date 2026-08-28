@@ -13,7 +13,11 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(), 
-    imagetools(),
+    // Only intercept imports that explicitly ask for a transformation
+    // (?w= / ?format= / ?as=). Without this, imagetools runs sharp on EVERY
+    // image import (Vite appends `?import` in dev), which crashes the dev
+    // server on any file sharp cannot decode.
+    imagetools({ include: /[?&](w|format|as)=/ }),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
