@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Shield } from 'lucide-react';
 import logo from '@/assets/logo-switzerland.webp';
 import logoWhite from '@/assets/logo-white.webp';
+import logoSrcSet from '@/assets/logo-switzerland.webp?w=280;560&format=webp&quality=72&as=srcset';
+import logoWhiteSrcSet from '@/assets/logo-white.webp?w=280;560&format=webp&quality=72&as=srcset';
 import { FALLBACK_MAIN_MENU, resolveLabel } from '@/data/navigationFallback';
 
 export const Navbar = () => {
@@ -91,6 +93,8 @@ export const Navbar = () => {
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <img 
                 src={isScrolled ? logoWhite : logo} 
+                srcSet={isScrolled ? logoWhiteSrcSet : logoSrcSet}
+                sizes="(max-width: 640px) 175px, 245px"
                 alt="Genuíno Investments Switzerland" 
                 width={700}
                 height={200}

@@ -21,17 +21,17 @@ const variantMaps: Record<number, UrlMap> = {
   640: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 640, format: 'webp' },
+    query: { w: 640, format: 'webp', quality: 68 },
   }) as UrlMap,
   1024: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1024, format: 'webp' },
+    query: { w: 1024, format: 'webp', quality: 68 },
   }) as UrlMap,
   1600: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1600, format: 'webp' },
+    query: { w: 1600, format: 'webp', quality: 68 },
   }) as UrlMap,
 };
 
