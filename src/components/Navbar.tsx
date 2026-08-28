@@ -95,7 +95,7 @@ export const Navbar = () => {
                 width={700}
                 height={200}
                 decoding="async"
-                fetchPriority="high"
+                {...{ fetchpriority: 'high' }}
                 className="h-10 sm:h-16 3xl:h-20 4xl:h-24 w-auto transition-all duration-500 hover:scale-105" 
               />
             </Link>
