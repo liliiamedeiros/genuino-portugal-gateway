@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(), 
+    imagetools(),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
