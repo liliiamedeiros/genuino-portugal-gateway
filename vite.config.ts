@@ -1,9 +1,36 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
 import { imagetools } from 'vite-imagetools';
+
+// Inlines the entry stylesheet into <style> so the first paint no longer waits
+// on a separate render-blocking /assets/*.css request (saves one round trip on
+// the critical path measured by PageSpeed).
+function inlineCriticalCss(): Plugin {
+  return {
+    name: 'inline-entry-css',
+    apply: 'build',
+    enforce: 'post',
+    transformIndexHtml(html, ctx) {
+      if (!ctx.bundle) return html;
+      return html.replace(
+        /<link[^>]*rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
+        (match, href: string) => {
+          const fileName = href.replace(/^\/+/, '');
+          const asset = ctx.bundle?.[fileName];
+          if (!asset || asset.type !== 'asset') return match;
+          const source = typeof asset.source === 'string'
+            ? asset.source
+            : Buffer.from(asset.source).toString('utf-8');
+          return `<style>${source}</style>`;
+        }
+      );
+    },
+  };
+}
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
