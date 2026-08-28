@@ -131,16 +131,19 @@ export default {
             height: "0",
           },
         },
+        // Composited-only (transform/opacity) so the animation stays on the
+        // GPU — animating box-shadow forces paint on every frame.
         "pulse-slow": {
           "0%, 100%": {
             transform: "scale(1)",
-            boxShadow: "0 0 0 0 hsl(var(--primary) / 0.4)",
+            opacity: "1",
           },
           "50%": {
             transform: "scale(1.05)",
-            boxShadow: "0 0 0 10px hsl(var(--primary) / 0)",
+            opacity: "0.92",
           },
         },
+
         "message-in": {
           from: {
             opacity: "0",

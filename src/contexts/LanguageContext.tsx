@@ -62,7 +62,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.testimonials.title': 'Témoignages',
     'home.investor.title': 'Êtes-vous investisseur ?',
     'home.investor.text': 'Nous avons des solutions et des conditions spéciales pour vous.',
-    'home.investor.cta': 'En savoir plus',
+    'home.investor.cta': 'En savoir plus sur l\'investissement',
     'home.vision.text': 'Nous souhaitons laisser une empreinte positive à travers des projets synonymes de rigueur, d\'exigence et de détail.',
     
     // About
@@ -272,7 +272,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.testimonials.title': 'Testimonials',
     'home.investor.title': 'Are you an investor?',
     'home.investor.text': 'We have solutions and special conditions for you.',
-    'home.investor.cta': 'Learn more',
+    'home.investor.cta': 'Learn more about investing',
     'home.vision.text': 'We wish to leave a positive mark through projects synonymous with rigor, excellence and detail.',
     
     // About
@@ -504,7 +504,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.testimonials.title': 'Referenzen',
     'home.investor.title': 'Sind Sie Investor?',
     'home.investor.text': 'Wir haben Lösungen und besondere Konditionen für Sie.',
-    'home.investor.cta': 'Mehr erfahren',
+    'home.investor.cta': 'Mehr über Investitionen erfahren',
     'home.vision.text': 'Wir möchten durch Projekte, die für Präzision, Exzellenz und Detail stehen, einen positiven Abdruck hinterlassen.',
     
     // About
@@ -722,7 +722,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.testimonials.title': 'Testemunhos',
     'home.investor.title': 'É investidor?',
     'home.investor.text': 'Temos soluções e condições especiais para si.',
-    'home.investor.cta': 'Saiba mais',
+    'home.investor.cta': 'Saiba mais sobre investir',
     'home.vision.text': 'Desejamos deixar uma marca positiva através de projetos sinónimos de rigor, exigência e detalhe.',
     
     // About
