@@ -1,7 +1,7 @@
 /**
  * Build-time responsive variants for local images in `src/assets`.
  *
- * vite-imagetools generates 640w / 1024w / 1600w WebP copies of every bundled
+ * vite-imagetools generates 480w / 768w / 1024w / 1440w WebP copies of every bundled
  * image. At runtime we map the resolved (hashed) URL of the original asset to
  * its variants so `<img>` can ship a proper `srcset` and browsers download a
  * size that matches the layout box instead of the full-resolution file.
@@ -15,23 +15,28 @@ const originals = import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
   query: { url: '' },
 }) as UrlMap;
 
-const variantWidths = [640, 1024, 1600] as const;
+const variantWidths = [480, 768, 1024, 1440] as const;
 
 const variantMaps: Record<number, UrlMap> = {
-  640: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
+  480: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 640, format: 'webp', quality: 68 },
+    query: { w: 480, format: 'webp', quality: 58 },
+  }) as UrlMap,
+  768: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
+    eager: true,
+    import: 'default',
+    query: { w: 768, format: 'webp', quality: 58 },
   }) as UrlMap,
   1024: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1024, format: 'webp', quality: 68 },
+    query: { w: 1024, format: 'webp', quality: 58 },
   }) as UrlMap,
-  1600: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
+  1440: import.meta.glob('/src/assets/*.{webp,png,jpg,jpeg}', {
     eager: true,
     import: 'default',
-    query: { w: 1600, format: 'webp', quality: 68 },
+    query: { w: 1440, format: 'webp', quality: 58 },
   }) as UrlMap,
 };
 
