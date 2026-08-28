@@ -6,10 +6,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Shield } from 'lucide-react';
-import logo from '@/assets/logo-switzerland.webp';
-import logoWhite from '@/assets/logo-white.webp';
-import logoSrcSet from '@/assets/logo-switzerland.webp?w=280;560&format=webp&quality=72&as=srcset';
-import logoWhiteSrcSet from '@/assets/logo-white.webp?w=280;560&format=webp&quality=72&as=srcset';
+import logo from '@/assets/logo-switzerland.webp?w=245&format=webp&quality=62&url';
+import logoWhite from '@/assets/logo-white.webp?w=245&format=webp&quality=62&url';
+import logoSrcSet from '@/assets/logo-switzerland.webp?w=175;245;350;490&format=webp&quality=62&as=srcset';
+import logoWhiteSrcSet from '@/assets/logo-white.webp?w=175;245;350;490&format=webp&quality=62&as=srcset';
 import { FALLBACK_MAIN_MENU, resolveLabel } from '@/data/navigationFallback';
 
 export const Navbar = () => {
