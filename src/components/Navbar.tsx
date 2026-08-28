@@ -96,8 +96,8 @@ export const Navbar = () => {
                 srcSet={isScrolled ? logoWhiteSrcSet : logoSrcSet}
                 sizes="(max-width: 640px) 175px, 245px"
                 alt="Genuíno Investments Switzerland" 
-                width={700}
-                height={200}
+                width={245}
+                height={70}
                 decoding="async"
                 {...{ fetchpriority: 'high' }}
                 className="h-10 sm:h-16 3xl:h-20 4xl:h-24 w-auto transition-all duration-500 hover:scale-105" 
