@@ -128,12 +128,38 @@ export const HeroSlider = () => {
 
   useEffect(() => {
     if (!emblaApi) return;
-    const timer = setInterval(() => {
-      requestSlide(getNextIndex(emblaApi.selectedScrollSnap()));
-      emblaApi.scrollNext();
-    }, 3000);
-    return () => clearInterval(timer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let timer: ReturnType<typeof setInterval> | undefined;
+    // Delay autoplay so the LCP image (slide 1) is the element the browser
+    // paints and measures — rotating too early makes slide 2 the LCP element
+    // while it is still lazy/low priority.
+    const start = window.setTimeout(() => {
+      timer = setInterval(() => {
+        if (document.hidden) return;
+        requestSlide(getNextIndex(emblaApi.selectedScrollSnap()));
+        emblaApi.scrollNext();
+      }, 7000);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(start);
+      if (timer) clearInterval(timer);
+    };
   }, [emblaApi, requestSlide]);
+
+  // Warm the next slide once the browser is idle, so a rotation never starts
+  // a lazy request from scratch.
+  useEffect(() => {
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback(() => requestSlide(1), { timeout: 4000 })
+      : window.setTimeout(() => requestSlide(1), 3000);
+    return () => {
+      if (window.cancelIdleCallback && typeof idle === 'number') window.cancelIdleCallback(idle);
+      else window.clearTimeout(idle as number);
+    };
+  }, [requestSlide]);
+
 
   return (
     <section className="relative h-[100svh] overflow-hidden">
