@@ -244,30 +244,21 @@ export const HeroSlider = () => {
       </button>
 
       {/* Dots Indicator - Larger touch targets on mobile */}
-      <div className="absolute bottom-8 sm:bottom-8 3xl:bottom-12 4xl:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-3 sm:gap-2 3xl:gap-3 4xl:gap-4 safe-area-bottom py-2">
+      <div className="absolute bottom-8 sm:bottom-8 3xl:bottom-12 4xl:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-1 sm:gap-2 3xl:gap-3 4xl:gap-4 safe-area-bottom py-2">
         {slides.map((_, index) => (
           <button 
             key={index} 
             onClick={() => scrollTo(index)} 
-            className={`
-              transition-colors duration-300 rounded-full
-
-              h-3 sm:h-3 3xl:h-4 4xl:h-5
-              min-w-[44px] sm:min-w-0 min-h-[44px] sm:min-h-0
-              flex items-center justify-center
-              ${index === currentSlide 
-                ? 'bg-primary w-8 sm:w-8 3xl:w-10 4xl:w-12' 
-                : 'bg-white/50 hover:bg-white/75 w-3 sm:w-3 3xl:w-4 4xl:w-5'
-              }
-            `}
+            className="flex items-center justify-center rounded-full min-h-[44px] min-w-[44px] h-11 w-11 3xl:h-12 3xl:w-12"
             aria-label={`Ir para slide ${index + 1}`}
             aria-current={index === currentSlide ? 'true' : 'false'}
           >
             <span className={`
-              block rounded-full
+              block rounded-full transition-colors duration-300
+              h-3 sm:h-3 3xl:h-4 4xl:h-5
               ${index === currentSlide 
-                ? 'w-8 sm:w-8 3xl:w-10 4xl:w-12 h-3 sm:h-3 3xl:h-4 4xl:h-5 bg-primary' 
-                : 'w-3 sm:w-3 3xl:w-4 4xl:w-5 h-3 sm:h-3 3xl:h-4 4xl:h-5'
+                ? 'bg-primary w-8 sm:w-8 3xl:w-10 4xl:w-12' 
+                : 'bg-white/50 hover:bg-white/75 w-3 sm:w-3 3xl:w-4 4xl:w-5'
               }
             `} />
           </button>
