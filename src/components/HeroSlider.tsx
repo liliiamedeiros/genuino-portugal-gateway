@@ -246,7 +246,8 @@ export const HeroSlider = () => {
             key={index} 
             onClick={() => scrollTo(index)} 
             className={`
-              transition-all duration-300 rounded-full
+              transition-colors duration-300 rounded-full
+
               h-3 sm:h-3 3xl:h-4 4xl:h-5
               min-w-[44px] sm:min-w-0 min-h-[44px] sm:min-h-0
               flex items-center justify-center
