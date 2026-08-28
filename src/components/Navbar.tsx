@@ -114,7 +114,7 @@ export const Navbar = () => {
                     isScrolled 
                       ? 'text-white hover:brightness-110' 
                       : 'text-primary hover:text-accent'
-                  } ${isActive(link.to) ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
+                  } ${isActive(link.to) ? '' : 'underline-offset-4 hover:underline'}`}
                 >
                   {link.label}
                   <span className={`absolute bottom-0 left-0 h-0.5 bg-current transition-all duration-300 ${
